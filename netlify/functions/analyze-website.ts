@@ -1,4 +1,12 @@
-import { Handler } from '@netlify/functions';
+let totalDiscovered = 1;
+  let analyzed = 0;      const pageAnalysis = {
+        url: currentUrl,
+        status: 'success' as const,
+        gtmFound,
+        ga4Found,
+        gtmContainers: gtmContainers,
+        ga4Properties: allGA4Properties
+      };import { Handler } from '@netlify/functions';
 
 const handler: Handler = async (event, context) => {
   // Set CORS headers for all responses
@@ -10,6 +18,12 @@ const handler: Handler = async (event, context) => {
 
   // Handle preflight requests
   if (event.httpMethod === 'OPTIONS') {
+    console.log('=== FINAL RESULTS ===');
+    console.log('GTM containers (unique):', [...new Set(gtmContainers)]);
+    console.log('GA4 properties (unique):', [...new Set(ga4Properties)]);
+    console.log('Enhanced measurement detected:', html.includes('enhanced_ecommerce') || html.includes('purchase') || html.includes('add_to_cart'));
+    console.log('=== END DEBUG ===');
+
     return {
       statusCode: 200,
       headers,
@@ -99,15 +113,40 @@ async function analyzeSinglePage(url: string) {
     
     const html = await response.text();
     
-    // Enhanced detection patterns
-    const gtmPattern = /gtag\('config',\s*'GA_MEASUREMENT_ID',\s*'(G-[A-Z0-9]+)'/g;
-    const ga4Pattern = /gtag\('config',\s*'(G-[A-Z0-9]+)'/g;
+    // Enhanced detection patterns - GTM-focused approach
     const gtmContainerPattern = /GTM-[A-Z0-9]+/g;
+    const ga4DirectPattern = /gtag\('config',\s*['"]?(G-[A-Z0-9]+)['"]?\)/g;
     const gtagPattern = /gtag\(/g;
+    const dataLayerPattern = /dataLayer/g;
+    
+    // Debug logging
+    console.log('=== DETECTION DEBUG ===');
+    console.log('URL:', url);
+    console.log('HTML length:', html.length);
     
     const gtmContainers = Array.from(html.matchAll(gtmContainerPattern)).map(match => match[0]);
-    const ga4Properties = Array.from(html.matchAll(ga4Pattern)).map(match => match[1]);
+    const ga4DirectMatches = Array.from(html.matchAll(ga4DirectPattern)).map(match => match[1]);
+    
+    // Smart GA4 detection logic
+    const hasDirectGA4 = ga4DirectMatches.length > 0;
+    const hasGTM = gtmContainers.length > 0;
+    const hasDataLayer = dataLayerPattern.test(html);
     const hasGtag = gtagPattern.test(html);
+    
+    // If GTM is present, assume GA4 is likely configured within it
+    const likelyHasGA4ViaGTM = hasGTM && hasDataLayer;
+    
+    console.log('GTM containers found:', gtmContainers);
+    console.log('Direct GA4 found:', ga4DirectMatches);
+    console.log('Has GTM:', hasGTM);
+    console.log('Has dataLayer:', hasDataLayer);
+    console.log('Has gtag calls:', hasGtag);
+    console.log('Likely has GA4 via GTM:', likelyHasGA4ViaGTM);
+    
+    // For reporting purposes - if no direct GA4 but GTM exists, indicate potential GA4
+    const ga4Properties = hasDirectGA4 ? ga4DirectMatches : (likelyHasGA4ViaGTM ? ['G-XXXXXX (configured in GTM)'] : []);
+    
+    const hasGtagFinal = gtagPattern.test(html);
 
     // Detailed configuration audit
     const configurationAudit = {
@@ -130,9 +169,9 @@ async function analyzeSinglePage(url: string) {
       },
       dataCollection: {
         enhancedMeasurement: {
-          status: ga4Properties.length > 0 ? 'detected' : 'not-detected',
-          value: ga4Properties.length > 0 ? 'GA4 detected' : 'No GA4 found',
-          recommendation: 'Enable Enhanced Measurement for automatic event tracking'
+          status: hasGTM || ga4Properties.length > 0 ? 'detected' : 'not-detected',
+          value: hasGTM ? 'GTM detected (GA4 likely configured)' : ga4Properties.length > 0 ? 'GA4 detected' : 'No GA4 found',
+          recommendation: hasGTM ? 'Verify GA4 configuration within GTM container' : 'Set up Google Analytics 4 tracking'
         },
         crossDomainTracking: {
           status: html.includes('linker') ? 'detected' : 'not-detected',
@@ -147,9 +186,9 @@ async function analyzeSinglePage(url: string) {
       },
       events: {
         pageView: {
-          status: hasGtag ? 'detected' : 'not-detected',
-          value: hasGtag ? 'Basic tracking active' : 'No tracking detected',
-          recommendation: 'Ensure page_view events are firing correctly'
+          status: hasGtagFinal || hasGTM ? 'detected' : 'not-detected',
+          value: hasGTM ? 'GTM container active' : hasGtagFinal ? 'Basic tracking active' : 'No tracking detected',
+          recommendation: hasGTM ? 'Verify page_view events in GTM' : 'Ensure page_view events are firing correctly'
         },
         ecommerce: {
           status: html.includes('purchase') || html.includes('add_to_cart') ? 'detected' : 'not-detected',
@@ -173,12 +212,13 @@ async function analyzeSinglePage(url: string) {
 
     const recommendations = [
       ...(gtmContainers.length === 0 ? ['Install Google Tag Manager for easier tag management'] : []),
-      ...(ga4Properties.length === 0 ? ['Set up Google Analytics 4 property'] : []),
-      ...(gtmContainers.length > 0 && ga4Properties.length === 0 ? ['Connect GA4 property to your GTM container'] : []),
+      ...(gtmContainers.length > 0 && !hasDirectGA4 ? ['Verify GA4 configuration in your GTM container'] : []),
+      ...(gtmContainers.length === 0 && ga4Properties.length === 0 ? ['Set up Google Analytics 4 property'] : []),
+      ...(hasGTM ? ['Check GTM container for proper GA4 tag configuration'] : []),
       ...(!html.includes('consent') ? ['Implement Google Consent Mode for privacy compliance'] : []),
       ...(!html.includes('enhanced_ecommerce') && !html.includes('purchase') ? ['Set up e-commerce tracking if you sell products'] : []),
       'Connect your GA4 account for complete property configuration audit',
-      'Verify enhanced measurement settings in GA4 interface',
+      hasGTM ? 'Verify GA4 tag configuration in GTM interface' : 'Set up enhanced measurement settings in GA4',
       'Set up custom events for key business actions',
       'Configure conversion goals in GA4',
       'Link Google Ads account for conversion tracking'
@@ -190,7 +230,7 @@ async function analyzeSinglePage(url: string) {
       ga4Properties: [...new Set(ga4Properties)],
       currentSetup: {
         gtmInstalled: gtmContainers.length > 0,
-        ga4Connected: ga4Properties.length > 0,
+        ga4Connected: ga4Properties.length > 0 || (hasGTM && hasDataLayer), // Assume GA4 if GTM + dataLayer
         enhancedEcommerce: html.includes('purchase') || html.includes('add_to_cart'),
         serverSideTracking: false,
         crossDomainTracking: {
@@ -225,8 +265,23 @@ async function crawlWebsite(startUrl: string, maxPages: number) {
   const errorPages: any[] = [];
   const untaggedPages: any[] = [];
   
-  let totalDiscovered = 1;
-  let analyzed = 0;
+  // Add some common pages to discover if starting with just homepage
+  if (startUrl.endsWith('/') || startUrl.split('/').pop()?.includes('.') === false) {
+    const commonPaths = [
+      '/about', '/services', '/contact', '/blog', '/products', 
+      '/team', '/pricing', '/features', '/support'
+    ];
+    
+    commonPaths.forEach(path => {
+      const commonUrl = new URL(path, startUrl).toString();
+      if (!urlsToVisit.includes(commonUrl)) {
+        urlsToVisit.push(commonUrl);
+        totalDiscovered++;
+      }
+    });
+    
+    console.log(`Added ${commonPaths.length} common pages to initial crawl queue`);
+  }
   let withGTM = 0;
   let withGA4 = 0;
   let errors = 0;
@@ -242,15 +297,22 @@ async function crawlWebsite(startUrl: string, maxPages: number) {
     }
   };
 
+  console.log(`Starting site crawl for: ${startUrl}`);
+  console.log(`Max pages to analyze: ${maxPages}`);
+
   while (urlsToVisit.length > 0 && analyzed < maxPages) {
     const currentUrl = urlsToVisit.shift()!;
     const normalizedUrl = normalizeUrl(currentUrl);
     
-    if (visitedUrls.has(normalizedUrl)) continue;
+    if (visitedUrls.has(normalizedUrl)) {
+      console.log(`Skipping already visited: ${normalizedUrl}`);
+      continue;
+    }
     visitedUrls.add(normalizedUrl);
 
     try {
-      console.log(`Analyzing page ${analyzed + 1}: ${currentUrl}`);
+      console.log(`Analyzing page ${analyzed + 1}/${maxPages}: ${currentUrl}`);
+      console.log(`Queue remaining: ${urlsToVisit.length} URLs`);
       
       const scrapingbeeUrl = `https://app.scrapingbee.com/api/v1/?api_key=${SCRAPINGBEE_API_KEY}&url=${encodeURIComponent(currentUrl)}&render_js=true&wait=2000`;
       
@@ -261,18 +323,21 @@ async function crawlWebsite(startUrl: string, maxPages: number) {
       
       const html = await response.text();
       
-      // Check for tracking
+      // Check for tracking - GTM-focused approach
       const gtmFound = /GTM-[A-Z0-9]+/.test(html);
-      const ga4Found = /gtag\('config',\s*'(G-[A-Z0-9]+)'/.test(html);
+      const ga4DirectFound = /gtag\('config',\s*['"]?(G-[A-Z0-9]+)['"]?\)/.test(html);
+      const hasDataLayerOnPage = /dataLayer/.test(html);
       
-      const pageAnalysis = {
-        url: currentUrl,
-        status: 'success' as const,
-        gtmFound,
-        ga4Found,
-        gtmContainers: Array.from(html.matchAll(/GTM-[A-Z0-9]+/g)).map(m => m[0]),
-        ga4Properties: Array.from(html.matchAll(/gtag\('config',\s*'(G-[A-Z0-9]+)'/g)).map(m => m[1])
-      };
+      // If GTM is present with dataLayer, assume GA4 is configured
+      const ga4Found = ga4DirectFound || (gtmFound && hasDataLayerOnPage);
+      
+      console.log(`Page ${analyzed + 1} - GTM: ${gtmFound}, GA4: ${ga4Found} (direct: ${ga4DirectFound}, via GTM: ${gtmFound && hasDataLayerOnPage})`);
+      
+      const gtmContainers = Array.from(html.matchAll(/GTM-[A-Z0-9]+/g)).map(m => m[0]);
+      const ga4DirectMatches = Array.from(html.matchAll(/gtag\('config',\s*['"]?(G-[A-Z0-9]+)['"]?\)/g)).map(m => m[1]);
+      
+      // For GTM setups, show placeholder since actual ID is in GTM
+      const allGA4Properties = ga4DirectMatches.length > 0 ? ga4DirectMatches : (gtmFound && hasDataLayerOnPage ? ['GA4 via GTM'] : []);
       
       pageDetails.push(pageAnalysis);
       analyzed++;
@@ -283,32 +348,85 @@ async function crawlWebsite(startUrl: string, maxPages: number) {
         untaggedPages.push(pageAnalysis);
       }
       
-      // Extract more URLs (limit discovery)
+      // Enhanced link discovery - multiple patterns
       if (analyzed < maxPages * 0.8) { // Stop discovering new URLs when we're 80% through
-        const linkMatches = html.match(/href="([^"]*?)"/g) || [];
-        const newUrls = linkMatches
-          .map(link => link.match(/href="([^"]*?)"/)?.[1])
+        // Multiple link extraction patterns
+        const linkPatterns = [
+          /href="([^"]*?)"/g,           // Standard href attributes
+          /href='([^']*?)'/g,           // Single quote hrefs
+          /<a[^>]+href=["']([^"']+)["']/g, // More specific anchor tags
+        ];
+        
+        let allLinks: string[] = [];
+        linkPatterns.forEach(pattern => {
+          const matches = Array.from(html.matchAll(pattern));
+          allLinks.push(...matches.map(match => match[1]));
+        });
+        
+        // Also look for sitemap links and navigation
+        const sitemapMatches = html.match(/(?:sitemap|navigation|menu|nav)[\s\S]*?href=["']([^"']+)["']/gi) || [];
+        allLinks.push(...sitemapMatches.map(match => match.match(/href=["']([^"']+)["']/)?.[1]).filter(Boolean) as string[]);
+        
+        console.log(`Found ${allLinks.length} total links on ${currentUrl}`);
+        
+        const newUrls = allLinks
           .filter(Boolean)
           .map(href => {
             try {
-              return new URL(href!, currentUrl).toString();
+              // Handle relative URLs
+              if (href.startsWith('/')) {
+                return new URL(href, currentUrl).toString();
+              } else if (href.startsWith('http')) {
+                return href;
+              } else if (!href.includes('://') && !href.startsWith('#') && !href.startsWith('mailto:') && !href.startsWith('tel:')) {
+                return new URL(href, currentUrl).toString();
+              }
+              return null;
             } catch {
               return null;
             }
           })
           .filter(Boolean)
           .filter(url => {
-            const urlObj = new URL(url!);
-            return urlObj.hostname === domain && 
-                   !url!.includes('#') && 
-                   !url!.includes('?') &&
-                   !visitedUrls.has(normalizeUrl(url!)) &&
-                   !urlsToVisit.includes(url!);
+            if (!url) return false;
+            try {
+              const urlObj = new URL(url);
+              return urlObj.hostname === domain && 
+                     !url.includes('#') && 
+                     !url.includes('?') &&
+                     !url.includes('.pdf') &&
+                     !url.includes('.jpg') &&
+                     !url.includes('.png') &&
+                     !url.includes('.css') &&
+                     !url.includes('.js') &&
+                     !visitedUrls.has(normalizeUrl(url)) &&
+                     !urlsToVisit.includes(url);
+            } catch {
+              return false;
+            }
           })
-          .slice(0, 10); // Limit new URLs per page
+          .slice(0, 20); // Limit new URLs per page
         
+        console.log(`Adding ${newUrls.length} new URLs to crawl queue`);
         urlsToVisit.push(...newUrls as string[]);
         totalDiscovered = Math.max(totalDiscovered, visitedUrls.size + urlsToVisit.length);
+        
+        // If we didn't find many links, try common page patterns
+        if (newUrls.length < 3 && analyzed === 1) {
+          const commonPages = [
+            '/about', '/about-us', '/services', '/products', '/contact', 
+            '/blog', '/news', '/pricing', '/features', '/team',
+            '/privacy', '/terms', '/support', '/help', '/faq'
+          ].map(path => new URL(path, startUrl).toString());
+          
+          const validCommonPages = commonPages.filter(url => 
+            !visitedUrls.has(normalizeUrl(url)) && !urlsToVisit.includes(url)
+          );
+          
+          console.log(`Adding ${validCommonPages.length} common pages to crawl queue`);
+          urlsToVisit.push(...validCommonPages);
+          totalDiscovered += validCommonPages.length;
+        }
       }
       
     } catch (error) {
