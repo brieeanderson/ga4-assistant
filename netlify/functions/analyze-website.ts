@@ -1,12 +1,4 @@
-let totalDiscovered = 1;
-  let analyzed = 0;      const pageAnalysis = {
-        url: currentUrl,
-        status: 'success' as const,
-        gtmFound,
-        ga4Found,
-        gtmContainers: gtmContainers,
-        ga4Properties: allGA4Properties
-      };import { Handler } from '@netlify/functions';
+import { Handler } from '@netlify/functions';
 
 const handler: Handler = async (event, context) => {
   // Set CORS headers for all responses
@@ -18,12 +10,6 @@ const handler: Handler = async (event, context) => {
 
   // Handle preflight requests
   if (event.httpMethod === 'OPTIONS') {
-    console.log('=== FINAL RESULTS ===');
-    console.log('GTM containers (unique):', [...new Set(gtmContainers)]);
-    console.log('GA4 properties (unique):', [...new Set(ga4Properties)]);
-    console.log('Enhanced measurement detected:', html.includes('enhanced_ecommerce') || html.includes('purchase') || html.includes('add_to_cart'));
-    console.log('=== END DEBUG ===');
-
     return {
       statusCode: 200,
       headers,
@@ -224,6 +210,12 @@ async function analyzeSinglePage(url: string) {
       'Link Google Ads account for conversion tracking'
     ];
 
+    console.log('=== FINAL RESULTS ===');
+    console.log('GTM containers (unique):', [...new Set(gtmContainers)]);
+    console.log('GA4 properties (unique):', [...new Set(ga4Properties)]);
+    console.log('Enhanced measurement detected:', html.includes('enhanced_ecommerce') || html.includes('purchase') || html.includes('add_to_cart'));
+    console.log('=== END DEBUG ===');
+
     return {
       domain: url,
       gtmContainers: [...new Set(gtmContainers)],
@@ -265,6 +257,23 @@ async function crawlWebsite(startUrl: string, maxPages: number) {
   const errorPages: any[] = [];
   const untaggedPages: any[] = [];
   
+  let totalDiscovered = 1;
+  let analyzed = 0;
+  let withGTM = 0;
+  let withGA4 = 0;
+  let errors = 0;
+
+  const normalizeUrl = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      urlObj.search = '';
+      urlObj.hash = '';
+      return urlObj.toString().replace(/\/$/, '');
+    } catch {
+      return '';
+    }
+  };
+
   // Add some common pages to discover if starting with just homepage
   if (startUrl.endsWith('/') || startUrl.split('/').pop()?.includes('.') === false) {
     const commonPaths = [
@@ -282,20 +291,6 @@ async function crawlWebsite(startUrl: string, maxPages: number) {
     
     console.log(`Added ${commonPaths.length} common pages to initial crawl queue`);
   }
-  let withGTM = 0;
-  let withGA4 = 0;
-  let errors = 0;
-
-  const normalizeUrl = (url: string): string => {
-    try {
-      const urlObj = new URL(url);
-      urlObj.search = '';
-      urlObj.hash = '';
-      return urlObj.toString().replace(/\/$/, '');
-    } catch {
-      return '';
-    }
-  };
 
   console.log(`Starting site crawl for: ${startUrl}`);
   console.log(`Max pages to analyze: ${maxPages}`);
@@ -338,6 +333,15 @@ async function crawlWebsite(startUrl: string, maxPages: number) {
       
       // For GTM setups, show placeholder since actual ID is in GTM
       const allGA4Properties = ga4DirectMatches.length > 0 ? ga4DirectMatches : (gtmFound && hasDataLayerOnPage ? ['GA4 via GTM'] : []);
+
+      const pageAnalysis = {
+        url: currentUrl,
+        status: 'success' as const,
+        gtmFound,
+        ga4Found,
+        gtmContainers: gtmContainers,
+        ga4Properties: allGA4Properties
+      };
       
       pageDetails.push(pageAnalysis);
       analyzed++;
