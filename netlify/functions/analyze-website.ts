@@ -25,7 +25,7 @@ export const handler: Handler = async (event, context) => {
   }
 
   try {
-    const { url } = JSON.parse(event.body || '{}');
+    let { url } = JSON.parse(event.body || '{}');
     
     if (!url) {
       return {
@@ -35,20 +35,51 @@ export const handler: Handler = async (event, context) => {
       };
     }
 
-    // Use fetch instead of Puppeteer for now
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
-    });
+    // Fix URL if missing protocol
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url;
+    }
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch ${url}: ${response.status}`);
+    // Try to fetch the website
+    let response;
+    try {
+      response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        },
+        timeout: 10000 // 10 second timeout
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (fetchError) {
+      // If HTTPS fails, try HTTP
+      if (url.startsWith('https://')) {
+        const httpUrl = url.replace('https://', 'http://');
+        try {
+          response = await fetch(httpUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            },
+            timeout: 10000
+          });
+          if (response.ok) {
+            url = httpUrl; // Update URL to the working one
+          } else {
+            throw fetchError; // Throw original HTTPS error
+          }
+        } catch {
+          throw fetchError; // Throw original HTTPS error
+        }
+      } else {
+        throw fetchError;
+      }
     }
 
     const html = await response.text();
 
-    // Basic analysis using string matching (not as good as Puppeteer but works)
+    // Enhanced analysis using better regex patterns
     const analysis = {
       gtmContainers: [] as string[],
       ga4Properties: [] as string[],
@@ -59,102 +90,156 @@ export const handler: Handler = async (event, context) => {
       debugMode: false
     };
 
-    // Look for GTM containers
-    const gtmMatches = html.match(/googletagmanager\.com\/gtm\.js\?id=([^"&']+)/g);
-    if (gtmMatches) {
-      gtmMatches.forEach(match => {
-        const idMatch = match.match(/id=([^"&']+)/);
-        if (idMatch && idMatch[1]) {
-          analysis.gtmContainers.push(idMatch[1]);
-          analysis.gtmSnippetFound = true;
+    // Look for GTM containers (multiple patterns)
+    const gtmPatterns = [
+      /googletagmanager\.com\/gtm\.js\?id=([^"&'>\s]+)/gi,
+      /GTM-[A-Z0-9]{6,}/gi,
+      /'gtm\.start'[^}]+container['"]\s*:\s*['"]([^'"]+)['"]/gi
+    ];
+
+    gtmPatterns.forEach(pattern => {
+      const matches = html.match(pattern);
+      if (matches) {
+        matches.forEach(match => {
+          let containerId = '';
+          if (match.includes('id=')) {
+            const idMatch = match.match(/id=([^"&'>\s]+)/);
+            containerId = idMatch ? idMatch[1] : '';
+          } else if (match.startsWith('GTM-')) {
+            containerId = match;
+          } else {
+            const containerMatch = match.match(/['"]([^'"]+)['"]$/);
+            containerId = containerMatch ? containerMatch[1] : '';
+          }
+          
+          if (containerId && !analysis.gtmContainers.includes(containerId)) {
+            analysis.gtmContainers.push(containerId);
+            analysis.gtmSnippetFound = true;
+          }
+        });
+      }
+    });
+
+    // Look for GA4 measurement IDs (enhanced patterns)
+    const ga4Patterns = [
+      /G-[A-Z0-9]{10}/gi,
+      /gtag\(['"]config['"],\s*['"]([^'"]+)['"]/gi,
+      /ga\(['"]create['"],\s*['"]([^'"]+)['"]/gi
+    ];
+
+    ga4Patterns.forEach(pattern => {
+      const matches = html.match(pattern);
+      if (matches) {
+        matches.forEach(match => {
+          let propertyId = '';
+          if (match.startsWith('G-')) {
+            propertyId = match;
+          } else {
+            const idMatch = match.match(/['"]([^'"]+)['"]$/);
+            if (idMatch && (idMatch[1].startsWith('G-') || idMatch[1].startsWith('UA-'))) {
+              propertyId = idMatch[1];
+            }
+          }
+          
+          if (propertyId && !analysis.ga4Properties.includes(propertyId)) {
+            analysis.ga4Properties.push(propertyId);
+          }
+        });
+      }
+    });
+
+    // Check for various tracking features
+    const checks = [
+      { property: 'crossDomainTracking.enabled', patterns: [/linker/i, /cross[_-]?domain/i, /allowLinker/i] },
+      { property: 'consentMode', patterns: [/consent[_-]?mode/i, /ad_storage/i, /analytics_storage/i] },
+      { property: 'debugMode', patterns: [/debug[_-]?mode/i, /gtag_enable_tcf_support/i] },
+      { property: 'enhancedEcommerce', patterns: [/purchase/i, /add_to_cart/i, /view_item/i, /ecommerce/i] }
+    ];
+
+    checks.forEach(check => {
+      const found = check.patterns.some(pattern => pattern.test(html));
+      if (found) {
+        if (check.property === 'crossDomainTracking.enabled') {
+          analysis.crossDomainTracking.enabled = true;
+        } else {
+          analysis[check.property as keyof typeof analysis] = true;
         }
-      });
-    }
+      }
+    });
 
-    // Look for GA4 measurement IDs
-    const ga4Matches = html.match(/G-[A-Z0-9]{10}/g);
-    if (ga4Matches) {
-      analysis.ga4Properties = [...new Set(ga4Matches)]; // Remove duplicates
-    }
-
-    // Check for cross-domain tracking
-    if (html.includes('linker') || html.includes('cross_domain')) {
-      analysis.crossDomainTracking.enabled = true;
-    }
-
-    // Check for consent mode
-    if (html.includes('consent_mode') || html.includes('ad_storage')) {
-      analysis.consentMode = true;
-    }
-
-    // Check for debug mode
-    if (html.includes('debug_mode')) {
-      analysis.debugMode = true;
-    }
-
-    // Check for ecommerce events
-    if (html.includes('purchase') || html.includes('add_to_cart') || html.includes('view_item')) {
-      analysis.enhancedEcommerce = true;
-    }
-
-    // Generate recommendations based on analysis
+    // Generate recommendations
     const recommendations = [];
     
     if (analysis.gtmContainers.length === 0) {
-      recommendations.push('Install Google Tag Manager container');
+      recommendations.push('No Google Tag Manager container detected - consider implementing GTM for easier tag management');
     }
     
     if (analysis.ga4Properties.length === 0) {
-      recommendations.push('Configure Google Analytics 4 property');
+      recommendations.push('No Google Analytics 4 property detected - implement GA4 for comprehensive analytics');
     }
     
-    if (!analysis.crossDomainTracking.enabled) {
-      recommendations.push('Set up cross-domain tracking if needed');
+    if (!analysis.crossDomainTracking.enabled && (url.includes('www.') || html.includes('domain'))) {
+      recommendations.push('Consider setting up cross-domain tracking if you have multiple domains');
     }
     
     if (!analysis.consentMode) {
-      recommendations.push('Implement Consent Mode v2 for privacy compliance');
+      recommendations.push('Implement Google Consent Mode v2 for privacy compliance (GDPR/CCPA)');
     }
     
     if (analysis.debugMode) {
-      recommendations.push('Disable debug mode in production');
+      recommendations.push('Debug mode detected - ensure this is disabled in production');
     }
     
-    if (!analysis.enhancedEcommerce) {
-      recommendations.push('Enable Enhanced Ecommerce tracking');
+    if (!analysis.enhancedEcommerce && html.toLowerCase().includes('shop')) {
+      recommendations.push('Consider implementing Enhanced Ecommerce tracking for better conversion insights');
+    }
+
+    // Add note about limitations
+    if (html.includes('javascript') || html.includes('JS') || html.includes('script')) {
+      recommendations.push('⚠️ This site uses JavaScript - some tracking codes may not be detected in this basic scan');
     }
 
     // Build configuration audit
     const configurationAudit = {
       propertySettings: {
-        timezone: { status: 'incomplete', value: 'UTC (default)', recommendation: 'Set to business timezone' },
-        currency: { status: 'incomplete', value: 'USD (default)', recommendation: 'Set to business currency' }
+        timezone: { status: 'unknown', value: 'Not detectable via HTML scan', recommendation: 'Check GA4 admin settings' },
+        currency: { status: 'unknown', value: 'Not detectable via HTML scan', recommendation: 'Check GA4 admin settings' }
       },
       dataCollection: {
-        siteSearchParams: { status: 'incomplete', value: 'Default (q,s,search,query,keyword)', recommendation: 'Configure custom search parameters' },
-        piiRedaction: { status: 'incomplete', value: 'Not configured', recommendation: 'Redact PII from URL parameters' },
-        crossDomain: { 
-          status: analysis.crossDomainTracking.enabled ? 'complete' : 'incomplete', 
-          value: analysis.crossDomainTracking.enabled ? 'Configured' : 'Not configured', 
-          recommendation: 'Configure cross-domain tracking' 
+        basicTracking: { 
+          status: analysis.ga4Properties.length > 0 ? 'detected' : 'not-detected', 
+          value: `${analysis.ga4Properties.length} GA4 properties found`, 
+          recommendation: analysis.ga4Properties.length > 0 ? 'Verify tracking is working correctly' : 'Implement GA4 tracking' 
         },
-        unwantedReferrals: { status: 'incomplete', value: 'Not configured', recommendation: 'Define payment processor referrals' },
-        ipFilters: { status: 'incomplete', value: 'Not configured', recommendation: 'Filter internal traffic' },
-        sessionTimeout: { status: 'complete', value: '30 minutes (default)', recommendation: 'Default is usually fine' },
-        googleSignals: { status: 'incomplete', value: 'Disabled', recommendation: 'Enable after privacy review' },
-        dataRetention: { status: 'incomplete', value: '2 months (default)', recommendation: 'Consider 14 months after privacy review' }
+        tagManagement: { 
+          status: analysis.gtmContainers.length > 0 ? 'detected' : 'not-detected', 
+          value: `${analysis.gtmContainers.length} GTM containers found`, 
+          recommendation: analysis.gtmContainers.length > 0 ? 'Verify container is properly configured' : 'Consider implementing Google Tag Manager' 
+        },
+        crossDomain: { 
+          status: analysis.crossDomainTracking.enabled ? 'detected' : 'not-detected', 
+          value: analysis.crossDomainTracking.enabled ? 'Cross-domain tracking detected' : 'No cross-domain tracking detected', 
+          recommendation: 'Configure cross-domain tracking if you have multiple domains' 
+        },
+        privacyCompliance: { 
+          status: analysis.consentMode ? 'detected' : 'not-detected', 
+          value: analysis.consentMode ? 'Consent mode detected' : 'No consent mode detected', 
+          recommendation: 'Implement Google Consent Mode v2 for privacy compliance' 
+        }
       },
       events: {
-        customEvents: { status: 'incomplete', value: 'Basic detection only', recommendation: 'Review event structure' },
-        keyEvents: { status: 'incomplete', value: '0 configured', recommendation: 'Set 1-2 primary key events' },
-        keyEventCounting: { status: 'incomplete', value: 'Not configured', recommendation: 'Choose once per session or per event' },
-        keyEventValue: { status: 'incomplete', value: 'Not configured', recommendation: 'Set default values if needed' }
+        ecommerce: { 
+          status: analysis.enhancedEcommerce ? 'detected' : 'not-detected', 
+          value: analysis.enhancedEcommerce ? 'Ecommerce events detected' : 'No ecommerce events detected', 
+          recommendation: 'Implement Enhanced Ecommerce if you have an online store' 
+        }
       },
       integrations: {
-        googleAds: { status: 'incomplete', value: 'Not linked', recommendation: 'Link for conversion tracking' },
-        searchConsole: { status: 'incomplete', value: 'Not linked', recommendation: 'Link for organic search data' },
-        bigQuery: { status: 'incomplete', value: 'Not linked', recommendation: 'Consider for advanced analysis' },
-        merchantCenter: { status: 'incomplete', value: 'Not linked', recommendation: 'Link for ecommerce insights' }
+        detectionNote: { 
+          status: 'info', 
+          value: 'Full integration status requires admin access', 
+          recommendation: 'Check your GA4 admin panel for complete integration status' 
+        }
       }
     };
 
@@ -172,7 +257,9 @@ export const handler: Handler = async (event, context) => {
         debugMode: analysis.debugMode
       },
       configurationAudit,
-      recommendations
+      recommendations,
+      analysisMethod: 'HTML parsing (JavaScript-heavy sites may have limited detection)',
+      analysisDate: new Date().toISOString()
     };
 
     return {
@@ -188,7 +275,8 @@ export const handler: Handler = async (event, context) => {
       headers: corsHeaders,
       body: JSON.stringify({ 
         error: 'Failed to analyze website',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
+        suggestion: 'Make sure the URL is accessible and try including https://'
       }),
     };
   }
