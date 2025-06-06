@@ -1,7 +1,38 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Send, Globe, Code, Zap, CheckCircle, BookOpen, AlertCircle, Clock, BarChart3, Settings, Link2 } from 'lucide-react';
+import { Send, Globe, Code, Zap, CheckCircle, BookOpen, AlertCircle, Clock, BarChart3, Settings, Link2, Search, ExternalLink, TrendingUp, AlertTriangle } from 'lucide-react';
+
+interface PageAnalysis {
+  url: string;
+  status: 'success' | 'error' | 'analyzing';
+  gtmFound: boolean;
+  ga4Found: boolean;
+  gtmContainers: string[];
+  ga4Properties: string[];
+  error?: string;
+  responseTime?: number;
+}
+
+interface CrawlResults {
+  crawlSummary: {
+    totalPagesDiscovered: number;
+    pagesAnalyzed: number;
+    successfulAnalysis: number;
+    pagesWithErrors: number;
+    pagesWithGTM: number;
+    pagesWithGA4: number;
+    tagCoverage: number;
+    isComplete: boolean;
+    estimatedPagesRemaining: number;
+  };
+  pageDetails: PageAnalysis[];
+  errorPages: PageAnalysis[];
+  untaggedPages: PageAnalysis[];
+  insights: string[];
+  recommendations: string[];
+  nextSteps: string[];
+}
 
 interface SiteAnalysis {
   domain: string;
@@ -66,6 +97,9 @@ const GA4GTMAssistant = () => {
   const [website, setWebsite] = useState('');
   const [action, setAction] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisType, setAnalysisType] = useState<'single' | 'sitewide'>('sitewide');
+  const [crawlResults, setCrawlResults] = useState<CrawlResults | null>(null);
+  const [siteAnalysis, setSiteAnalysis] = useState<SiteAnalysis | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       type: 'assistant',
@@ -73,15 +107,6 @@ const GA4GTMAssistant = () => {
       timestamp: new Date()
     }
   ]);
-
-  const [siteAnalysis, setSiteAnalysis] = useState<SiteAnalysis>({
-    domain: '',
-    gtmContainers: [],
-    ga4Properties: [],
-    currentSetup: null,
-    configurationAudit: null,
-    recommendations: []
-  });
 
   const handleSendMessage = () => {
     if (!message.trim()) return;
@@ -125,13 +150,14 @@ const GA4GTMAssistant = () => {
     }, 1000);
   };
 
-  const analyzeSite = async () => {
+  const analyzeWebsite = async () => {
     if (!website.trim()) return;
     
     setIsAnalyzing(true);
+    setCrawlResults(null);
+    setSiteAnalysis(null);
     
     try {
-      // For development, use localhost. For production, this will be your Netlify domain
       const baseUrl = process.env.NODE_ENV === 'development' 
         ? 'http://localhost:8888' 
         : '';
@@ -141,7 +167,11 @@ const GA4GTMAssistant = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ url: website }),
+        body: JSON.stringify({ 
+          url: website,
+          crawlMode: analysisType,
+          maxPages: analysisType === 'sitewide' ? 100 : 1
+        }),
       });
       
       if (!response.ok) {
@@ -149,34 +179,62 @@ const GA4GTMAssistant = () => {
       }
       
       const result = await response.json();
-      setSiteAnalysis(result);
+      
+      if (analysisType === 'sitewide') {
+        setCrawlResults(result);
+      } else {
+        setSiteAnalysis(result);
+      }
     } catch (error: unknown) {
-      console.error('Error analyzing site:', error);
-      // Fallback to mock data if analysis fails
-      setSiteAnalysis({
-        domain: website,
-        gtmContainers: ['Analysis failed - check console'],
-        ga4Properties: ['Please try again'],
-        currentSetup: {
-          gtmInstalled: false,
-          ga4Connected: false,
-          enhancedEcommerce: false,
-          serverSideTracking: false,
-          crossDomainTracking: { enabled: false, domains: [] },
-          consentMode: false,
-          debugMode: false
-        },
-        configurationAudit: {
-          propertySettings: {
-            timezone: { status: 'incomplete', value: 'Analysis failed', recommendation: 'Try again' },
-            currency: { status: 'incomplete', value: 'Analysis failed', recommendation: 'Try again' }
+      console.error('Error analyzing website:', error);
+      
+      // Show error state
+      if (analysisType === 'sitewide') {
+        setCrawlResults({
+          crawlSummary: {
+            totalPagesDiscovered: 0,
+            pagesAnalyzed: 0,
+            successfulAnalysis: 0,
+            pagesWithErrors: 1,
+            pagesWithGTM: 0,
+            pagesWithGA4: 0,
+            tagCoverage: 0,
+            isComplete: true,
+            estimatedPagesRemaining: 0
           },
-          dataCollection: {},
-          events: {},
-          integrations: {}
-        },
-        recommendations: [`Website analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`]
-      });
+          pageDetails: [],
+          errorPages: [],
+          untaggedPages: [],
+          insights: [],
+          recommendations: [`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`],
+          nextSteps: []
+        });
+      } else {
+        setSiteAnalysis({
+          domain: website,
+          gtmContainers: ['Analysis failed - check console'],
+          ga4Properties: ['Please try again'],
+          currentSetup: {
+            gtmInstalled: false,
+            ga4Connected: false,
+            enhancedEcommerce: false,
+            serverSideTracking: false,
+            crossDomainTracking: { enabled: false, domains: [] },
+            consentMode: false,
+            debugMode: false
+          },
+          configurationAudit: {
+            propertySettings: {
+              timezone: { status: 'incomplete', value: 'Analysis failed', recommendation: 'Try again' },
+              currency: { status: 'incomplete', value: 'Analysis failed', recommendation: 'Try again' }
+            },
+            dataCollection: {},
+            events: {},
+            integrations: {}
+          },
+          recommendations: [`Website analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`]
+        });
+      }
     } finally {
       setIsAnalyzing(false);
     }
@@ -185,7 +243,6 @@ const GA4GTMAssistant = () => {
   const generateTrackingCode = () => {
     if (!action.trim()) return;
     
-    // Generate proper GA4 event structure based on action
     const eventName = action.toLowerCase().replace(/\s+/g, '_');
     const trackingCode = `// Track: ${action}
 dataLayer.push({
@@ -223,6 +280,20 @@ gtag('event', '${eventName}', {
     };
     
     setMessages(prev => [...prev, newMessage]);
+  };
+
+  const getCoverageColor = (coverage: number) => {
+    if (coverage >= 95) return 'text-green-600';
+    if (coverage >= 80) return 'text-blue-600';
+    if (coverage >= 50) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const getCoverageStatus = (coverage: number) => {
+    if (coverage >= 95) return 'Excellent';
+    if (coverage >= 80) return 'Good';
+    if (coverage >= 50) return 'Fair';
+    return 'Poor';
   };
 
   const getStatusIcon = (status: string) => {
@@ -270,7 +341,7 @@ gtag('event', '${eventName}', {
               <h1 className="text-xl font-bold text-gray-900">GA4 & GTM Assistant</h1>
             </div>
             <div className="text-sm text-gray-600">
-              Real Website Analysis & GA4 Expert AI
+              Complete Website Analytics Audit
             </div>
           </div>
         </div>
@@ -281,9 +352,8 @@ gtag('event', '${eventName}', {
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
             {[
-              { id: 'audit', label: 'GA4 Website Audit', icon: CheckCircle },
+              { id: 'audit', label: 'Website Audit', icon: Search },
               { id: 'chat', label: 'AI Assistant', icon: Send },
-              { id: 'analyze', label: 'Advanced Analysis', icon: Globe },
               { id: 'implement', label: 'Code Generator', icon: Code },
               { id: 'docs', label: 'Documentation', icon: BookOpen }
             ].map(tab => (
@@ -310,29 +380,67 @@ gtag('event', '${eventName}', {
           <div className="space-y-8">
             {/* Lead Magnet Header */}
             <div className="text-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Complete GA4 & GTM Audit</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Complete GA4 & GTM Website Audit</h2>
               <p className="text-lg text-gray-600 mb-6">
-                Get a comprehensive 25+ point analysis of your Google Analytics 4 and GTM implementation. Powered by real website crawling.
+                Choose between single-page analysis or comprehensive site-wide crawling. Get detailed insights into your analytics implementation.
               </p>
               <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
                 <div className="flex items-center">
-                  <CheckCircle className="w-4 h-4 text-green-500 mr-1" />
-                  <span>Real GTM Detection</span>
+                  <Search className="w-4 h-4 text-green-500 mr-1" />
+                  <span>Real-time Analysis</span>
                 </div>
                 <div className="flex items-center">
-                  <CheckCircle className="w-4 h-4 text-green-500 mr-1" />
-                  <span>Live GA4 Analysis</span>
+                  <BarChart3 className="w-4 h-4 text-green-500 mr-1" />
+                  <span>Coverage Reports</span>
                 </div>
                 <div className="flex items-center">
-                  <CheckCircle className="w-4 h-4 text-green-500 mr-1" />
+                  <AlertTriangle className="w-4 h-4 text-green-500 mr-1" />
                   <span>Expert Recommendations</span>
                 </div>
               </div>
             </div>
 
-            {/* Site Input */}
+            {/* Analysis Type Selection & Site Input */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Analyze Your Website</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Choose Analysis Type</h3>
+              
+              {/* Analysis Type Toggle */}
+              <div className="flex space-x-4 mb-6">
+                <button
+                  onClick={() => setAnalysisType('single')}
+                  className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+                    analysisType === 'single'
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-center">
+                    <Globe className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                    <h4 className="font-semibold text-gray-900">Single Page Analysis</h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Deep dive into one page with detailed GA4 configuration audit
+                    </p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setAnalysisType('sitewide')}
+                  className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+                    analysisType === 'sitewide'
+                      ? 'border-purple-500 bg-purple-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-center">
+                    <Search className="w-8 h-8 mx-auto mb-2 text-purple-600" />
+                    <h4 className="font-semibold text-gray-900">Site-Wide Crawl</h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Analyze entire website for tag coverage and missing pages
+                    </p>
+                  </div>
+                </button>
+              </div>
+
+              {/* URL Input */}
               <div className="flex space-x-4">
                 <input
                   type="url"
@@ -342,20 +450,208 @@ gtag('event', '${eventName}', {
                   className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
                 <button
-                  onClick={analyzeSite}
+                  onClick={analyzeWebsite}
                   disabled={isAnalyzing}
-                  className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 font-medium"
+                  className={`px-8 py-3 rounded-lg font-medium text-white transition-colors disabled:opacity-50 ${
+                    analysisType === 'single' 
+                      ? 'bg-blue-600 hover:bg-blue-700' 
+                      : 'bg-purple-600 hover:bg-purple-700'
+                  }`}
                 >
-                  {isAnalyzing ? 'Analyzing...' : 'Analyze Website'}
+                  {isAnalyzing ? 'Analyzing...' : `Start ${analysisType === 'single' ? 'Analysis' : 'Crawl'}`}
                 </button>
               </div>
               <p className="text-sm text-gray-500 mt-2">
-                This will crawl your website and detect actual GTM containers, GA4 properties, and configuration issues.
+                {analysisType === 'single' 
+                  ? 'Deep analysis of GA4 configuration, events, and integrations for one page'
+                  : 'Comprehensive crawl of your entire website to check tracking coverage'
+                }
               </p>
             </div>
 
-            {/* Analysis Results */}
-            {siteAnalysis.domain && (
+            {/* Site-Wide Crawl Results */}
+            {crawlResults && analysisType === 'sitewide' && (
+              <div className="space-y-6">
+                {/* Crawl Summary */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6">Site-Wide Analysis Results</h3>
+                  
+                  {/* Coverage Overview */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <div className="text-2xl font-bold text-gray-900">{crawlResults.crawlSummary.totalPagesDiscovered}</div>
+                      <div className="text-sm text-gray-600">Pages Discovered</div>
+                    </div>
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{crawlResults.crawlSummary.pagesAnalyzed}</div>
+                      <div className="text-sm text-gray-600">Pages Analyzed</div>
+                    </div>
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <div className={`text-2xl font-bold ${getCoverageColor(crawlResults.crawlSummary.tagCoverage)}`}>
+                        {crawlResults.crawlSummary.tagCoverage}%
+                      </div>
+                      <div className="text-sm text-gray-600">Tag Coverage</div>
+                    </div>
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">{crawlResults.crawlSummary.pagesWithErrors}</div>
+                      <div className="text-sm text-gray-600">Pages with Errors</div>
+                    </div>
+                  </div>
+
+                  {/* Coverage Status */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700">Tag Coverage Status</span>
+                      <span className={`text-sm font-semibold ${getCoverageColor(crawlResults.crawlSummary.tagCoverage)}`}>
+                        {getCoverageStatus(crawlResults.crawlSummary.tagCoverage)}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div 
+                        className={`h-3 rounded-full transition-all duration-300 ${
+                          crawlResults.crawlSummary.tagCoverage >= 95 ? 'bg-green-500' :
+                          crawlResults.crawlSummary.tagCoverage >= 80 ? 'bg-blue-500' :
+                          crawlResults.crawlSummary.tagCoverage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${crawlResults.crawlSummary.tagCoverage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Implementation Breakdown */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <div className="flex items-center mb-2">
+                        <Settings className="w-5 h-5 text-blue-600 mr-2" />
+                        <span className="font-semibold text-gray-900">GTM Implementation</span>
+                      </div>
+                      <div className="text-2xl font-bold text-blue-600 mb-1">{crawlResults.crawlSummary.pagesWithGTM}</div>
+                      <div className="text-sm text-gray-600">pages with GTM containers</div>
+                    </div>
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <div className="flex items-center mb-2">
+                        <BarChart3 className="w-5 h-5 text-green-600 mr-2" />
+                        <span className="font-semibold text-gray-900">GA4 Implementation</span>
+                      </div>
+                      <div className="text-2xl font-bold text-green-600 mb-1">{crawlResults.crawlSummary.pagesWithGA4}</div>
+                      <div className="text-sm text-gray-600">pages with GA4 properties</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Insights */}
+                {crawlResults.insights.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Insights</h3>
+                    <div className="space-y-3">
+                      {crawlResults.insights.map((insight, index) => (
+                        <div key={index} className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                          <TrendingUp className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700 text-sm">{insight}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Untagged Pages */}
+                {crawlResults.untaggedPages.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Pages Missing Analytics Tracking</h3>
+                    <div className="space-y-2">
+                      {crawlResults.untaggedPages.map((page, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <AlertTriangle className="w-4 h-4 text-red-500" />
+                            <span className="text-sm text-gray-700 font-mono">{page.url}</span>
+                          </div>
+                          <a 
+                            href={page.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                    {crawlResults.untaggedPages.length >= 20 && (
+                      <p className="text-sm text-gray-500 mt-3">
+                        Showing first 20 untagged pages. Total untagged: {crawlResults.crawlSummary.successfulAnalysis - Math.max(crawlResults.crawlSummary.pagesWithGTM, crawlResults.crawlSummary.pagesWithGA4)}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Error Pages */}
+                {crawlResults.errorPages.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Pages with Analysis Errors</h3>
+                    <div className="space-y-2">
+                      {crawlResults.errorPages.map((page, index) => (
+                        <div key={index} className="flex items-start justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3">
+                              <AlertCircle className="w-4 h-4 text-yellow-500" />
+                              <span className="text-sm text-gray-700 font-mono">{page.url}</span>
+                            </div>
+                            {page.error && (
+                              <p className="text-xs text-gray-500 mt-1 ml-7">{page.error}</p>
+                            )}
+                          </div>
+                          <a 
+                            href={page.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 ml-2"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recommendations */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Priority Recommendations</h3>
+                  <div className="space-y-3">
+                    {crawlResults.recommendations.map((rec, index) => (
+                      <div key={index} className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="text-xs font-medium text-blue-600">{index + 1}</span>
+                        </div>
+                        <span className="text-gray-700 text-sm leading-relaxed">{rec}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Next Steps */}
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Ready for the Complete GA4 Audit?</h3>
+                  <p className="text-gray-700 mb-4">
+                    This site-wide crawl shows your tag implementation coverage. For a complete 25-point GA4 configuration audit including property settings, integrations, and advanced features, connect your GA4 account.
+                  </p>
+                  <div className="space-y-2 mb-4">
+                    {crawlResults.nextSteps.map((step, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm text-gray-700">{step}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <button className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium">
+                    Connect GA4 for Complete Audit
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Single Page Analysis Results */}
+            {siteAnalysis && analysisType === 'single' && (
               <div className="space-y-6">
                 {/* Detection Summary */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -534,6 +830,37 @@ gtag('event', '${eventName}', {
                     ))}
                   </div>
                 </div>
+
+                {/* GA4 Account Connection CTA */}
+                <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6 border border-blue-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Connect Your GA4 Account for Complete Audit</h3>
+                  <p className="text-gray-700 mb-4">
+                    This analysis shows what we can detect from your website's frontend code. For a complete 25-point audit including property settings, audience configurations, and integration status, connect your GA4 account.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-gray-900">Frontend Analysis ✅</h4>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• GTM Container Detection</li>
+                        <li>• GA4 Property Detection</li>
+                        <li>• Basic Event Implementation</li>
+                        <li>• Cross-domain Setup</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-gray-900">GA4 Account Audit 🔐</h4>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• Property Configuration</li>
+                        <li>• Audience Setup</li>
+                        <li>• Conversion Goals</li>
+                        <li>• Integration Status</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                    Connect GA4 Account
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -615,6 +942,132 @@ gtag('event', '${eventName}', {
                 ))}
               </div>
             )}
+
+            {/* Implementation Guides */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Implementation Guides</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 border border-gray-200 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 mb-2">GTM Installation</h4>
+                  <p className="text-sm text-gray-600 mb-3">Install Google Tag Manager on your website</p>
+                  <div className="p-3 bg-gray-50 rounded text-xs font-mono">
+                    {`<!-- Head -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-XXXXXX');</script>
+
+<!-- Body -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXX"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>`}
+                  </div>
+                </div>
+                <div className="p-4 border border-gray-200 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 mb-2">GA4 Direct Install</h4>
+                  <p className="text-sm text-gray-600 mb-3">Install GA4 directly without GTM</p>
+                  <div className="p-3 bg-gray-50 rounded text-xs font-mono">
+                    {`<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>`}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'docs' && (
+          <div className="space-y-8">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">GA4 & GTM Documentation</h2>
+              
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Getting Started</h3>
+                  <div className="space-y-2">
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <h4 className="font-medium text-gray-900">1. Set Up Google Analytics 4</h4>
+                      <p className="text-sm text-gray-600">Create a new GA4 property in your Google Analytics account</p>
+                    </div>
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <h4 className="font-medium text-gray-900">2. Install Google Tag Manager</h4>
+                      <p className="text-sm text-gray-600">GTM makes it easier to manage all your tracking codes</p>
+                    </div>
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <h4 className="font-medium text-gray-900">3. Connect GA4 to GTM</h4>
+                      <p className="text-sm text-gray-600">Create a GA4 Configuration tag in GTM</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Common Events</h3>
+                  <div className="space-y-3">
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <h4 className="font-semibold text-gray-900">Page View</h4>
+                      <p className="text-sm text-gray-600 mb-2">Automatically tracked with GA4 configuration</p>
+                      <div className="text-xs font-mono bg-gray-50 p-2 rounded">
+                        gtag('config', 'G-XXXXXXXXXX');
+                      </div>
+                    </div>
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <h4 className="font-semibold text-gray-900">Custom Event</h4>
+                      <p className="text-sm text-gray-600 mb-2">Track specific user actions</p>
+                      <div className="text-xs font-mono bg-gray-50 p-2 rounded">
+                        gtag('event', 'button_click', {'{'}event_category: 'engagement'{'}'});
+                      </div>
+                    </div>
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <h4 className="font-semibold text-gray-900">E-commerce Purchase</h4>
+                      <p className="text-sm text-gray-600 mb-2">Track transactions and revenue</p>
+                      <div className="text-xs font-mono bg-gray-50 p-2 rounded">
+                        gtag('event', 'purchase', {'{'}transaction_id: '12345', value: 25.42, currency: 'USD'{'}'});
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Best Practices</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-900">Use GTM for tag management</p>
+                        <p className="text-sm text-gray-600">Easier to manage and update tracking codes</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-900">Implement Enhanced Measurement</p>
+                        <p className="text-sm text-gray-600">Automatically track scrolls, outbound clicks, site search</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-900">Set up Consent Mode</p>
+                        <p className="text-sm text-gray-600">Comply with GDPR and privacy regulations</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-900">Test with GA4 DebugView</p>
+                        <p className="text-sm text-gray-600">Verify events are firing correctly</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
