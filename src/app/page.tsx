@@ -952,11 +952,11 @@ gtag('event', '${eventName}', {
                   <p className="text-sm text-gray-600 mb-3">Install Google Tag Manager on your website</p>
                   <div className="p-3 bg-gray-50 rounded text-xs font-mono">
                     {`<!-- Head -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-XXXXXX');</script>
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({&apos;gtm.start&apos;:
+new Date().getTime(),event:&apos;gtm.js&apos;});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!=&apos;dataLayer&apos;?&apos;&l=&apos;+l:&apos;&apos;;j.async=true;j.src=
+&apos;https://www.googletagmanager.com/gtm.js?id=&apos;+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,&apos;script&apos;,&apos;dataLayer&apos;,&apos;GTM-XXXXXX&apos;);</script>
 
 <!-- Body -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXX"
@@ -1013,7 +1013,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                       <h4 className="font-semibold text-gray-900">Page View</h4>
                       <p className="text-sm text-gray-600 mb-2">Automatically tracked with GA4 configuration</p>
                       <div className="text-xs font-mono bg-gray-50 p-2 rounded">
-                        gtag('config', 'G-XXXXXXXXXX');
+                        gtag(&apos;config&apos;, &apos;G-XXXXXXXXXX&apos;);
                       </div>
                     </div>
                     <div className="p-4 border border-gray-200 rounded-lg">
