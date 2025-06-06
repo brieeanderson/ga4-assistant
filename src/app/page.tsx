@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Send, Globe, Code, Zap, CheckCircle, BookOpen } from 'lucide-react';
+import { Send, Globe, Code, Zap, CheckCircle, BookOpen, AlertCircle, Clock, DollarSign, Shield, BarChart3, Settings, Link2 } from 'lucide-react';
 
 interface SiteAnalysis {
   domain: string;
@@ -50,6 +50,7 @@ interface SiteAnalysis {
     };
   } | null;
   recommendations: string[];
+  analysisMethod?: string;
 }
 
 interface Message {
@@ -224,6 +225,38 @@ gtag('event', '${eventName}', {
     setMessages(prev => [...prev, newMessage]);
   };
 
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'detected':
+      case 'complete':
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'not-detected':
+      case 'incomplete':
+        return <AlertCircle className="w-5 h-5 text-red-500" />;
+      case 'unknown':
+      case 'info':
+        return <Clock className="w-5 h-5 text-yellow-500" />;
+      default:
+        return <AlertCircle className="w-5 h-5 text-gray-400" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'detected':
+      case 'complete':
+        return 'bg-green-50 border-green-200';
+      case 'not-detected':
+      case 'incomplete':
+        return 'bg-red-50 border-red-200';
+      case 'unknown':
+      case 'info':
+        return 'bg-yellow-50 border-yellow-200';
+      default:
+        return 'bg-gray-50 border-gray-200';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
@@ -277,9 +310,9 @@ gtag('event', '${eventName}', {
           <div className="space-y-8">
             {/* Lead Magnet Header */}
             <div className="text-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Real GA4 Website Analysis</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Complete GA4 & GTM Audit</h2>
               <p className="text-lg text-gray-600 mb-6">
-                Get actual analysis of your Google Analytics 4 and GTM implementation. Powered by real website crawling.
+                Get a comprehensive 25+ point analysis of your Google Analytics 4 and GTM implementation. Powered by real website crawling.
               </p>
               <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
                 <div className="flex items-center">
@@ -306,7 +339,7 @@ gtag('event', '${eventName}', {
                   value={website}
                   onChange={(e) => setWebsite(e.target.value)}
                   placeholder="Enter your website URL (e.g., https://example.com)"
-                  className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
                 <button
                   onClick={analyzeSite}
@@ -324,37 +357,179 @@ gtag('event', '${eventName}', {
             {/* Analysis Results */}
             {siteAnalysis.domain && (
               <div className="space-y-6">
+                {/* Detection Summary */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Detection Results</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Website</span>
-                      <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                        {siteAnalysis.domain}
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Detection Summary</h3>
+                    {siteAnalysis.analysisMethod && (
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        {siteAnalysis.analysisMethod}
                       </span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{siteAnalysis.gtmContainers.length}</div>
+                      <div className="text-sm text-gray-600">GTM Containers</div>
+                      {siteAnalysis.gtmContainers.length > 0 && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          {siteAnalysis.gtmContainers.join(', ')}
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600">GTM Containers</span>
-                      <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                        {siteAnalysis.gtmContainers.length > 0 ? siteAnalysis.gtmContainers.join(', ') : 'None detected'}
-                      </span>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{siteAnalysis.ga4Properties.length}</div>
+                      <div className="text-sm text-gray-600">GA4 Properties</div>
+                      {siteAnalysis.ga4Properties.length > 0 && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          {siteAnalysis.ga4Properties.join(', ')}
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600">GA4 Properties</span>
-                      <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                        {siteAnalysis.ga4Properties.length > 0 ? siteAnalysis.ga4Properties.join(', ') : 'None detected'}
-                      </span>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">{siteAnalysis.recommendations.length}</div>
+                      <div className="text-sm text-gray-600">Recommendations</div>
                     </div>
                   </div>
                 </div>
 
+                {/* Comprehensive Configuration Audit */}
+                {siteAnalysis.configurationAudit && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-6">Complete GA4 Configuration Audit</h3>
+                    
+                    {/* Property Settings */}
+                    <div className="mb-8">
+                      <div className="flex items-center mb-4">
+                        <Settings className="w-5 h-5 text-gray-600 mr-2" />
+                        <h4 className="text-md font-semibold text-gray-800">Property Settings</h4>
+                      </div>
+                      <div className="space-y-3">
+                        {Object.entries(siteAnalysis.configurationAudit.propertySettings).map(([key, item]) => (
+                          <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start space-x-3 flex-1">
+                                {getStatusIcon(item.status)}
+                                <div className="flex-1">
+                                  <div className="font-medium text-gray-900 capitalize">
+                                    {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                                  </div>
+                                  <div className="text-sm text-gray-600 mt-1">
+                                    Current: {item.value}
+                                  </div>
+                                  <div className="text-sm text-blue-600 mt-1">
+                                    💡 {item.recommendation}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Data Collection */}
+                    <div className="mb-8">
+                      <div className="flex items-center mb-4">
+                        <BarChart3 className="w-5 h-5 text-gray-600 mr-2" />
+                        <h4 className="text-md font-semibold text-gray-800">Data Collection & Tracking</h4>
+                      </div>
+                      <div className="space-y-3">
+                        {Object.entries(siteAnalysis.configurationAudit.dataCollection).map(([key, item]) => (
+                          <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start space-x-3 flex-1">
+                                {getStatusIcon(item.status)}
+                                <div className="flex-1">
+                                  <div className="font-medium text-gray-900 capitalize">
+                                    {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                                  </div>
+                                  <div className="text-sm text-gray-600 mt-1">
+                                    Status: {item.value}
+                                  </div>
+                                  <div className="text-sm text-blue-600 mt-1">
+                                    💡 {item.recommendation}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Events */}
+                    <div className="mb-8">
+                      <div className="flex items-center mb-4">
+                        <Zap className="w-5 h-5 text-gray-600 mr-2" />
+                        <h4 className="text-md font-semibold text-gray-800">Event Configuration</h4>
+                      </div>
+                      <div className="space-y-3">
+                        {Object.entries(siteAnalysis.configurationAudit.events).map(([key, item]) => (
+                          <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start space-x-3 flex-1">
+                                {getStatusIcon(item.status)}
+                                <div className="flex-1">
+                                  <div className="font-medium text-gray-900 capitalize">
+                                    {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                                  </div>
+                                  <div className="text-sm text-gray-600 mt-1">
+                                    Status: {item.value}
+                                  </div>
+                                  <div className="text-sm text-blue-600 mt-1">
+                                    💡 {item.recommendation}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Integrations */}
+                    <div>
+                      <div className="flex items-center mb-4">
+                        <Link2 className="w-5 h-5 text-gray-600 mr-2" />
+                        <h4 className="text-md font-semibold text-gray-800">Integrations</h4>
+                      </div>
+                      <div className="space-y-3">
+                        {Object.entries(siteAnalysis.configurationAudit.integrations).map(([key, item]) => (
+                          <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start space-x-3 flex-1">
+                                {getStatusIcon(item.status)}
+                                <div className="flex-1">
+                                  <div className="font-medium text-gray-900 capitalize">
+                                    {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                                  </div>
+                                  <div className="text-sm text-gray-600 mt-1">
+                                    {item.value}
+                                  </div>
+                                  <div className="text-sm text-blue-600 mt-1">
+                                    💡 {item.recommendation}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Items */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Recommendations</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Priority Action Items</h3>
                   <div className="space-y-3">
-                    {siteAnalysis.recommendations.slice(0, 5).map((rec, index) => (
-                      <div key={index} className="flex items-start space-x-3">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                        <span className="text-gray-700">{rec}</span>
+                    {siteAnalysis.recommendations.slice(0, 8).map((rec, index) => (
+                      <div key={index} className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="text-xs font-medium text-blue-600">{index + 1}</span>
+                        </div>
+                        <span className="text-gray-700 text-sm leading-relaxed">{rec}</span>
                       </div>
                     ))}
                   </div>
@@ -392,7 +567,7 @@ gtag('event', '${eventName}', {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Ask about GA4 or GTM..."
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 />
                 <button
@@ -416,7 +591,7 @@ gtag('event', '${eventName}', {
                   value={action}
                   onChange={(e) => setAction(e.target.value)}
                   placeholder="e.g., Download PDF pricing guide"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
                 <button
                   onClick={generateTrackingCode}
