@@ -311,9 +311,7 @@ async function crawlWebsite(startUrl: string, maxPages: number) {
       
       const scrapingbeeUrl = `https://app.scrapingbee.com/api/v1/?api_key=${SCRAPINGBEE_API_KEY}&url=${encodeURIComponent(currentUrl)}&render_js=true&wait=1000&timeout=8000`;
       
-      const response = await fetch(scrapingbeeUrl, { 
-        timeout: 8000 // 8 second timeout for each request
-      });
+      const response = await fetch(scrapingbeeUrl);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
