@@ -246,12 +246,12 @@ const GA4GTMAssistant = () => {
     const eventName = action.toLowerCase().replace(/\s+/g, '_');
     const trackingCode = `// Track: ${action}
 dataLayer.push({
-  'event': '${eventName}',
-  'engagement_time_msec': 100,
-  'event_category': 'engagement',
-  'custom_parameter_1': '${action}',
-  'page_location': window.location.href,
-  'page_title': document.title
+  &apos;event&apos;: &apos;${eventName}&apos;,
+  &apos;engagement_time_msec&apos;: 100,
+  &apos;event_category&apos;: &apos;engagement&apos;,
+  &apos;custom_parameter_1&apos;: &apos;${action}&apos;,
+  &apos;page_location&apos;: window.location.href,
+  &apos;page_title&apos;: document.title
 });
 
 // GTM Tag Configuration:
@@ -266,10 +266,10 @@ dataLayer.push({
 //   page_title: {{DLV - page_title}}
 
 // Alternative gtag.js implementation:
-gtag('event', '${eventName}', {
-  'engagement_time_msec': 100,
-  'event_category': 'engagement',
-  'custom_parameter_1': '${action}'
+gtag(&apos;event&apos;, &apos;${eventName}&apos;, {
+  &apos;engagement_time_msec&apos;: 100,
+  &apos;event_category&apos;: &apos;engagement&apos;,
+  &apos;custom_parameter_1&apos;: &apos;${action}&apos;
 });`;
 
     const newMessage: Message = {
@@ -972,8 +972,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-XXXXXXXXXX');
+  gtag(&apos;js&apos;, new Date());
+  gtag(&apos;config&apos;, &apos;G-XXXXXXXXXX&apos;);
 </script>`}
                   </div>
                 </div>
