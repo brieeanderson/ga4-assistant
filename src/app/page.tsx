@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Send, Globe, Code, Zap, CheckCircle, BookOpen, AlertCircle, Clock, BarChart3, Settings, Link2, Search, ExternalLink, TrendingUp, AlertTriangle, User, LogOut } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Send, Globe, Code, Zap, CheckCircle, BookOpen, AlertCircle, Clock, BarChart3, Search, User, LogOut } from 'lucide-react';
 
 // Import our OAuth hook
 import { useOAuth } from '@/hooks/useOAuth';
@@ -96,9 +96,26 @@ interface GA4Property {
 }
 
 interface GA4Audit {
-  property: any;
-  dataStreams: any[];
-  conversions: any[];
+  property: {
+    displayName: string;
+    name: string;
+    timeZone?: string;
+    currencyCode?: string;
+  };
+  dataStreams: Array<{
+    displayName: string;
+    type: string;
+    name: string;
+    webStreamData?: {
+      defaultUri: string;
+      measurementId: string;
+    };
+  }>;
+  conversions: Array<{
+    eventName: string;
+    createTime: string;
+    countingMethod?: string;
+  }>;
   audit: {
     propertySettings: { [key: string]: { status: string; value: string; recommendation: string; } };
     dataCollection: { [key: string]: { status: string; value: string; recommendation: string; } };
@@ -121,8 +138,6 @@ const GA4GTMAssistant = () => {
   const [action, setAction] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisType, setAnalysisType] = useState<'single' | 'sitewide' | 'ga4account'>('sitewide');
-  const [crawlResults, setCrawlResults] = useState<CrawlResults | null>(null);
-  const [siteAnalysis, setSiteAnalysis] = useState<SiteAnalysis | null>(null);
   const [ga4Properties, setGA4Properties] = useState<GA4Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [ga4Audit, setGA4Audit] = useState<GA4Audit | null>(null);
@@ -137,16 +152,7 @@ const GA4GTMAssistant = () => {
   // OAuth hook
   const { isAuthenticated, userEmail, login, logout, isLoading: oauthLoading, accessToken } = useOAuth();
 
-  // Check for connection success
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('connected') === 'true') {
-      setAnalysisType('ga4account');
-      fetchGA4Properties();
-    }
-  }, [isAuthenticated]);
-
-  const fetchGA4Properties = async () => {
+  const fetchGA4Properties = useCallback(async () => {
     if (!accessToken) return;
     
     setIsAnalyzing(true);
@@ -169,7 +175,16 @@ const GA4GTMAssistant = () => {
     } finally {
       setIsAnalyzing(false);
     }
-  };
+  }, [accessToken]);
+
+  // Check for connection success
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('connected') === 'true') {
+      setAnalysisType('ga4account');
+      fetchGA4Properties();
+    }
+  }, [isAuthenticated, fetchGA4Properties]);
 
   const runGA4Audit = async () => {
     if (!selectedProperty || !accessToken) return;
@@ -240,8 +255,6 @@ const GA4GTMAssistant = () => {
     if (!website.trim()) return;
     
     setIsAnalyzing(true);
-    setCrawlResults(null);
-    setSiteAnalysis(null);
     
     try {
       const baseUrl = process.env.NODE_ENV === 'development' 
@@ -265,62 +278,10 @@ const GA4GTMAssistant = () => {
       }
       
       const result = await response.json();
+      console.log('Analysis result:', result);
       
-      if (analysisType === 'sitewide') {
-        setCrawlResults(result);
-      } else {
-        setSiteAnalysis(result);
-      }
     } catch (error: unknown) {
       console.error('Error analyzing website:', error);
-      
-      // Show error state
-      if (analysisType === 'sitewide') {
-        setCrawlResults({
-          crawlSummary: {
-            totalPagesDiscovered: 0,
-            pagesAnalyzed: 0,
-            successfulAnalysis: 0,
-            pagesWithErrors: 1,
-            pagesWithGTM: 0,
-            pagesWithGA4: 0,
-            tagCoverage: 0,
-            isComplete: true,
-            estimatedPagesRemaining: 0
-          },
-          pageDetails: [],
-          errorPages: [],
-          untaggedPages: [],
-          insights: [],
-          recommendations: [`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`],
-          nextSteps: []
-        });
-      } else {
-        setSiteAnalysis({
-          domain: website,
-          gtmContainers: ['Analysis failed - check console'],
-          ga4Properties: ['Please try again'],
-          currentSetup: {
-            gtmInstalled: false,
-            ga4Connected: false,
-            enhancedEcommerce: false,
-            serverSideTracking: false,
-            crossDomainTracking: { enabled: false, domains: [] },
-            consentMode: false,
-            debugMode: false
-          },
-          configurationAudit: {
-            propertySettings: {
-              timezone: { status: 'incomplete', value: 'Analysis failed', recommendation: 'Try again' },
-              currency: { status: 'incomplete', value: 'Analysis failed', recommendation: 'Try again' }
-            },
-            dataCollection: {},
-            events: {},
-            integrations: {}
-          },
-          recommendations: [`Website analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`]
-        });
-      }
     } finally {
       setIsAnalyzing(false);
     }
@@ -366,20 +327,6 @@ gtag('event', '${eventName}', {
     };
     
     setMessages(prev => [...prev, newMessage]);
-  };
-
-  const getCoverageColor = (coverage: number) => {
-    if (coverage >= 95) return 'text-green-600';
-    if (coverage >= 80) return 'text-blue-600';
-    if (coverage >= 50) return 'text-yellow-600';
-    return 'text-red-600';
-  };
-
-  const getCoverageStatus = (coverage: number) => {
-    if (coverage >= 95) return 'Excellent';
-    if (coverage >= 80) return 'Good';
-    if (coverage >= 50) return 'Fair';
-    return 'Poor';
   };
 
   const getStatusIcon = (status: string) => {
@@ -619,7 +566,7 @@ gtag('event', '${eventName}', {
                   <span>Coverage Reports</span>
                 </div>
                 <div className="flex items-center">
-                  <AlertTriangle className="w-4 h-4 text-green-500 mr-1" />
+                  <CheckCircle className="w-4 h-4 text-green-500 mr-1" />
                   <span>Expert Recommendations</span>
                 </div>
               </div>
@@ -715,7 +662,47 @@ gtag('event', '${eventName}', {
               )}
             </div>
 
-            {/* Results sections would go here - keeping original logic for brevity */}
+            {/* GA4 Audit Results */}
+            {ga4Audit && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">GA4 Property Overview</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{ga4Audit.property.displayName}</div>
+                      <div className="text-sm text-gray-600">Property Name</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{ga4Audit.dataStreams.length}</div>
+                      <div className="text-sm text-gray-600">Data Streams</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">{ga4Audit.conversions.length}</div>
+                      <div className="text-sm text-gray-600">Conversion Events</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Property Settings Audit */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Property Configuration</h3>
+                  <div className="space-y-3">
+                    {Object.entries(ga4Audit.audit.propertySettings).map(([key, item]) => (
+                      <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
+                        <div className="flex items-start space-x-3">
+                          {getStatusIcon(item.status)}
+                          <div>
+                            <div className="font-medium text-gray-900">{key.replace(/([A-Z])/g, ' $1')}</div>
+                            <div className="text-sm text-gray-600">Current: {item.value}</div>
+                            <div className="text-sm text-blue-600">💡 {item.recommendation}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
