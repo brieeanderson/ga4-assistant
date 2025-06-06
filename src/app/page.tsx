@@ -47,6 +47,8 @@ const GA4GTMAssistant = () => {
   const [ga4Properties, setGA4Properties] = useState<GA4Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [ga4Audit, setGA4Audit] = useState<GA4Audit | null>(null);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [ga4Error, setGA4Error] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       type: 'assistant',
@@ -57,26 +59,126 @@ const GA4GTMAssistant = () => {
 
   const { isAuthenticated, userEmail, login, logout, isLoading: oauthLoading, accessToken } = useOAuth();
 
+  // Debug function to test GA4 API access directly
+  const testGA4ApiAccess = async () => {
+    if (!accessToken) {
+      console.log('No access token available');
+      return;
+    }
+
+    console.log('=== GA4 API DEBUG TEST ===');
+    setDebugInfo({ status: 'testing', step: 'Starting tests...' });
+
+    // Test 1: Validate token
+    try {
+      const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      
+      if (userResponse.ok) {
+        const userInfo = await userResponse.json();
+        console.log('✅ Token valid for user:', userInfo.email);
+        setDebugInfo({ status: 'testing', step: `Token valid for ${userInfo.email}` });
+      } else {
+        console.error('❌ Token validation failed:', userResponse.status);
+        setDebugInfo({ status: 'error', step: `Token validation failed: ${userResponse.status}` });
+        return;
+      }
+    } catch (error) {
+      console.error('❌ Token validation error:', error);
+      setDebugInfo({ status: 'error', step: `Token validation error: ${error}` });
+      return;
+    }
+
+    // Test 2: Test Analytics Admin API access
+    try {
+      const accountsResponse = await fetch(
+        'https://analyticsadmin.googleapis.com/v1beta/accounts',
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log('Analytics Admin API response status:', accountsResponse.status);
+      
+      if (accountsResponse.ok) {
+        const accountsData = await accountsResponse.json();
+        console.log('✅ Analytics Admin API working');
+        console.log('Accounts found:', accountsData.accounts?.length || 0);
+        
+        setDebugInfo({ 
+          status: 'success', 
+          step: `Found ${accountsData.accounts?.length || 0} GA4 accounts`,
+          accounts: accountsData.accounts
+        });
+      } else {
+        const errorText = await accountsResponse.text();
+        console.error('❌ Analytics Admin API failed');
+        
+        let suggestion = '';
+        if (accountsResponse.status === 403) {
+          suggestion = 'API not enabled or insufficient permissions';
+        } else if (accountsResponse.status === 401) {
+          suggestion = 'Invalid token or OAuth scopes issue';
+        }
+        
+        setDebugInfo({ 
+          status: 'error', 
+          step: `API failed with ${accountsResponse.status}: ${suggestion}`,
+          error: errorText
+        });
+      }
+    } catch (error) {
+      console.error('❌ Analytics Admin API error:', error);
+      setDebugInfo({ status: 'error', step: `API error: ${error}` });
+    }
+  };
+
+  // Enhanced fetchGA4Properties function with better error handling
   const fetchGA4Properties = useCallback(async () => {
     if (!accessToken) return;
     
     setIsAnalyzing(true);
+    setGA4Error(null);
+    setDebugInfo(null);
+    
     try {
       const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:8888' : '';
+      console.log('Fetching GA4 properties...');
+      
       const response = await fetch(`${baseUrl}/.netlify/functions/ga4-audit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ accessToken })
       });
 
-      if (!response.ok) throw new Error('Failed to fetch GA4 properties');
+      console.log('GA4 audit response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+        console.error('API Error:', errorData);
+        setGA4Error(errorData.error || `HTTP ${response.status}`);
+        return;
+      }
       
       const result = await response.json();
+      console.log('GA4 audit result:', result);
+      
       if (result.type === 'property_list') {
         setGA4Properties(result.properties || []);
+        setDebugInfo({
+          status: 'success',
+          userInfo: result.userInfo,
+          accountCount: result.accounts?.length || 0,
+          propertyCount: result.properties?.length || 0
+        });
       }
     } catch (error) {
       console.error('Error fetching GA4 properties:', error);
+      setGA4Error(error instanceof Error ? error.message : 'Failed to fetch GA4 properties');
     } finally {
       setIsAnalyzing(false);
     }
@@ -94,6 +196,8 @@ const GA4GTMAssistant = () => {
     if (!selectedProperty || !accessToken) return;
     
     setIsAnalyzing(true);
+    setGA4Error(null);
+    
     try {
       const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:8888' : '';
       const response = await fetch(`${baseUrl}/.netlify/functions/ga4-audit`, {
@@ -102,12 +206,17 @@ const GA4GTMAssistant = () => {
         body: JSON.stringify({ accessToken, propertyId: selectedProperty })
       });
 
-      if (!response.ok) throw new Error('Failed to run GA4 audit');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+        setGA4Error(errorData.error || `HTTP ${response.status}`);
+        return;
+      }
       
       const result = await response.json();
       setGA4Audit(result);
     } catch (error) {
       console.error('Error running GA4 audit:', error);
+      setGA4Error(error instanceof Error ? error.message : 'Failed to run GA4 audit');
     } finally {
       setIsAnalyzing(false);
     }
@@ -218,9 +327,10 @@ const GA4GTMAssistant = () => {
             </div>
             <button
               onClick={logout}
-              className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+              className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm flex items-center space-x-1"
             >
               <LogOut className="w-4 h-4" />
+              <span>Disconnect</span>
             </button>
           </div>
 
@@ -233,10 +343,26 @@ const GA4GTMAssistant = () => {
             </ul>
           </div>
 
+          {/* Error Display */}
+          {ga4Error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <h4 className="font-medium text-red-800 mb-2">Configuration Issue</h4>
+              <p className="text-sm text-red-700 mb-3">{ga4Error}</p>
+              <div className="text-xs text-red-600">
+                <p className="font-medium mb-1">Common solutions:</p>
+                <ul className="list-disc ml-4 space-y-1">
+                  <li>Enable Google Analytics Admin API in Google Cloud Console</li>
+                  <li>Add redirect URI: https://ga4wise.netlify.app/oauth/callback</li>
+                  <li>Ensure you have access to GA4 properties in your account</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
           {ga4Properties.length > 0 && (
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select GA4 Property:
+                Select GA4 Property ({ga4Properties.length} found):
               </label>
               <select
                 value={selectedProperty}
@@ -258,19 +384,83 @@ const GA4GTMAssistant = () => {
               <button
                 onClick={fetchGA4Properties}
                 disabled={isAnalyzing}
-                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
+                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isAnalyzing ? 'Loading Properties...' : 'Load GA4 Properties'}
+                {isAnalyzing ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Loading Properties...</span>
+                  </div>
+                ) : (
+                  'Load GA4 Properties'
+                )}
               </button>
             ) : (
-              <button
-                onClick={runGA4Audit}
-                disabled={!selectedProperty || isAnalyzing}
-                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
-              >
-                {isAnalyzing ? 'Running Audit...' : 'Run Complete GA4 Audit'}
-              </button>
+              <>
+                <button
+                  onClick={fetchGA4Properties}
+                  disabled={isAnalyzing}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
+                >
+                  Refresh Properties
+                </button>
+                <button
+                  onClick={runGA4Audit}
+                  disabled={!selectedProperty || isAnalyzing}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isAnalyzing ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Running Audit...</span>
+                    </div>
+                  ) : (
+                    'Run Complete GA4 Audit'
+                  )}
+                </button>
+              </>
             )}
+          </div>
+
+          {/* Debug Information Panel */}
+          {(debugInfo || ga4Error) && (
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-medium text-gray-900 text-sm">Debug Information</h4>
+                <button
+                  onClick={testGA4ApiAccess}
+                  className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                >
+                  🔍 Run Test
+                </button>
+              </div>
+              
+              {debugInfo && (
+                <div className="text-xs text-gray-600 space-y-1">
+                  <div><strong>Status:</strong> {debugInfo.status}</div>
+                  <div><strong>Step:</strong> {debugInfo.step}</div>
+                  {debugInfo.userInfo && (
+                    <div><strong>User:</strong> {debugInfo.userInfo.email}</div>
+                  )}
+                  {debugInfo.accountCount !== undefined && (
+                    <div><strong>Accounts:</strong> {debugInfo.accountCount}</div>
+                  )}
+                  {debugInfo.propertyCount !== undefined && (
+                    <div><strong>Properties:</strong> {debugInfo.propertyCount}</div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Quick Setup Guide */}
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <h4 className="font-medium text-gray-900 text-sm mb-2">Quick Setup Checklist:</h4>
+            <div className="text-xs text-gray-600 space-y-1">
+              <div>□ Google Analytics Admin API enabled</div>
+              <div>□ OAuth redirect URI configured</div>
+              <div>□ GA4 property access granted</div>
+            </div>
           </div>
         </div>
       );
