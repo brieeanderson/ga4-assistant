@@ -1,21 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Send, Globe, Code, Zap, CheckCircle, BookOpen, AlertCircle, Clock, BarChart3, Search, User, LogOut } from 'lucide-react';
-
-// Import our OAuth hook
+import { Send, Globe, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, User, LogOut } from 'lucide-react';
 import { useOAuth } from '@/hooks/useOAuth';
-
-interface PageAnalysis {
-  url: string;
-  status: 'success' | 'error' | 'analyzing';
-  gtmFound: boolean;
-  ga4Found: boolean;
-  gtmContainers: string[];
-  ga4Properties: string[];
-  error?: string;
-  responseTime?: number;
-}
 
 interface GA4Property {
   name: string;
@@ -29,28 +16,17 @@ interface GA4Audit {
   property: {
     displayName: string;
     name: string;
-    timeZone?: string;
-    currencyCode?: string;
   };
   dataStreams: Array<{
     displayName: string;
     type: string;
-    name: string;
-    webStreamData?: {
-      defaultUri: string;
-      measurementId: string;
-    };
   }>;
   conversions: Array<{
     eventName: string;
     createTime: string;
-    countingMethod?: string;
   }>;
   audit: {
     propertySettings: { [key: string]: { status: string; value: string; recommendation: string; } };
-    dataCollection: { [key: string]: { status: string; value: string; recommendation: string; } };
-    conversions: { [key: string]: { status: string; value: string; recommendation: string; } };
-    integrations: { [key: string]: { status: string; value: string; recommendation: string; } };
   };
 }
 
@@ -79,7 +55,6 @@ const GA4GTMAssistant = () => {
     }
   ]);
 
-  // OAuth hook
   const { isAuthenticated, userEmail, login, logout, isLoading: oauthLoading, accessToken } = useOAuth();
 
   const fetchGA4Properties = useCallback(async () => {
@@ -107,7 +82,6 @@ const GA4GTMAssistant = () => {
     }
   }, [accessToken]);
 
-  // Check for connection success
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('connected') === 'true') {
@@ -151,29 +125,15 @@ const GA4GTMAssistant = () => {
     setMessages(prev => [...prev, newMessage]);
     setMessage('');
     
-    // Simulate AI response
     setTimeout(() => {
-      const responses = [
-        "For GA4 Enhanced Ecommerce tracking, you'll need to implement the new event structure. Here's how to set up purchase events...",
-        "GTM's dataLayer.push() should include these specific parameters for GA4 compatibility...",
-        "The issue you're describing usually happens when the GA4 config tag fires after the event tag. Try adjusting your trigger priorities..."
-      ];
-      
       const aiResponse: Message = {
         type: 'assistant',
-        content: responses[Math.floor(Math.random() * responses.length)],
+        content: "For GA4 Enhanced Ecommerce tracking, you'll need to implement the new event structure...",
         timestamp: new Date(),
         code: `gtag('event', 'purchase', {
   transaction_id: '12345',
   value: 25.42,
-  currency: 'USD',
-  items: [{
-    item_id: 'SKU123',
-    item_name: 'Example Product',
-    category: 'Apparel',
-    quantity: 1,
-    price: 25.42
-  }]
+  currency: 'USD'
 });`
       };
       
@@ -187,15 +147,10 @@ const GA4GTMAssistant = () => {
     setIsAnalyzing(true);
     
     try {
-      const baseUrl = process.env.NODE_ENV === 'development' 
-        ? 'http://localhost:8888' 
-        : '';
-        
+      const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:8888' : '';
       const response = await fetch(`${baseUrl}/.netlify/functions/analyze-website`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           url: website,
           crawlMode: analysisType,
@@ -221,37 +176,14 @@ const GA4GTMAssistant = () => {
     if (!action.trim()) return;
     
     const eventName = action.toLowerCase().replace(/\s+/g, '_');
-    const trackingCode = `// Track: ${action}
-dataLayer.push({
-  'event': '${eventName}',
-  'engagement_time_msec': 100,
-  'event_category': 'engagement',
-  'custom_parameter_1': '${action}',
-  'page_location': window.location.href,
-  'page_title': document.title
-});
-
-// GTM Tag Configuration:
-// Tag Type: Google Analytics: GA4 Event
-// Configuration Tag: GA4-XXXXXX (your GA4 config tag)
-// Event Name: ${eventName}
-// Event Parameters:
-//   engagement_time_msec: {{DLV - engagement_time_msec}}
-//   event_category: {{DLV - event_category}}  
-//   custom_parameter_1: {{DLV - custom_parameter_1}}
-//   page_location: {{DLV - page_location}}
-//   page_title: {{DLV - page_title}}
-
-// Alternative gtag.js implementation:
-gtag('event', '${eventName}', {
-  'engagement_time_msec': 100,
+    const trackingCode = `gtag('event', '${eventName}', {
   'event_category': 'engagement',
   'custom_parameter_1': '${action}'
 });`;
 
     const newMessage: Message = {
       type: 'assistant',
-      content: `Here's the GA4-compliant tracking implementation for "${action}":`,
+      content: `Here's the GA4 tracking code for "${action}":`,
       code: trackingCode,
       timestamp: new Date()
     };
@@ -259,43 +191,6 @@ gtag('event', '${eventName}', {
     setMessages(prev => [...prev, newMessage]);
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'detected':
-      case 'complete':
-      case 'configured':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case 'not-detected':
-      case 'incomplete':
-      case 'missing':
-        return <AlertCircle className="w-5 h-5 text-red-500" />;
-      case 'unknown':
-      case 'info':
-        return <Clock className="w-5 h-5 text-yellow-500" />;
-      default:
-        return <AlertCircle className="w-5 h-5 text-gray-400" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'detected':
-      case 'complete':
-      case 'configured':
-        return 'bg-green-50 border-green-200';
-      case 'not-detected':
-      case 'incomplete':
-      case 'missing':
-        return 'bg-red-50 border-red-200';
-      case 'unknown':
-      case 'info':
-        return 'bg-yellow-50 border-yellow-200';
-      default:
-        return 'bg-gray-50 border-gray-200';
-    }
-  };
-
-  // GA4 Connection Component
   const GA4Connection = () => {
     if (oauthLoading) {
       return (
@@ -594,41 +489,20 @@ gtag('event', '${eventName}', {
 
             {/* GA4 Audit Results */}
             {ga4Audit && (
-              <div className="space-y-6">
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">GA4 Property Overview</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{ga4Audit.property.displayName}</div>
-                      <div className="text-sm text-gray-600">Property Name</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{ga4Audit.dataStreams.length}</div>
-                      <div className="text-sm text-gray-600">Data Streams</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">{ga4Audit.conversions.length}</div>
-                      <div className="text-sm text-gray-600">Conversion Events</div>
-                    </div>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">GA4 Property Overview</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">{ga4Audit.property.displayName}</div>
+                    <div className="text-sm text-gray-600">Property Name</div>
                   </div>
-                </div>
-
-                {/* Property Settings Audit */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Property Configuration</h3>
-                  <div className="space-y-3">
-                    {Object.entries(ga4Audit.audit.propertySettings).map(([key, item]) => (
-                      <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
-                        <div className="flex items-start space-x-3">
-                          {getStatusIcon(item.status)}
-                          <div>
-                            <div className="font-medium text-gray-900">{key.replace(/([A-Z])/g, ' $1')}</div>
-                            <div className="text-sm text-gray-600">Current: {item.value}</div>
-                            <div className="text-sm text-blue-600">💡 {item.recommendation}</div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{ga4Audit.dataStreams.length}</div>
+                    <div className="text-sm text-gray-600">Data Streams</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600">{ga4Audit.conversions.length}</div>
+                    <div className="text-sm text-gray-600">Conversion Events</div>
                   </div>
                 </div>
               </div>
@@ -714,129 +588,29 @@ gtag('event', '${eventName}', {
                 ))}
               </div>
             )}
-
-            {/* Implementation Guides */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Implementation Guides</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 border border-gray-200 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-2">GTM Installation</h4>
-                  <p className="text-sm text-gray-600 mb-3">Install Google Tag Manager on your website</p>
-                  <div className="p-3 bg-gray-50 rounded text-xs font-mono">
-                    {`<!-- Head -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-XXXXXX');</script>
-
-<!-- Body -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXX"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>`}
-                  </div>
-                </div>
-                <div className="p-4 border border-gray-200 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-2">GA4 Direct Install</h4>
-                  <p className="text-sm text-gray-600 mb-3">Install GA4 directly without GTM</p>
-                  <div className="p-3 bg-gray-50 rounded text-xs font-mono">
-                    {`<!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-XXXXXXXXXX');
-</script>`}
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
         {/* Docs Tab */}
         {activeTab === 'docs' && (
-          <div className="space-y-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">GA4 & GTM Documentation</h2>
-              
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Getting Started</h3>
-                  <div className="space-y-2">
-                    <div className="p-3 bg-blue-50 rounded-lg">
-                      <h4 className="font-medium text-gray-900">1. Set Up Google Analytics 4</h4>
-                      <p className="text-sm text-gray-600">Create a new GA4 property in your Google Analytics account</p>
-                    </div>
-                    <div className="p-3 bg-blue-50 rounded-lg">
-                      <h4 className="font-medium text-gray-900">2. Install Google Tag Manager</h4>
-                      <p className="text-sm text-gray-600">GTM makes it easier to manage all your tracking codes</p>
-                    </div>
-                    <div className="p-3 bg-blue-50 rounded-lg">
-                      <h4 className="font-medium text-gray-900">3. Connect GA4 to GTM</h4>
-                      <p className="text-sm text-gray-600">Create a GA4 Configuration tag in GTM</p>
-                    </div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">GA4 & GTM Documentation</h2>
+            
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Getting Started</h3>
+                <div className="space-y-2">
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium text-gray-900">1. Set Up Google Analytics 4</h4>
+                    <p className="text-sm text-gray-600">Create a new GA4 property in your Google Analytics account</p>
                   </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Common Events</h3>
-                  <div className="space-y-3">
-                    <div className="p-4 border border-gray-200 rounded-lg">
-                      <h4 className="font-semibold text-gray-900">Page View</h4>
-                      <p className="text-sm text-gray-600 mb-2">Automatically tracked with GA4 configuration</p>
-                      <div className="text-xs font-mono bg-gray-50 p-2 rounded">
-                        gtag('config', 'G-XXXXXXXXXX');
-                      </div>
-                    </div>
-                    <div className="p-4 border border-gray-200 rounded-lg">
-                      <h4 className="font-semibold text-gray-900">Custom Event</h4>
-                      <p className="text-sm text-gray-600 mb-2">Track specific user actions</p>
-                      <div className="text-xs font-mono bg-gray-50 p-2 rounded">
-                        gtag('event', 'button_click', {'{'}event_category: 'engagement'{'}'});
-                      </div>
-                    </div>
-                    <div className="p-4 border border-gray-200 rounded-lg">
-                      <h4 className="font-semibold text-gray-900">E-commerce Purchase</h4>
-                      <p className="text-sm text-gray-600 mb-2">Track transactions and revenue</p>
-                      <div className="text-xs font-mono bg-gray-50 p-2 rounded">
-                        gtag('event', 'purchase', {'{'}transaction_id: '12345', value: 25.42, currency: 'USD'{'}'});
-                      </div>
-                    </div>
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium text-gray-900">2. Install Google Tag Manager</h4>
+                    <p className="text-sm text-gray-600">GTM makes it easier to manage all your tracking codes</p>
                   </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Best Practices</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-start space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-gray-900">Use GTM for tag management</p>
-                        <p className="text-sm text-gray-600">Easier to manage and update tracking codes</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-gray-900">Implement Enhanced Measurement</p>
-                        <p className="text-sm text-gray-600">Automatically track scrolls, outbound clicks, site search</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-gray-900">Set up Consent Mode</p>
-                        <p className="text-sm text-gray-600">Comply with GDPR and privacy regulations</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-gray-900">Test with GA4 DebugView</p>
-                        <p className="text-sm text-gray-600">Verify events are firing correctly</p>
-                      </div>
-                    </div>
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium text-gray-900">3. Connect GA4 to GTM</h4>
+                    <p className="text-sm text-gray-600">Create a GA4 Configuration tag in GTM</p>
                   </div>
                 </div>
               </div>
