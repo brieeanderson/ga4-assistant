@@ -1,529 +1,4 @@
-return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              <h1 className="text-xl font-bold text-gray-900">GA4 & GTM Assistant</h1>
-            </div>
-            <div className="text-sm text-gray-600">
-              Complete Website Analytics Audit
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            {[
-              { id: 'audit', label: 'Website Audit', icon: Search },
-              { id: 'chat', label: 'AI Assistant', icon: Send },
-              { id: 'implement', label: 'Code Generator', icon: Code },
-              { id: 'docs', label: 'Documentation', icon: BookOpen }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <tab.icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'audit' && (
-          <div className="space-y-8">
-            {/* Lead Magnet Header */}
-            <div className="text-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Complete GA4 & GTM Website Audit</h2>
-              <p className="text-lg text-gray-600 mb-6">
-                Choose between frontend analysis, site-wide crawling, or complete GA4 account audit with direct API access.
-              </p>
-              <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
-                <div className="flex items-center">
-                  <Search className="w-4 h-4 text-green-500 mr-1" />
-                  <span>Real-time Analysis</span>
-                </div>
-                <div className="flex items-center">
-                  <BarChart3 className="w-4 h-4 text-green-500 mr-1" />
-                  <span>Coverage Reports</span>
-                </div>
-                <div className="flex items-center">
-                  <AlertTriangle className="w-4 h-4 text-green-500 mr-1" />
-                  <span>Expert Recommendations</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Analysis Type Selection & Site Input */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Choose Analysis Type</h3>
-              
-              {/* Analysis Type Toggle */}
-              <div className="flex space-x-4 mb-6">
-                <button
-                  onClick={() => setAnalysisType('single')}
-                  className={`flex-1 p-4 rounded-lg border-2 transition-all ${
-                    analysisType === 'single'
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="text-center">
-                    <Globe className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                    <h4 className="font-semibold text-gray-900">Single Page Analysis</h4>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Deep dive into one page with detailed GA4 configuration audit
-                    </p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setAnalysisType('sitewide')}
-                  className={`flex-1 p-4 rounded-lg border-2 transition-all ${
-                    analysisType === 'sitewide'
-                      ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="text-center">
-                    <Search className="w-8 h-8 mx-auto mb-2 text-purple-600" />
-                    <h4 className="font-semibold text-gray-900">Site-Wide Crawl</h4>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Analyze entire website for tag coverage and missing pages
-                    </p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setAnalysisType('ga4account')}
-                  className={`flex-1 p-4 rounded-lg border-2 transition-all ${
-                    analysisType === 'ga4account'
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="text-center">
-                    <BarChart3 className="w-8 h-8 mx-auto mb-2 text-green-600" />
-                    <h4 className="font-semibold text-gray-900">GA4 Account Audit</h4>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Complete 25-point audit with direct GA4 API access
-                    </p>
-                  </div>
-                </button>
-              </div>
-
-              {/* Conditional Content Based on Analysis Type */}
-              {analysisType === 'ga4account' ? (
-                <GA4Connection />
-              ) : (
-                <>
-                  {/* URL Input */}
-                  <div className="flex space-x-4">
-                    <input
-                      type="url"
-                      value={website}
-                      onChange={(e) => setWebsite(e.target.value)}
-                      placeholder="Enter your website URL (e.g., https://example.com)"
-                      className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                    />
-                    <button
-                      onClick={analyzeWebsite}
-                      disabled={isAnalyzing}
-                      className={`px-8 py-3 rounded-lg font-medium text-white transition-colors disabled:opacity-50 ${
-                        analysisType === 'single' 
-                          ? 'bg-blue-600 hover:bg-blue-700' 
-                          : 'bg-purple-600 hover:bg-purple-700'
-                      }`}
-                    >
-                      {isAnalyzing ? 'Analyzing...' : `Start ${analysisType === 'single' ? 'Analysis' : 'Crawl'}`}
-                    </button>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-2">
-                    {analysisType === 'single' 
-                      ? 'Deep analysis of GA4 configuration, events, and integrations for one page'
-                      : 'Comprehensive crawl of your entire website to check tracking coverage'
-                    }
-                  </p>
-                </>
-              )}
-            </div>
-
-            {/* GA4 Account Audit Results */}
-            {ga4Audit && analysisType === 'ga4account' && (
-              <div className="space-y-6">
-                {/* Property Overview */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">GA4 Property Overview</h3>
-                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                      Live GA4 API Data
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{ga4Audit.property.displayName}</div>
-                      <div className="text-sm text-gray-600">Property Name</div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        ID: {ga4Audit.property.name?.split('/').pop()}
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{ga4Audit.dataStreams.length}</div>
-                      <div className="text-sm text-gray-600">Data Streams</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">{ga4Audit.conversions.length}</div>
-                      <div className="text-sm text-gray-600">Conversion Events</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Comprehensive GA4 Configuration Audit */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">Complete GA4 Configuration Audit</h3>
-                  
-                  {/* Property Settings */}
-                  <div className="mb-8">
-                    <div className="flex items-center mb-4">
-                      <Settings className="w-5 h-5 text-gray-600 mr-2" />
-                      <h4 className="text-md font-semibold text-gray-800">Property Settings</h4>
-                    </div>
-                    <div className="space-y-3">
-                      {Object.entries(ga4Audit.audit.propertySettings).map(([key, item]) => (
-                        <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start space-x-3 flex-1">
-                              {getStatusIcon(item.status)}
-                              <div className="flex-1">
-                                <div className="font-medium text-gray-900 capitalize">
-                                  {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                                </div>
-                                <div className="text-sm text-gray-600 mt-1">
-                                  Current: {item.value}
-                                </div>
-                                <div className="text-sm text-blue-600 mt-1">
-                                  💡 {item.recommendation}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Conversions */}
-                  <div className="mb-8">
-                    <div className="flex items-center mb-4">
-                      <Zap className="w-5 h-5 text-gray-600 mr-2" />
-                      <h4 className="text-md font-semibold text-gray-800">Conversion Events</h4>
-                    </div>
-                    <div className="space-y-3">
-                      {Object.entries(ga4Audit.audit.conversions).map(([key, item]) => (
-                        <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start space-x-3 flex-1">
-                              {getStatusIcon(item.status)}
-                              <div className="flex-1">
-                                <div className="font-medium text-gray-900 capitalize">
-                                  {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                                </div>
-                                <div className="text-sm text-gray-600 mt-1">
-                                  Status: {item.value}
-                                </div>
-                                <div className="text-sm text-blue-600 mt-1">
-                                  💡 {item.recommendation}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Integrations */}
-                  <div>
-                    <div className="flex items-center mb-4">
-                      <Link2 className="w-5 h-5 text-gray-600 mr-2" />
-                      <h4 className="text-md font-semibold text-gray-800">Integrations</h4>
-                    </div>
-                    <div className="space-y-3">
-                      {Object.entries(ga4Audit.audit.integrations).map(([key, item]) => (
-                        <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start space-x-3 flex-1">
-                              {getStatusIcon(item.status)}
-                              <div className="flex-1">
-                                <div className="font-medium text-gray-900 capitalize">
-                                  {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                                </div>
-                                <div className="text-sm text-gray-600 mt-1">
-                                  {item.value}
-                                </div>
-                                <div className="text-sm text-blue-600 mt-1">
-                                  💡 {item.recommendation}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Data Streams Details */}
-                {ga4Audit.dataStreams.length > 0 && (
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Data Streams Configuration</h3>
-                    <div className="space-y-4">
-                      {ga4Audit.dataStreams.map((stream, index) => (
-                        <div key={index} className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-gray-900">{stream.displayName}</h4>
-                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                              {stream.type}
-                            </span>
-                          </div>
-                          <div className="text-sm text-gray-600 space-y-1">
-                            {stream.webStreamData?.defaultUri && (
-                              <p><strong>Website URL:</strong> {stream.webStreamData.defaultUri}</p>
-                            )}
-                            {stream.webStreamData?.measurementId && (
-                              <p><strong>Measurement ID:</strong> {stream.webStreamData.measurementId}</p>
-                            )}
-                            <p><strong>Stream ID:</strong> {stream.name?.split('/').pop()}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Conversion Events Details */}
-                {ga4Audit.conversions.length > 0 && (
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Configured Conversion Events</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {ga4Audit.conversions.map((conversion, index) => (
-                        <div key={index} className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-gray-900">{conversion.eventName}</h4>
-                            <CheckCircle className="w-5 h-5 text-green-600" />
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            <p><strong>Created:</strong> {new Date(conversion.createTime).toLocaleDateString()}</p>
-                            {conversion.countingMethod && (
-                              <p><strong>Counting:</strong> {conversion.countingMethod}</p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Action Plan */}
-                <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border border-green-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">🎯 Your GA4 Action Plan</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-xs font-medium text-green-600">1</span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">Property Configuration Complete</p>
-                        <p className="text-sm text-gray-600">Your basic GA4 property is set up with proper timezone and data streams</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-xs font-medium text-blue-600">2</span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">Enhance Your Conversion Tracking</p>
-                        <p className="text-sm text-gray-600">Set up additional conversion events for key business actions</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-xs font-medium text-purple-600">3</span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">Connect Additional Services</p>
-                        <p className="text-sm text-gray-600">Link Google Ads and Search Console for complete attribution</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-6 pt-4 border-t border-green-200">
-                    <p className="text-sm text-gray-600 mb-4">
-                      <strong>Pro Tip:</strong> Your GA4 setup is solid! Focus on creating custom audiences and setting up enhanced e-commerce tracking for deeper insights.
-                    </p>
-                    <button 
-                      onClick={() => setActiveTab('implement')}
-                      className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
-                    >
-                      Generate Custom Tracking Code
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Site-Wide Crawl Results */}
-            {crawlResults && analysisType === 'sitewide' && (
-              <div className="space-y-6">
-                {/* Crawl Summary */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">Site-Wide Analysis Results</h3>
-                  
-                  {/* Coverage Overview */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-gray-900">{crawlResults.crawlSummary.totalPagesDiscovered}</div>
-                      <div className="text-sm text-gray-600">Pages Discovered</div>
-                    </div>
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{crawlResults.crawlSummary.pagesAnalyzed}</div>
-                      <div className="text-sm text-gray-600">Pages Analyzed</div>
-                    </div>
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <div className={`text-2xl font-bold ${getCoverageColor(crawlResults.crawlSummary.tagCoverage)}`}>
-                        {crawlResults.crawlSummary.tagCoverage}%
-                      </div>
-                      <div className="text-sm text-gray-600">Tag Coverage</div>
-                    </div>
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-red-600">{crawlResults.crawlSummary.pagesWithErrors}</div>
-                      <div className="text-sm text-gray-600">Pages with Errors</div>
-                    </div>
-                  </div>
-
-                  {/* Coverage Status */}
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">Tag Coverage Status</span>
-                      <span className={`text-sm font-semibold ${getCoverageColor(crawlResults.crawlSummary.tagCoverage)}`}>
-                        {getCoverageStatus(crawlResults.crawlSummary.tagCoverage)}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div 
-                        className={`h-3 rounded-full transition-all duration-300 ${
-                          crawlResults.crawlSummary.tagCoverage >= 95 ? 'bg-green-500' :
-                          crawlResults.crawlSummary.tagCoverage >= 80 ? 'bg-blue-500' :
-                          crawlResults.crawlSummary.tagCoverage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`}
-                        style={{ width: `${crawlResults.crawlSummary.tagCoverage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  {/* Implementation Breakdown */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 border border-gray-200 rounded-lg">
-                      <div className="flex items-center mb-2">
-                        <Settings className="w-5 h-5 text-blue-600 mr-2" />
-                        <span className="font-semibold text-gray-900">GTM Implementation</span>
-                      </div>
-                      <div className="text-2xl font-bold text-blue-600 mb-1">{crawlResults.crawlSummary.pagesWithGTM}</div>
-                      <div className="text-sm text-gray-600">pages with GTM containers</div>
-                    </div>
-                    <div className="p-4 border border-gray-200 rounded-lg">
-                      <div className="flex items-center mb-2">
-                        <BarChart3 className="w-5 h-5 text-green-600 mr-2" />
-                        <span className="font-semibold text-gray-900">GA4 Implementation</span>
-                      </div>
-                      <div className="text-2xl font-bold text-green-600 mb-1">{crawlResults.crawlSummary.pagesWithGA4}</div>
-                      <div className="text-sm text-gray-600">pages with GA4 properties</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Rest of the crawl results sections remain the same... */}
-                {/* Insights, Untagged Pages, Error Pages, Recommendations, etc. */}
-                {/* I'll keep the existing implementation for brevity */}
-              </div>
-            )}
-
-            {/* Single Page Analysis Results - keep existing implementation */}
-            {siteAnalysis && analysisType === 'single' && (
-              <div className="space-y-6">
-                {/* Keep existing single page analysis implementation */}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Keep all other tabs (chat, implement, docs) exactly the same */}
-        {activeTab === 'chat' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            {/* Existing chat implementation */}
-          </div>
-        )}
-
-        {activeTab === 'implement' && (
-          <div className="space-y-8">
-            {/* Existing implement tab */}
-          </div>
-        )}
-
-        {activeTab === 'docs' && (
-          <div className="space-y-8">
-            {/* Existing docs tab */}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default GA4GTMAssistant;
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Data Collection */}
-                  <div className="mb-8">
-                    <div className="flex items-center mb-4">
-                      <BarChart3 className="w-5 h-5 text-gray-600 mr-2" />
-                      <h4 className="text-md font-semibold text-gray-800">Data Collection & Tracking</h4>
-                    </div>
-                    <div className="space-y-3">
-                      {Object.entries(ga4Audit.audit.dataCollection).map(([key, item]) => (
-                        <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start space-x-3 flex-1">
-                              {getStatusIcon(item.status)}
-                              <div className="flex-1">
-                                <div className="font-medium text-gray-900 capitalize">
-                                  {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                                </div>
-                                <div className="text-sm text-gray-600 mt-1">
-                                  Status: {item.value}
-                                </div>
-                                <div className="text-sm text-blue-600 mt-1">
-                                  💡 {item.recommendation}
-                                </div>'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Send, Globe, Code, Zap, CheckCircle, BookOpen, AlertCircle, Clock, BarChart3, Settings, Link2, Search, ExternalLink, TrendingUp, AlertTriangle, User, LogOut } from 'lucide-react';
@@ -850,3 +325,1263 @@ const GA4GTMAssistant = () => {
       setIsAnalyzing(false);
     }
   };
+
+  const generateTrackingCode = () => {
+    if (!action.trim()) return;
+    
+    const eventName = action.toLowerCase().replace(/\s+/g, '_');
+    const trackingCode = `// Track: ${action}
+dataLayer.push({
+  'event': '${eventName}',
+  'engagement_time_msec': 100,
+  'event_category': 'engagement',
+  'custom_parameter_1': '${action}',
+  'page_location': window.location.href,
+  'page_title': document.title
+});
+
+// GTM Tag Configuration:
+// Tag Type: Google Analytics: GA4 Event
+// Configuration Tag: GA4-XXXXXX (your GA4 config tag)
+// Event Name: ${eventName}
+// Event Parameters:
+//   engagement_time_msec: {{DLV - engagement_time_msec}}
+//   event_category: {{DLV - event_category}}  
+//   custom_parameter_1: {{DLV - custom_parameter_1}}
+//   page_location: {{DLV - page_location}}
+//   page_title: {{DLV - page_title}}
+
+// Alternative gtag.js implementation:
+gtag('event', '${eventName}', {
+  'engagement_time_msec': 100,
+  'event_category': 'engagement',
+  'custom_parameter_1': '${action}'
+});`;
+
+    const newMessage: Message = {
+      type: 'assistant',
+      content: `Here's the GA4-compliant tracking implementation for "${action}":`,
+      code: trackingCode,
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, newMessage]);
+  };
+
+  const getCoverageColor = (coverage: number) => {
+    if (coverage >= 95) return 'text-green-600';
+    if (coverage >= 80) return 'text-blue-600';
+    if (coverage >= 50) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const getCoverageStatus = (coverage: number) => {
+    if (coverage >= 95) return 'Excellent';
+    if (coverage >= 80) return 'Good';
+    if (coverage >= 50) return 'Fair';
+    return 'Poor';
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'detected':
+      case 'complete':
+      case 'configured':
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'not-detected':
+      case 'incomplete':
+      case 'missing':
+        return <AlertCircle className="w-5 h-5 text-red-500" />;
+      case 'unknown':
+      case 'info':
+        return <Clock className="w-5 h-5 text-yellow-500" />;
+      default:
+        return <AlertCircle className="w-5 h-5 text-gray-400" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'detected':
+      case 'complete':
+      case 'configured':
+        return 'bg-green-50 border-green-200';
+      case 'not-detected':
+      case 'incomplete':
+      case 'missing':
+        return 'bg-red-50 border-red-200';
+      case 'unknown':
+      case 'info':
+        return 'bg-yellow-50 border-yellow-200';
+      default:
+        return 'bg-gray-50 border-gray-200';
+    }
+  };
+
+  // GA4 Connection Component
+  const GA4Connection = () => {
+    if (oauthLoading) {
+      return (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </div>
+      );
+    }
+
+    if (isAuthenticated) {
+      return (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">GA4 Account Connected</h3>
+                <p className="text-sm text-gray-600">{userEmail}</p>
+              </div>
+            </div>
+            <button
+              onClick={logout}
+              className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+            <h4 className="font-medium text-gray-900 mb-2">Connected Services:</h4>
+            <ul className="text-sm text-gray-700 space-y-1">
+              <li>✅ Google Analytics 4 (Read Access)</li>
+              <li>✅ Google Tag Manager (Read Access)</li>
+              <li>✅ User Profile Information</li>
+            </ul>
+          </div>
+
+          {ga4Properties.length > 0 && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select GA4 Property:
+              </label>
+              <select
+                value={selectedProperty}
+                onChange={(e) => setSelectedProperty(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              >
+                <option value="">Choose a property...</option>
+                {ga4Properties.map((property) => (
+                  <option key={property.propertyId} value={property.propertyId}>
+                    {property.displayName} ({property.propertyId})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="flex space-x-3">
+            {ga4Properties.length === 0 ? (
+              <button
+                onClick={fetchGA4Properties}
+                disabled={isAnalyzing}
+                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
+              >
+                {isAnalyzing ? 'Loading Properties...' : 'Load GA4 Properties'}
+              </button>
+            ) : (
+              <button
+                onClick={runGA4Audit}
+                disabled={!selectedProperty || isAnalyzing}
+                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
+              >
+                {isAnalyzing ? 'Running Audit...' : 'Run Complete GA4 Audit'}
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6 border border-blue-200">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <BarChart3 className="w-8 h-8 text-blue-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Connect Your GA4 Account</h3>
+          <p className="text-gray-700 mb-6">
+            Get a complete 25-point audit of your GA4 property including configuration, 
+            audiences, conversions, and integration status.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-left">
+            <div className="space-y-3">
+              <h4 className="font-medium text-gray-900">Property Analysis:</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Timezone & Currency Settings</li>
+                <li>• Data Retention Configuration</li>
+                <li>• Enhanced Measurement Status</li>
+                <li>• Industry Category Setup</li>
+              </ul>
+            </div>
+            <div className="space-y-3">
+              <h4 className="font-medium text-gray-900">Advanced Features:</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Audience Configurations</li>
+                <li>• Conversion Goals Setup</li>
+                <li>• Custom Dimensions/Metrics</li>
+                <li>• Integration Status</li>
+              </ul>
+            </div>
+          </div>
+
+          <button
+            onClick={login}
+            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
+          >
+            Connect GA4 Account
+          </button>
+          
+          <div className="flex items-center justify-center space-x-2 mt-4 text-sm text-gray-500">
+            <User className="w-4 h-4" />
+            <span>Secure OAuth connection - we never store your passwords</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
+              <h1 className="text-xl font-bold text-gray-900">GA4 & GTM Assistant</h1>
+            </div>
+            <div className="text-sm text-gray-600">
+              Complete Website Analytics Audit
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            {[
+              { id: 'audit', label: 'Website Audit', icon: Search },
+              { id: 'chat', label: 'AI Assistant', icon: Send },
+              { id: 'implement', label: 'Code Generator', icon: Code },
+              { id: 'docs', label: 'Documentation', icon: BookOpen }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {activeTab === 'audit' && (
+          <div className="space-y-8">
+            {/* Lead Magnet Header */}
+            <div className="text-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Complete GA4 & GTM Website Audit</h2>
+              <p className="text-lg text-gray-600 mb-6">
+                Choose between frontend analysis, site-wide crawling, or complete GA4 account audit with direct API access.
+              </p>
+              <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
+                <div className="flex items-center">
+                  <Search className="w-4 h-4 text-green-500 mr-1" />
+                  <span>Real-time Analysis</span>
+                </div>
+                <div className="flex items-center">
+                  <BarChart3 className="w-4 h-4 text-green-500 mr-1" />
+                  <span>Coverage Reports</span>
+                </div>
+                <div className="flex items-center">
+                  <AlertTriangle className="w-4 h-4 text-green-500 mr-1" />
+                  <span>Expert Recommendations</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Analysis Type Selection & Site Input */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Choose Analysis Type</h3>
+              
+              {/* Analysis Type Toggle */}
+              <div className="flex space-x-4 mb-6">
+                <button
+                  onClick={() => setAnalysisType('single')}
+                  className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+                    analysisType === 'single'
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-center">
+                    <Globe className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                    <h4 className="font-semibold text-gray-900">Single Page Analysis</h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Deep dive into one page with detailed GA4 configuration audit
+                    </p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setAnalysisType('sitewide')}
+                  className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+                    analysisType === 'sitewide'
+                      ? 'border-purple-500 bg-purple-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-center">
+                    <Search className="w-8 h-8 mx-auto mb-2 text-purple-600" />
+                    <h4 className="font-semibold text-gray-900">Site-Wide Crawl</h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Analyze entire website for tag coverage and missing pages
+                    </p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setAnalysisType('ga4account')}
+                  className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+                    analysisType === 'ga4account'
+                      ? 'border-green-500 bg-green-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-center">
+                    <BarChart3 className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                    <h4 className="font-semibold text-gray-900">GA4 Account Audit</h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Complete 25-point audit with direct GA4 API access
+                    </p>
+                  </div>
+                </button>
+              </div>
+
+              {/* Conditional Content Based on Analysis Type */}
+              {analysisType === 'ga4account' ? (
+                <GA4Connection />
+              ) : (
+                <>
+                  {/* URL Input */}
+                  <div className="flex space-x-4">
+                    <input
+                      type="url"
+                      value={website}
+                      onChange={(e) => setWebsite(e.target.value)}
+                      placeholder="Enter your website URL (e.g., https://example.com)"
+                      className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                    />
+                    <button
+                      onClick={analyzeWebsite}
+                      disabled={isAnalyzing}
+                      className={`px-8 py-3 rounded-lg font-medium text-white transition-colors disabled:opacity-50 ${
+                        analysisType === 'single' 
+                          ? 'bg-blue-600 hover:bg-blue-700' 
+                          : 'bg-purple-600 hover:bg-purple-700'
+                      }`}
+                    >
+                      {isAnalyzing ? 'Analyzing...' : `Start ${analysisType === 'single' ? 'Analysis' : 'Crawl'}`}
+                    </button>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    {analysisType === 'single' 
+                      ? 'Deep analysis of GA4 configuration, events, and integrations for one page'
+                      : 'Comprehensive crawl of your entire website to check tracking coverage'
+                    }
+                  </p>
+                </>
+              )}
+            </div>
+
+            {/* GA4 Account Audit Results */}
+            {ga4Audit && analysisType === 'ga4account' && (
+              <div className="space-y-6">
+                {/* Property Overview */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">GA4 Property Overview</h3>
+                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      Live GA4 API Data
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{ga4Audit.property.displayName}</div>
+                      <div className="text-sm text-gray-600">Property Name</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        ID: {ga4Audit.property.name?.split('/').pop()}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{ga4Audit.dataStreams.length}</div>
+                      <div className="text-sm text-gray-600">Data Streams</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">{ga4Audit.conversions.length}</div>
+                      <div className="text-sm text-gray-600">Conversion Events</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Comprehensive GA4 Configuration Audit */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6">Complete GA4 Configuration Audit</h3>
+                  
+                  {/* Property Settings */}
+                  <div className="mb-8">
+                    <div className="flex items-center mb-4">
+                      <Settings className="w-5 h-5 text-gray-600 mr-2" />
+                      <h4 className="text-md font-semibold text-gray-800">Property Settings</h4>
+                    </div>
+                    <div className="space-y-3">
+                      {Object.entries(ga4Audit.audit.propertySettings).map(([key, item]) => (
+                        <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-3 flex-1">
+                              {getStatusIcon(item.status)}
+                              <div className="flex-1">
+                                <div className="font-medium text-gray-900 capitalize">
+                                  {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                                </div>
+                                <div className="text-sm text-gray-600 mt-1">
+                                  Current: {item.value}
+                                </div>
+                                <div className="text-sm text-blue-600 mt-1">
+                                  💡 {item.recommendation}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Data Collection */}
+                  <div className="mb-8">
+                    <div className="flex items-center mb-4">
+                      <BarChart3 className="w-5 h-5 text-gray-600 mr-2" />
+                      <h4 className="text-md font-semibold text-gray-800">Data Collection & Tracking</h4>
+                    </div>
+                    <div className="space-y-3">
+                      {Object.entries(ga4Audit.audit.dataCollection).map(([key, item]) => (
+                        <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-3 flex-1">
+                              {getStatusIcon(item.status)}
+                              <div className="flex-1">
+                                <div className="font-medium text-gray-900 capitalize">
+                                  {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                                </div>
+                                <div className="text-sm text-gray-600 mt-1">
+                                  Status: {item.value}
+                                </div>
+                                <div className="text-sm text-blue-600 mt-1">
+                                  💡 {item.recommendation}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Conversions */}
+                  <div className="mb-8">
+                    <div className="flex items-center mb-4">
+                      <Zap className="w-5 h-5 text-gray-600 mr-2" />
+                      <h4 className="text-md font-semibold text-gray-800">Conversion Events</h4>
+                    </div>
+                    <div className="space-y-3">
+                      {Object.entries(ga4Audit.audit.conversions).map(([key, item]) => (
+                        <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-3 flex-1">
+                              {getStatusIcon(item.status)}
+                              <div className="flex-1">
+                                <div className="font-medium text-gray-900 capitalize">
+                                  {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                                </div>
+                                <div className="text-sm text-gray-600 mt-1">
+                                  Status: {item.value}
+                                </div>
+                                <div className="text-sm text-blue-600 mt-1">
+                                  💡 {item.recommendation}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Integrations */}
+                  <div>
+                    <div className="flex items-center mb-4">
+                      <Link2 className="w-5 h-5 text-gray-600 mr-2" />
+                      <h4 className="text-md font-semibold text-gray-800">Integrations</h4>
+                    </div>
+                    <div className="space-y-3">
+                      {Object.entries(ga4Audit.audit.integrations).map(([key, item]) => (
+                        <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-3 flex-1">
+                              {getStatusIcon(item.status)}
+                              <div className="flex-1">
+                                <div className="font-medium text-gray-900 capitalize">
+                                  {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                                </div>
+                                <div className="text-sm text-gray-600 mt-1">
+                                  {item.value}
+                                </div>
+                                <div className="text-sm text-blue-600 mt-1">
+                                  💡 {item.recommendation}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Data Streams Details */}
+                {ga4Audit.dataStreams.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Data Streams Configuration</h3>
+                    <div className="space-y-4">
+                      {ga4Audit.dataStreams.map((stream, index) => (
+                        <div key={index} className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-gray-900">{stream.displayName}</h4>
+                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                              {stream.type}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-600 space-y-1">
+                            {stream.webStreamData?.defaultUri && (
+                              <p><strong>Website URL:</strong> {stream.webStreamData.defaultUri}</p>
+                            )}
+                            {stream.webStreamData?.measurementId && (
+                              <p><strong>Measurement ID:</strong> {stream.webStreamData.measurementId}</p>
+                            )}
+                            <p><strong>Stream ID:</strong> {stream.name?.split('/').pop()}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Conversion Events Details */}
+                {ga4Audit.conversions.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Configured Conversion Events</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {ga4Audit.conversions.map((conversion, index) => (
+                        <div key={index} className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-gray-900">{conversion.eventName}</h4>
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <p><strong>Created:</strong> {new Date(conversion.createTime).toLocaleDateString()}</p>
+                            {conversion.countingMethod && (
+                              <p><strong>Counting:</strong> {conversion.countingMethod}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Plan */}
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border border-green-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">🎯 Your GA4 Action Plan</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-xs font-medium text-green-600">1</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Property Configuration Complete</p>
+                        <p className="text-sm text-gray-600">Your basic GA4 property is set up with proper timezone and data streams</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-xs font-medium text-blue-600">2</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Enhance Your Conversion Tracking</p>
+                        <p className="text-sm text-gray-600">Set up additional conversion events for key business actions</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-xs font-medium text-purple-600">3</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Connect Additional Services</p>
+                        <p className="text-sm text-gray-600">Link Google Ads and Search Console for complete attribution</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-green-200">
+                    <p className="text-sm text-gray-600 mb-4">
+                      <strong>Pro Tip:</strong> Your GA4 setup is solid! Focus on creating custom audiences and setting up enhanced e-commerce tracking for deeper insights.
+                    </p>
+                    <button 
+                      onClick={() => setActiveTab('implement')}
+                      className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                    >
+                      Generate Custom Tracking Code
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Site-Wide Crawl Results */}
+            {crawlResults && analysisType === 'sitewide' && (
+              <div className="space-y-6">
+                {/* Crawl Summary */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6">Site-Wide Analysis Results</h3>
+                  
+                  {/* Coverage Overview */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <div className="text-2xl font-bold text-gray-900">{crawlResults.crawlSummary.totalPagesDiscovered}</div>
+                      <div className="text-sm text-gray-600">Pages Discovered</div>
+                    </div>
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{crawlResults.crawlSummary.pagesAnalyzed}</div>
+                      <div className="text-sm text-gray-600">Pages Analyzed</div>
+                    </div>
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <div className={`text-2xl font-bold ${getCoverageColor(crawlResults.crawlSummary.tagCoverage)}`}>
+                        {crawlResults.crawlSummary.tagCoverage}%
+                      </div>
+                      <div className="text-sm text-gray-600">Tag Coverage</div>
+                    </div>
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">{crawlResults.crawlSummary.pagesWithErrors}</div>
+                      <div className="text-sm text-gray-600">Pages with Errors</div>
+                    </div>
+                  </div>
+
+                  {/* Coverage Status */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700">Tag Coverage Status</span>
+                      <span className={`text-sm font-semibold ${getCoverageColor(crawlResults.crawlSummary.tagCoverage)}`}>
+                        {getCoverageStatus(crawlResults.crawlSummary.tagCoverage)}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div 
+                        className={`h-3 rounded-full transition-all duration-300 ${
+                          crawlResults.crawlSummary.tagCoverage >= 95 ? 'bg-green-500' :
+                          crawlResults.crawlSummary.tagCoverage >= 80 ? 'bg-blue-500' :
+                          crawlResults.crawlSummary.tagCoverage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${crawlResults.crawlSummary.tagCoverage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Implementation Breakdown */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <div className="flex items-center mb-2">
+                        <Settings className="w-5 h-5 text-blue-600 mr-2" />
+                        <span className="font-semibold text-gray-900">GTM Implementation</span>
+                      </div>
+                      <div className="text-2xl font-bold text-blue-600 mb-1">{crawlResults.crawlSummary.pagesWithGTM}</div>
+                      <div className="text-sm text-gray-600">pages with GTM containers</div>
+                    </div>
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <div className="flex items-center mb-2">
+                        <BarChart3 className="w-5 h-5 text-green-600 mr-2" />
+                        <span className="font-semibold text-gray-900">GA4 Implementation</span>
+                      </div>
+                      <div className="text-2xl font-bold text-green-600 mb-1">{crawlResults.crawlSummary.pagesWithGA4}</div>
+                      <div className="text-sm text-gray-600">pages with GA4 properties</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Insights */}
+                {crawlResults.insights.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Insights</h3>
+                    <div className="space-y-3">
+                      {crawlResults.insights.map((insight, index) => (
+                        <div key={index} className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                          <TrendingUp className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700 text-sm">{insight}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Untagged Pages */}
+                {crawlResults.untaggedPages.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Pages Missing Analytics Tracking</h3>
+                    <div className="space-y-2">
+                      {crawlResults.untaggedPages.map((page, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <AlertTriangle className="w-4 h-4 text-red-500" />
+                            <span className="text-sm text-gray-700 font-mono">{page.url}</span>
+                          </div>
+                          <a 
+                            href={page.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                    {crawlResults.untaggedPages.length >= 20 && (
+                      <p className="text-sm text-gray-500 mt-3">
+                        Showing first 20 untagged pages. Total untagged: {crawlResults.crawlSummary.successfulAnalysis - Math.max(crawlResults.crawlSummary.pagesWithGTM, crawlResults.crawlSummary.pagesWithGA4)}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Error Pages */}
+                {crawlResults.errorPages.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Pages with Analysis Errors</h3>
+                    <div className="space-y-2">
+                      {crawlResults.errorPages.map((page, index) => (
+                        <div key={index} className="flex items-start justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3">
+                              <AlertCircle className="w-4 h-4 text-yellow-500" />
+                              <span className="text-sm text-gray-700 font-mono">{page.url}</span>
+                            </div>
+                            {page.error && (
+                              <p className="text-xs text-gray-500 mt-1 ml-7">{page.error}</p>
+                            )}
+                          </div>
+                          <a 
+                            href={page.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 ml-2"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recommendations */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Priority Recommendations</h3>
+                  <div className="space-y-3">
+                    {crawlResults.recommendations.map((rec, index) => (
+                      <div key={index} className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="text-xs font-medium text-blue-600">{index + 1}</span>
+                        </div>
+                        <span className="text-gray-700 text-sm leading-relaxed">{rec}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Next Steps */}
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Ready for the Complete GA4 Audit?</h3>
+                  <p className="text-gray-700 mb-4">
+                    This site-wide crawl shows your tag implementation coverage. For a complete 25-point GA4 configuration audit including property settings, integrations, and advanced features, connect your GA4 account.
+                  </p>
+                  <div className="space-y-2 mb-4">
+                    {crawlResults.nextSteps.map((step, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm text-gray-700">{step}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <button 
+                    onClick={() => setAnalysisType('ga4account')}
+                    className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                  >
+                    Connect GA4 for Complete Audit
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Single Page Analysis Results */}
+            {siteAnalysis && analysisType === 'single' && (
+              <div className="space-y-6">
+                {/* Detection Summary */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Detection Summary</h3>
+                    {siteAnalysis.analysisMethod && (
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        {siteAnalysis.analysisMethod}
+                      </span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{siteAnalysis.gtmContainers.length}</div>
+                      <div className="text-sm text-gray-600">GTM Containers</div>
+                      {siteAnalysis.gtmContainers.length > 0 && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          {siteAnalysis.gtmContainers.join(', ')}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{siteAnalysis.ga4Properties.length}</div>
+                      <div className="text-sm text-gray-600">GA4 Properties</div>
+                      {siteAnalysis.ga4Properties.length > 0 && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          {siteAnalysis.ga4Properties.join(', ')}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">{siteAnalysis.recommendations.length}</div>
+                      <div className="text-sm text-gray-600">Recommendations</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Comprehensive Configuration Audit */}
+                {siteAnalysis.configurationAudit && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-6">Complete GA4 Configuration Audit</h3>
+                    
+                    {/* Property Settings */}
+                    <div className="mb-8">
+                      <div className="flex items-center mb-4">
+                        <Settings className="w-5 h-5 text-gray-600 mr-2" />
+                        <h4 className="text-md font-semibold text-gray-800">Property Settings</h4>
+                      </div>
+                      <div className="space-y-3">
+                        {Object.entries(siteAnalysis.configurationAudit.events).map(([key, item]) => (
+                          <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start space-x-3 flex-1">
+                                {getStatusIcon(item.status)}
+                                <div className="flex-1">
+                                  <div className="font-medium text-gray-900 capitalize">
+                                    {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                                  </div>
+                                  <div className="text-sm text-gray-600 mt-1">
+                                    Status: {item.value}
+                                  </div>
+                                  <div className="text-sm text-blue-600 mt-1">
+                                    💡 {item.recommendation}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Integrations */}
+                    <div>
+                      <div className="flex items-center mb-4">
+                        <Link2 className="w-5 h-5 text-gray-600 mr-2" />
+                        <h4 className="text-md font-semibold text-gray-800">Integrations</h4>
+                      </div>
+                      <div className="space-y-3">
+                        {Object.entries(siteAnalysis.configurationAudit.integrations).map(([key, item]) => (
+                          <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start space-x-3 flex-1">
+                                {getStatusIcon(item.status)}
+                                <div className="flex-1">
+                                  <div className="font-medium text-gray-900 capitalize">
+                                    {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                                  </div>
+                                  <div className="text-sm text-gray-600 mt-1">
+                                    {item.value}
+                                  </div>
+                                  <div className="text-sm text-blue-600 mt-1">
+                                    💡 {item.recommendation}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Items */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Priority Action Items</h3>
+                  <div className="space-y-3">
+                    {siteAnalysis.recommendations.slice(0, 8).map((rec, index) => (
+                      <div key={index} className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="text-xs font-medium text-blue-600">{index + 1}</span>
+                        </div>
+                        <span className="text-gray-700 text-sm leading-relaxed">{rec}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* GA4 Account Connection CTA */}
+                <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6 border border-blue-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Connect Your GA4 Account for Complete Audit</h3>
+                  <p className="text-gray-700 mb-4">
+                    This analysis shows what we can detect from your website's frontend code. For a complete 25-point audit including property settings, audience configurations, and integration status, connect your GA4 account.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-gray-900">Frontend Analysis ✅</h4>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• GTM Container Detection</li>
+                        <li>• GA4 Property Detection</li>
+                        <li>• Basic Event Implementation</li>
+                        <li>• Cross-domain Setup</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-gray-900">GA4 Account Audit 🔐</h4>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• Property Configuration</li>
+                        <li>• Audience Setup</li>
+                        <li>• Conversion Goals</li>
+                        <li>• Integration Status</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setAnalysisType('ga4account')}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    Connect GA4 Account
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Chat Tab */}
+        {activeTab === 'chat' && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">GA4 & GTM AI Assistant</h2>
+            <div className="flex flex-col space-y-4">
+              <div className="flex-1 max-h-96 overflow-y-auto">
+                {messages.map((msg, index) => (
+                  <div key={index} className={`mb-4 ${msg.type === 'user' ? 'text-right' : 'text-left'}`}>
+                    <div className={`inline-block p-3 rounded-lg max-w-xs ${
+                      msg.type === 'user' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      <p className="text-sm">{msg.content}</p>
+                      {msg.code && (
+                        <div className="mt-2 p-2 bg-gray-900 rounded text-green-400 text-xs font-mono overflow-x-auto">
+                          <pre>{msg.code}</pre>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Ask about GA4 or GTM..."
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                />
+                <button
+                  onClick={handleSendMessage}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Implement Tab */}
+        {activeTab === 'implement' && (
+          <div className="space-y-8">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">GA4 Event Code Generator</h2>
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  value={action}
+                  onChange={(e) => setAction(e.target.value)}
+                  placeholder="e.g., Download PDF pricing guide"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                />
+                <button
+                  onClick={generateTrackingCode}
+                  className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Generate GA4 Code
+                </button>
+              </div>
+            </div>
+
+            {messages.filter(msg => msg.code).length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Generated Code</h3>
+                {messages.filter(msg => msg.code).slice(-1).map((msg, index) => (
+                  <div key={index}>
+                    <p className="text-sm text-gray-700 mb-3">{msg.content}</p>
+                    <div className="p-4 bg-gray-900 rounded-lg text-green-400 text-sm font-mono overflow-x-auto">
+                      <pre>{msg.code}</pre>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Implementation Guides */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Implementation Guides</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 border border-gray-200 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 mb-2">GTM Installation</h4>
+                  <p className="text-sm text-gray-600 mb-3">Install Google Tag Manager on your website</p>
+                  <div className="p-3 bg-gray-50 rounded text-xs font-mono">
+                    {`<!-- Head -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-XXXXXX');</script>
+
+<!-- Body -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXX"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>`}
+                  </div>
+                </div>
+                <div className="p-4 border border-gray-200 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 mb-2">GA4 Direct Install</h4>
+                  <p className="text-sm text-gray-600 mb-3">Install GA4 directly without GTM</p>
+                  <div className="p-3 bg-gray-50 rounded text-xs font-mono">
+                    {`<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>`}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Docs Tab */}
+        {activeTab === 'docs' && (
+          <div className="space-y-8">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">GA4 & GTM Documentation</h2>
+              
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Getting Started</h3>
+                  <div className="space-y-2">
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <h4 className="font-medium text-gray-900">1. Set Up Google Analytics 4</h4>
+                      <p className="text-sm text-gray-600">Create a new GA4 property in your Google Analytics account</p>
+                    </div>
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <h4 className="font-medium text-gray-900">2. Install Google Tag Manager</h4>
+                      <p className="text-sm text-gray-600">GTM makes it easier to manage all your tracking codes</p>
+                    </div>
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <h4 className="font-medium text-gray-900">3. Connect GA4 to GTM</h4>
+                      <p className="text-sm text-gray-600">Create a GA4 Configuration tag in GTM</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Common Events</h3>
+                  <div className="space-y-3">
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <h4 className="font-semibold text-gray-900">Page View</h4>
+                      <p className="text-sm text-gray-600 mb-2">Automatically tracked with GA4 configuration</p>
+                      <div className="text-xs font-mono bg-gray-50 p-2 rounded">
+                        gtag('config', 'G-XXXXXXXXXX');
+                      </div>
+                    </div>
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <h4 className="font-semibold text-gray-900">Custom Event</h4>
+                      <p className="text-sm text-gray-600 mb-2">Track specific user actions</p>
+                      <div className="text-xs font-mono bg-gray-50 p-2 rounded">
+                        gtag('event', 'button_click', {'{'}event_category: 'engagement'{'}'});
+                      </div>
+                    </div>
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <h4 className="font-semibold text-gray-900">E-commerce Purchase</h4>
+                      <p className="text-sm text-gray-600 mb-2">Track transactions and revenue</p>
+                      <div className="text-xs font-mono bg-gray-50 p-2 rounded">
+                        gtag('event', 'purchase', {'{'}transaction_id: '12345', value: 25.42, currency: 'USD'{'}'});
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Best Practices</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-900">Use GTM for tag management</p>
+                        <p className="text-sm text-gray-600">Easier to manage and update tracking codes</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-900">Implement Enhanced Measurement</p>
+                        <p className="text-sm text-gray-600">Automatically track scrolls, outbound clicks, site search</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-900">Set up Consent Mode</p>
+                        <p className="text-sm text-gray-600">Comply with GDPR and privacy regulations</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-900">Test with GA4 DebugView</p>
+                        <p className="text-sm text-gray-600">Verify events are firing correctly</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default GA4GTMAssistant;
+                        {Object.entries(siteAnalysis.configurationAudit.propertySettings).map(([key, item]) => (
+                          <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start space-x-3 flex-1">
+                                {getStatusIcon(item.status)}
+                                <div className="flex-1">
+                                  <div className="font-medium text-gray-900 capitalize">
+                                    {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                                  </div>
+                                  <div className="text-sm text-gray-600 mt-1">
+                                    Current: {item.value}
+                                  </div>
+                                  <div className="text-sm text-blue-600 mt-1">
+                                    💡 {item.recommendation}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Data Collection */}
+                    <div className="mb-8">
+                      <div className="flex items-center mb-4">
+                        <BarChart3 className="w-5 h-5 text-gray-600 mr-2" />
+                        <h4 className="text-md font-semibold text-gray-800">Data Collection & Tracking</h4>
+                      </div>
+                      <div className="space-y-3">
+                        {Object.entries(siteAnalysis.configurationAudit.dataCollection).map(([key, item]) => (
+                          <div key={key} className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}>
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start space-x-3 flex-1">
+                                {getStatusIcon(item.status)}
+                                <div className="flex-1">
+                                  <div className="font-medium text-gray-900 capitalize">
+                                    {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                                  </div>
+                                  <div className="text-sm text-gray-600 mt-1">
+                                    Status: {item.value}
+                                  </div>
+                                  <div className="text-sm text-blue-600 mt-1">
+                                    💡 {item.recommendation}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Events */}
+                    <div className="mb-8">
+                      <div className="flex items-center mb-4">
+                        <Zap className="w-5 h-5 text-gray-600 mr-2" />
+                        <h4 className="text-md font-semibold text-gray-800">Event Configuration</h4>
+                      </div>
