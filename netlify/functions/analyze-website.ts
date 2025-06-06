@@ -154,16 +154,25 @@ export const handler: Handler = async (event, context) => {
       { property: 'enhancedEcommerce', patterns: [/purchase/i, /add_to_cart/i, /view_item/i, /ecommerce/i] }
     ];
 
-    checks.forEach(check => {
-      const found = check.patterns.some(pattern => pattern.test(html));
-      if (found) {
-        if (check.property === 'crossDomainTracking.enabled') {
-          analysis.crossDomainTracking.enabled = true;
-        } else {
-          analysis[check.property as keyof typeof analysis] = true;
-        }
-      }
-    });
+// Check for cross-domain tracking
+if (/linker/i.test(html) || /cross[_-]?domain/i.test(html) || /allowLinker/i.test(html)) {
+  analysis.crossDomainTracking.enabled = true;
+}
+
+// Check for consent mode
+if (/consent[_-]?mode/i.test(html) || /ad_storage/i.test(html) || /analytics_storage/i.test(html)) {
+  analysis.consentMode = true;
+}
+
+// Check for debug mode
+if (/debug[_-]?mode/i.test(html) || /gtag_enable_tcf_support/i.test(html)) {
+  analysis.debugMode = true;
+}
+
+// Check for ecommerce
+if (/purchase/i.test(html) || /add_to_cart/i.test(html) || /view_item/i.test(html) || /ecommerce/i.test(html)) {
+  analysis.enhancedEcommerce = true;
+}
 
     // Generate recommendations
     const recommendations = [];
