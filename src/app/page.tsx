@@ -37,6 +37,21 @@ interface Message {
   code?: string;
 }
 
+interface DebugInfo {
+  status: 'testing' | 'success' | 'error';
+  step: string;
+  userInfo?: {
+    email: string;
+  };
+  accountCount?: number;
+  propertyCount?: number;
+  accounts?: Array<{
+    name: string;
+    displayName: string;
+  }>;
+  error?: string;
+}
+
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('audit');
   const [message, setMessage] = useState('');
@@ -47,7 +62,7 @@ const GA4GTMAssistant = () => {
   const [ga4Properties, setGA4Properties] = useState<GA4Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [ga4Audit, setGA4Audit] = useState<GA4Audit | null>(null);
-  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
   const [ga4Error, setGA4Error] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
