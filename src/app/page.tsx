@@ -81,6 +81,9 @@ const GA4GTMAssistant = () => {
     configurationAudit: null,
     recommendations: []
   });
+
+  const handleSendMessage = () => {
+    if (!message.trim()) return;
     
     const newMessage: Message = {
       type: 'user',
@@ -171,7 +174,7 @@ const GA4GTMAssistant = () => {
           events: {},
           integrations: {}
         },
-        recommendations: [`Website analysis failed: ${error.message}. Please try again.`]
+        recommendations: [`Website analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`]
       });
     } finally {
       setIsAnalyzing(false);
@@ -364,7 +367,42 @@ gtag('event', '${eventName}', {
         {activeTab === 'chat' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">GA4 & GTM AI Assistant</h2>
-            <p className="text-gray-600">Chat interface coming soon...</p>
+            <div className="flex flex-col space-y-4">
+              <div className="flex-1 max-h-96 overflow-y-auto">
+                {messages.map((msg, index) => (
+                  <div key={index} className={`mb-4 ${msg.type === 'user' ? 'text-right' : 'text-left'}`}>
+                    <div className={`inline-block p-3 rounded-lg max-w-xs ${
+                      msg.type === 'user' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      <p className="text-sm">{msg.content}</p>
+                      {msg.code && (
+                        <div className="mt-2 p-2 bg-gray-900 rounded text-green-400 text-xs font-mono overflow-x-auto">
+                          <pre>{msg.code}</pre>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Ask about GA4 or GTM..."
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                />
+                <button
+                  onClick={handleSendMessage}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
