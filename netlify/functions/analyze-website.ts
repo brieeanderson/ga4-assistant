@@ -26,7 +26,7 @@ const handler: Handler = async (event, context) => {
   }
 
   try {
-    const { url, crawlMode = 'single', maxPages = 100 } = JSON.parse(event.body || '{}');
+    const { url, crawlMode = 'single', maxPages = 1000 } = JSON.parse(event.body || '{}');
     
     if (!url) {
       return {
@@ -293,7 +293,7 @@ async function crawlWebsite(startUrl: string, maxPages: number) {
   }
 
   console.log(`Starting site crawl for: ${startUrl}`);
-  console.log(`Max pages to analyze: ${maxPages}`);
+  console.log(`Max pages to analyze: ${maxPages} (effectively unlimited)`);
 
   while (urlsToVisit.length > 0 && analyzed < maxPages) {
     const currentUrl = urlsToVisit.shift()!;
@@ -306,33 +306,36 @@ async function crawlWebsite(startUrl: string, maxPages: number) {
     visitedUrls.add(normalizedUrl);
 
     try {
-      console.log(`Analyzing page ${analyzed + 1}/${maxPages}: ${currentUrl}`);
+      console.log(`Analyzing page ${analyzed + 1}: ${currentUrl}`);
       console.log(`Queue remaining: ${urlsToVisit.length} URLs`);
       
-      const scrapingbeeUrl = `https://app.scrapingbee.com/api/v1/?api_key=${SCRAPINGBEE_API_KEY}&url=${encodeURIComponent(currentUrl)}&render_js=true&wait=2000`;
+      const scrapingbeeUrl = `https://app.scrapingbee.com/api/v1/?api_key=${SCRAPINGBEE_API_KEY}&url=${encodeURIComponent(currentUrl)}&render_js=true&wait=1000&timeout=8000`;
       
-      const response = await fetch(scrapingbeeUrl);
+      const response = await fetch(scrapingbeeUrl, { 
+        timeout: 8000 // 8 second timeout for each request
+      });
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
       
       const html = await response.text();
       
-      // Check for tracking - GTM-focused approach
+      // Check for tracking - GTM-focused approach with better dataLayer detection
       const gtmFound = /GTM-[A-Z0-9]+/.test(html);
       const ga4DirectFound = /gtag\('config',\s*['"]?(G-[A-Z0-9]+)['"]?\)/.test(html);
-      const hasDataLayerOnPage = /dataLayer/.test(html);
+      const hasDataLayerOnPage = /dataLayer/.test(html) || /window\.dataLayer/.test(html);
+      const hasGoogleAnalytics = /google-analytics\.com|googletagmanager\.com/.test(html);
       
-      // If GTM is present with dataLayer, assume GA4 is configured
-      const ga4Found = ga4DirectFound || (gtmFound && hasDataLayerOnPage);
+      // If GTM is present, very likely GA4 is configured (most modern GTM setups have GA4)
+      const ga4Found = ga4DirectFound || (gtmFound && hasGoogleAnalytics);
       
-      console.log(`Page ${analyzed + 1} - GTM: ${gtmFound}, GA4: ${ga4Found} (direct: ${ga4DirectFound}, via GTM: ${gtmFound && hasDataLayerOnPage})`);
+      console.log(`Page ${analyzed + 1} - GTM: ${gtmFound}, GA4: ${ga4Found} (direct: ${ga4DirectFound}, dataLayer: ${hasDataLayerOnPage}, googleAnalytics: ${hasGoogleAnalytics})`);
       
       const gtmContainers = Array.from(html.matchAll(/GTM-[A-Z0-9]+/g)).map(m => m[0]);
       const ga4DirectMatches = Array.from(html.matchAll(/gtag\('config',\s*['"]?(G-[A-Z0-9]+)['"]?\)/g)).map(m => m[1]);
       
       // For GTM setups, show placeholder since actual ID is in GTM
-      const allGA4Properties = ga4DirectMatches.length > 0 ? ga4DirectMatches : (gtmFound && hasDataLayerOnPage ? ['GA4 via GTM'] : []);
+      const allGA4Properties = ga4DirectMatches.length > 0 ? ga4DirectMatches : (gtmFound ? ['GA4 configured via GTM'] : []);
 
       const pageAnalysis = {
         url: currentUrl,
@@ -352,8 +355,8 @@ async function crawlWebsite(startUrl: string, maxPages: number) {
         untaggedPages.push(pageAnalysis);
       }
       
-      // Enhanced link discovery - multiple patterns
-      if (analyzed < maxPages * 0.8) { // Stop discovering new URLs when we're 80% through
+      // Enhanced link discovery - no page limit restrictions
+      if (urlsToVisit.length < 200) { // Only stop discovery if queue gets too large
         // Multiple link extraction patterns
         const linkPatterns = [
           /href="([^"]*?)"/g,           // Standard href attributes
@@ -381,7 +384,9 @@ async function crawlWebsite(startUrl: string, maxPages: number) {
               if (href.startsWith('/')) {
                 return new URL(href, currentUrl).toString();
               } else if (href.startsWith('http')) {
-                return href;
+                const urlObj = new URL(href);
+                // Only include if same domain
+                return urlObj.hostname === domain ? href : null;
               } else if (!href.includes('://') && !href.startsWith('#') && !href.startsWith('mailto:') && !href.startsWith('tel:')) {
                 return new URL(href, currentUrl).toString();
               }
@@ -395,28 +400,33 @@ async function crawlWebsite(startUrl: string, maxPages: number) {
             if (!url) return false;
             try {
               const urlObj = new URL(url);
+              const normalizedNew = normalizeUrl(url);
               return urlObj.hostname === domain && 
                      !url.includes('#') && 
                      !url.includes('?') &&
                      !url.includes('.pdf') &&
                      !url.includes('.jpg') &&
                      !url.includes('.png') &&
+                     !url.includes('.gif') &&
                      !url.includes('.css') &&
                      !url.includes('.js') &&
-                     !visitedUrls.has(normalizeUrl(url)) &&
-                     !urlsToVisit.includes(url);
+                     !url.includes('.xml') &&
+                     !visitedUrls.has(normalizedNew) &&
+                     !urlsToVisit.includes(url) &&
+                     normalizedNew !== normalizeUrl(currentUrl); // Don't add self
             } catch {
               return false;
             }
           })
-          .slice(0, 20); // Limit new URLs per page
+          .slice(0, 25); // Allow more URLs per page since no strict limit
         
-        console.log(`Adding ${newUrls.length} new URLs to crawl queue`);
+        console.log(`Valid URLs after filtering: ${newUrls.length}`);
+        console.log(`Sample URLs: ${newUrls.slice(0, 5).join(', ')}`);
         urlsToVisit.push(...newUrls as string[]);
         totalDiscovered = Math.max(totalDiscovered, visitedUrls.size + urlsToVisit.length);
         
         // If we didn't find many links, try common page patterns
-        if (newUrls.length < 3 && analyzed === 1) {
+        if (newUrls.length < 5 && analyzed <= 3) {
           const commonPages = [
             '/about', '/about-us', '/services', '/products', '/contact', 
             '/blog', '/news', '/pricing', '/features', '/team',
@@ -479,8 +489,8 @@ async function crawlWebsite(startUrl: string, maxPages: number) {
       pagesWithGTM: withGTM,
       pagesWithGA4: withGA4,
       tagCoverage: coverage,
-      isComplete: urlsToVisit.length === 0 || analyzed >= maxPages,
-      estimatedPagesRemaining: Math.max(0, urlsToVisit.length)
+      isComplete: urlsToVisit.length === 0,
+      estimatedPagesRemaining: urlsToVisit.length
     },
     pageDetails: pageDetails.slice(0, 20),
     errorPages: errorPages.slice(0, 10),
