@@ -38,13 +38,27 @@ export const handler: Handler = async (event, context) => {
     // Import puppeteer dynamically to avoid issues
     const puppeteer = await import('puppeteer');
 
-    // Use Puppeteer to analyze the website
+    // Use Puppeteer to analyze the website with Netlify-compatible configuration
     const browser = await puppeteer.default.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu'
+      ],
+      // Use system Chrome on Netlify
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/opt/buildhome/.cache/puppeteer/chrome/linux-137.0.7151.55/chrome-linux64/chrome'
     });
 
     const page = await browser.newPage();
+    
+    // Set a reasonable timeout
+    page.setDefaultTimeout(30000);
     
     // Track network requests
     const gtmRequests: string[] = [];
@@ -67,7 +81,7 @@ export const handler: Handler = async (event, context) => {
       const results = {
         gtmContainers: [] as string[],
         ga4Properties: [] as string[],
-        dataLayerEvents: [] as any[],
+        dataLayerEvents: [] as unknown[],
         gtmSnippetFound: false,
         crossDomainTracking: {
           enabled: false,
