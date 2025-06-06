@@ -35,116 +35,67 @@ export const handler: Handler = async (event, context) => {
       };
     }
 
-    // Import puppeteer dynamically to avoid issues
-    const puppeteer = await import('puppeteer');
-
-    // Use Puppeteer to analyze the website with Netlify-compatible configuration
-    const browser = await puppeteer.default.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process',
-        '--disable-gpu'
-      ],
-      // Use system Chrome on Netlify
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/opt/buildhome/.cache/puppeteer/chrome/linux-137.0.7151.55/chrome-linux64/chrome'
-    });
-
-    const page = await browser.newPage();
-    
-    // Set a reasonable timeout
-    page.setDefaultTimeout(30000);
-    
-    // Track network requests
-    const gtmRequests: string[] = [];
-    const ga4Requests: string[] = [];
-    
-    page.on('request', (request) => {
-      const requestUrl = request.url();
-      if (requestUrl.includes('googletagmanager.com/gtm.js')) {
-        gtmRequests.push(requestUrl);
-      }
-      if (requestUrl.includes('google-analytics.com/g/collect')) {
-        ga4Requests.push(requestUrl);
+    // Use fetch instead of Puppeteer for now
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
     });
 
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${url}: ${response.status}`);
+    }
 
-    // Extract GA4/GTM data from the page
-    const analysis = await page.evaluate(() => {
-      const results = {
-        gtmContainers: [] as string[],
-        ga4Properties: [] as string[],
-        dataLayerEvents: [] as unknown[],
-        gtmSnippetFound: false,
-        crossDomainTracking: {
-          enabled: false,
-          domains: [] as string[]
-        },
-        enhancedEcommerce: false,
-        consentMode: false,
-        debugMode: false
-      };
+    const html = await response.text();
 
-      // Check for GTM snippet
-      const scripts = Array.from(document.scripts);
-      
-      // Find GTM containers
-      scripts.forEach(script => {
-        if (script.src && script.src.includes('googletagmanager.com/gtm.js')) {
-          const match = script.src.match(/id=([^&]+)/);
-          if (match && match[1]) {
-            results.gtmContainers.push(match[1]);
-            results.gtmSnippetFound = true;
-          }
-        }
-        
-        // Check script content for gtag or dataLayer
-        if (script.textContent) {
-          // Look for GA4 measurement IDs
-          const ga4Matches = script.textContent.match(/G-[A-Z0-9]{10}/g);
-          if (ga4Matches) {
-            results.ga4Properties.push(...ga4Matches);
-          }
-          
-          // Check for cross-domain tracking
-          if (script.textContent.includes('linker') || script.textContent.includes('cross_domain')) {
-            results.crossDomainTracking.enabled = true;
-          }
-          
-          // Check for consent mode
-          if (script.textContent.includes('consent_mode') || script.textContent.includes('ad_storage')) {
-            results.consentMode = true;
-          }
-          
-          // Check for debug mode
-          if (script.textContent.includes('debug_mode')) {
-            results.debugMode = true;
-          }
+    // Basic analysis using string matching (not as good as Puppeteer but works)
+    const analysis = {
+      gtmContainers: [] as string[],
+      ga4Properties: [] as string[],
+      gtmSnippetFound: false,
+      crossDomainTracking: { enabled: false, domains: [] as string[] },
+      enhancedEcommerce: false,
+      consentMode: false,
+      debugMode: false
+    };
+
+    // Look for GTM containers
+    const gtmMatches = html.match(/googletagmanager\.com\/gtm\.js\?id=([^"&']+)/g);
+    if (gtmMatches) {
+      gtmMatches.forEach(match => {
+        const idMatch = match.match(/id=([^"&']+)/);
+        if (idMatch && idMatch[1]) {
+          analysis.gtmContainers.push(idMatch[1]);
+          analysis.gtmSnippetFound = true;
         }
       });
+    }
 
-      // Check dataLayer if available
-      if (typeof window !== 'undefined' && (window as any).dataLayer) {
-        results.dataLayerEvents = (window as any).dataLayer.slice(0, 10); // First 10 events
-        
-        // Check for ecommerce events
-        const hasEcommerce = (window as any).dataLayer.some((event: any) => 
-          event.event && ['purchase', 'add_to_cart', 'view_item'].includes(event.event)
-        );
-        results.enhancedEcommerce = hasEcommerce;
-      }
+    // Look for GA4 measurement IDs
+    const ga4Matches = html.match(/G-[A-Z0-9]{10}/g);
+    if (ga4Matches) {
+      analysis.ga4Properties = [...new Set(ga4Matches)]; // Remove duplicates
+    }
 
-      return results;
-    });
+    // Check for cross-domain tracking
+    if (html.includes('linker') || html.includes('cross_domain')) {
+      analysis.crossDomainTracking.enabled = true;
+    }
 
-    await browser.close();
+    // Check for consent mode
+    if (html.includes('consent_mode') || html.includes('ad_storage')) {
+      analysis.consentMode = true;
+    }
+
+    // Check for debug mode
+    if (html.includes('debug_mode')) {
+      analysis.debugMode = true;
+    }
+
+    // Check for ecommerce events
+    if (html.includes('purchase') || html.includes('add_to_cart') || html.includes('view_item')) {
+      analysis.enhancedEcommerce = true;
+    }
 
     // Generate recommendations based on analysis
     const recommendations = [];
@@ -194,7 +145,7 @@ export const handler: Handler = async (event, context) => {
         dataRetention: { status: 'incomplete', value: '2 months (default)', recommendation: 'Consider 14 months after privacy review' }
       },
       events: {
-        customEvents: { status: 'incomplete', value: `${analysis.dataLayerEvents.length} detected`, recommendation: 'Review event structure' },
+        customEvents: { status: 'incomplete', value: 'Basic detection only', recommendation: 'Review event structure' },
         keyEvents: { status: 'incomplete', value: '0 configured', recommendation: 'Set 1-2 primary key events' },
         keyEventCounting: { status: 'incomplete', value: 'Not configured', recommendation: 'Choose once per session or per event' },
         keyEventValue: { status: 'incomplete', value: 'Not configured', recommendation: 'Set default values if needed' }
@@ -215,7 +166,7 @@ export const handler: Handler = async (event, context) => {
         gtmInstalled: analysis.gtmSnippetFound,
         ga4Connected: analysis.ga4Properties.length > 0,
         enhancedEcommerce: analysis.enhancedEcommerce,
-        serverSideTracking: false, // Would need more complex detection
+        serverSideTracking: false,
         crossDomainTracking: analysis.crossDomainTracking,
         consentMode: analysis.consentMode,
         debugMode: analysis.debugMode
