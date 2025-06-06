@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Send, Globe, Code, Zap, CheckCircle, BookOpen, AlertCircle, Clock, DollarSign, Shield, BarChart3, Settings, Link2 } from 'lucide-react';
+import { Send, Globe, Code, Zap, CheckCircle, BookOpen, AlertCircle, Clock, BarChart3, Settings, Link2 } from 'lucide-react';
 
 interface SiteAnalysis {
   domain: string;
