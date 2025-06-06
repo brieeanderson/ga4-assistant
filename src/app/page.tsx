@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Send, Globe, Code, Zap, CheckCircle, AlertCircle, Settings, BookOpen } from 'lucide-react';
+import { Send, Globe, Code, Zap, CheckCircle, BookOpen } from 'lucide-react';
 
 interface SiteAnalysis {
   domain: string;
@@ -81,9 +81,6 @@ const GA4GTMAssistant = () => {
     configurationAudit: null,
     recommendations: []
   });
-
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
     
     const newMessage: Message = {
       type: 'user',
@@ -149,7 +146,7 @@ const GA4GTMAssistant = () => {
       
       const result = await response.json();
       setSiteAnalysis(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error analyzing site:', error);
       // Fallback to mock data if analysis fails
       setSiteAnalysis({
