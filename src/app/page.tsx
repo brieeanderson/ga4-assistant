@@ -42,12 +42,14 @@ interface DebugInfo {
   step: string;
   userInfo?: {
     email: string;
+    [key: string]: unknown;
   };
   accountCount?: number;
   propertyCount?: number;
   accounts?: Array<{
     name: string;
     displayName: string;
+    [key: string]: unknown;
   }>;
   error?: string;
 }
@@ -186,6 +188,7 @@ const GA4GTMAssistant = () => {
         setGA4Properties(result.properties || []);
         setDebugInfo({
           status: 'success',
+          step: `Loaded ${result.properties?.length || 0} properties successfully`,
           userInfo: result.userInfo,
           accountCount: result.accounts?.length || 0,
           propertyCount: result.properties?.length || 0
