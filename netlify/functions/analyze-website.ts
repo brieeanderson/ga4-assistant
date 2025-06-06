@@ -90,7 +90,7 @@ async function analyzeSinglePage(url: string) {
   }
 
   try {
-    const scrapingbeeUrl = `https://app.scrapingbee.com/api/v1/?api_key=${SCRAPINGBEE_API_KEY}&url=${encodeURIComponent(url)}&render_js=true&wait=3000`;
+    const scrapingbeeUrl = `https://app.scrapingbee.com/api/v1/?api_key=${SCRAPINGBEE_API_KEY}&url=${encodeURIComponent(url)}&render_js=true&wait=3000&premium_proxy=true&country_code=us&stealth_proxy=true`;
     
     const response = await fetch(scrapingbeeUrl);
     if (!response.ok) {
@@ -309,7 +309,7 @@ async function crawlWebsite(startUrl: string, maxPages: number) {
       console.log(`Analyzing page ${analyzed + 1}: ${currentUrl}`);
       console.log(`Queue remaining: ${urlsToVisit.length} URLs`);
       
-      const scrapingbeeUrl = `https://app.scrapingbee.com/api/v1/?api_key=${SCRAPINGBEE_API_KEY}&url=${encodeURIComponent(currentUrl)}&render_js=true&wait=1000&timeout=8000`;
+      const scrapingbeeUrl = `https://app.scrapingbee.com/api/v1/?api_key=${SCRAPINGBEE_API_KEY}&url=${encodeURIComponent(currentUrl)}&render_js=true&wait=1000&timeout=8000&premium_proxy=true&country_code=us&stealth_proxy=true`;
       
       const response = await fetch(scrapingbeeUrl);
       if (!response.ok) {
