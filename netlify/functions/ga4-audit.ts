@@ -1,86 +1,38 @@
-import { Handler } from '@netlify/functions';
+// Add this debug function to your page.tsx to test GA4 API access directly
 
-const handler: Handler = async (event, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  };
-
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+const testGA4ApiAccess = async () => {
+  if (!accessToken) {
+    console.log('No access token available');
+    return;
   }
 
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    };
-  }
+  console.log('=== GA4 API DEBUG TEST ===');
+  console.log('Access token (first 20 chars):', accessToken.substring(0, 20) + '...');
 
+  // Test 1: Validate token
   try {
-    const { accessToken, propertyId } = JSON.parse(event.body || '{}');
+    console.log('Test 1: Validating token...');
+    const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
     
-    if (!accessToken) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: 'Access token required' }),
-      };
+    if (userResponse.ok) {
+      const userInfo = await userResponse.json();
+      console.log('✅ Token valid for user:', userInfo.email);
+    } else {
+      console.error('❌ Token validation failed:', userResponse.status);
+      return;
     }
+  } catch (error) {
+    console.error('❌ Token validation error:', error);
+    return;
+  }
 
-    // If no propertyId provided, first get the user's properties
-    if (!propertyId) {
-      const propertiesResponse = await fetch(
-        'https://analyticsadmin.googleapis.com/v1beta/accounts',
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (!propertiesResponse.ok) {
-        throw new Error(`Failed to fetch accounts: ${propertiesResponse.status}`);
-      }
-
-      const accountsData = await propertiesResponse.json();
-      
-      // Get properties for the first account
-      if (accountsData.accounts && accountsData.accounts.length > 0) {
-        const accountName = accountsData.accounts[0].name;
-        
-        const propertiesListResponse = await fetch(
-          `https://analyticsadmin.googleapis.com/v1beta/${accountName}/properties`,
-          {
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-
-        if (propertiesListResponse.ok) {
-          const propertiesData = await propertiesListResponse.json();
-          
-          return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({
-              type: 'property_list',
-              accounts: accountsData.accounts,
-              properties: propertiesData.properties || []
-            }),
-          };
-        }
-      }
-    }
-
-    // If propertyId is provided, get detailed property audit
-    const propertyResponse = await fetch(
-      `https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}`,
+  // Test 2: Test Analytics Admin API access
+  try {
+    console.log('Test 2: Testing Analytics Admin API...');
+    const accountsResponse = await fetch(
+      'https://analyticsadmin.googleapis.com/v1beta/accounts',
       {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -89,108 +41,78 @@ const handler: Handler = async (event, context) => {
       }
     );
 
-    if (!propertyResponse.ok) {
-      throw new Error(`Failed to fetch property: ${propertyResponse.status}`);
-    }
-
-    const propertyData = await propertyResponse.json();
-
-    // Get additional property details
-    const [dataStreamsResponse, conversionsResponse] = await Promise.allSettled([
-      fetch(`https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/dataStreams`, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-      }),
-      fetch(`https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/conversionEvents`, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-      })
-    ]);
-
-    const dataStreams = dataStreamsResponse.status === 'fulfilled' && dataStreamsResponse.value.ok
-      ? await dataStreamsResponse.value.json()
-      : { dataStreams: [] };
-
-    const conversions = conversionsResponse.status === 'fulfilled' && conversionsResponse.value.ok
-      ? await conversionsResponse.value.json()
-      : { conversionEvents: [] };
-
-    // Build comprehensive audit
-    const audit = {
-      property: propertyData,
-      dataStreams: dataStreams.dataStreams || [],
-      conversions: conversions.conversionEvents || [],
-      audit: {
-        propertySettings: {
-          timezone: {
-            status: propertyData.timeZone ? 'configured' : 'missing',
-            value: propertyData.timeZone || 'Not set',
-            recommendation: propertyData.timeZone ? 'Timezone is properly configured' : 'Set your property timezone for accurate reporting'
-          },
-          currency: {
-            status: propertyData.currencyCode ? 'configured' : 'missing',
-            value: propertyData.currencyCode || 'Not set',
-            recommendation: propertyData.currencyCode ? 'Currency is properly configured' : 'Set your default currency for e-commerce tracking'
-          },
-          industryCategory: {
-            status: propertyData.industryCategory ? 'configured' : 'missing',
-            value: propertyData.industryCategory || 'Not set',
-            recommendation: 'Set industry category for benchmarking insights'
-          },
-          dataRetention: {
-            status: 'configured',
-            value: '14 months (default)',
-            recommendation: 'Consider extending data retention if you need longer historical analysis'
-          }
-        },
-        dataCollection: {
-          dataStreams: {
-            status: dataStreams.dataStreams?.length > 0 ? 'configured' : 'missing',
-            value: `${dataStreams.dataStreams?.length || 0} data stream(s) configured`,
-            recommendation: dataStreams.dataStreams?.length > 0 ? 'Data streams are configured' : 'Add a web data stream for your website'
-          },
-          enhancedMeasurement: {
-            status: 'unknown',
-            value: 'Check individual data streams',
-            recommendation: 'Enable enhanced measurement for automatic event tracking'
-          }
-        },
-        conversions: {
-          conversionEvents: {
-            status: conversions.conversionEvents?.length > 0 ? 'configured' : 'missing',
-            value: `${conversions.conversionEvents?.length || 0} conversion event(s)`,
-            recommendation: conversions.conversionEvents?.length > 0 ? 'Conversion events are configured' : 'Set up conversion events for your key business goals'
-          }
-        },
-        integrations: {
-          googleAds: {
-            status: 'unknown',
-            value: 'Requires additional API access',
-            recommendation: 'Link Google Ads for conversion tracking'
-          },
-          searchConsole: {
-            status: 'unknown',
-            value: 'Requires additional API access',
-            recommendation: 'Link Search Console for organic search insights'
-          }
-        }
+    console.log('Analytics Admin API response status:', accountsResponse.status);
+    
+    if (accountsResponse.ok) {
+      const accountsData = await accountsResponse.json();
+      console.log('✅ Analytics Admin API working');
+      console.log('Accounts found:', accountsData.accounts?.length || 0);
+      console.log('Accounts data:', accountsData);
+    } else {
+      const errorText = await accountsResponse.text();
+      console.error('❌ Analytics Admin API failed');
+      console.error('Status:', accountsResponse.status);
+      console.error('Error:', errorText);
+      
+      // Common error interpretations
+      if (accountsResponse.status === 403) {
+        console.log('💡 This usually means:');
+        console.log('   - API not enabled properly');
+        console.log('   - Insufficient permissions');
+        console.log('   - User has no GA4 properties');
+      } else if (accountsResponse.status === 401) {
+        console.log('💡 This usually means:');
+        console.log('   - Invalid or expired token');
+        console.log('   - OAuth scopes issue');
       }
-    };
-
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify(audit),
-    };
-
+    }
   } catch (error) {
-    console.error('GA4 audit error:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'GA4 audit failed' 
-      }),
-    };
+    console.error('❌ Analytics Admin API error:', error);
   }
+
+  // Test 3: Check token scopes
+  try {
+    console.log('Test 3: Checking token scopes...');
+    const tokenInfoResponse = await fetch(
+      `https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${accessToken}`
+    );
+    
+    if (tokenInfoResponse.ok) {
+      const tokenInfo = await tokenInfoResponse.json();
+      console.log('Token scopes:', tokenInfo.scope);
+      console.log('Token expires in:', tokenInfo.expires_in, 'seconds');
+      
+      const requiredScopes = [
+        'https://www.googleapis.com/auth/analytics.readonly',
+        'https://www.googleapis.com/auth/userinfo.email'
+      ];
+      
+      const hasRequiredScopes = requiredScopes.every(scope => 
+        tokenInfo.scope?.includes(scope)
+      );
+      
+      if (hasRequiredScopes) {
+        console.log('✅ All required scopes present');
+      } else {
+        console.log('❌ Missing required scopes');
+        console.log('Required:', requiredScopes);
+        console.log('Actual:', tokenInfo.scope);
+      }
+    }
+  } catch (error) {
+    console.error('Token info check failed:', error);
+  }
+
+  console.log('=== DEBUG TEST COMPLETE ===');
 };
 
-export { handler };
+// Add this button to your GA4Connection component for testing
+const DebugButton = () => (
+  <button
+    onClick={testGA4ApiAccess}
+    className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+    title="Run debug test to check API access"
+  >
+    🔍 Debug API
+  </button>
+);
