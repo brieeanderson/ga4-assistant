@@ -23,7 +23,7 @@ interface GA4Audit {
     displayName: string;
     type: string;
   }>;
-  keyEvents: Array<{
+  keyEvents: Array<{  // Changed from 'conversions' to 'keyEvents'
     eventName: string;
     createTime: string;
   }>;
@@ -42,7 +42,7 @@ interface GA4Audit {
         recommendation: string;
       }
     };
-    keyEvents?: {
+    keyEvents?: {  // Also changed from 'conversions' to 'keyEvents'
       [key: string]: {
         status: string;
         value: string;
@@ -781,8 +781,8 @@ const GA4GTMAssistant = () => {
                       <div className="text-sm text-gray-600">Data Streams</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">{ga4Audit.conversions.length}</div>
-                      <div className="text-sm text-gray-600">Conversion Events</div>
+                      <div className="text-2xl font-bold text-purple-600">{ga4Audit.keyEvents.length}</div>
+                      <div className="text-sm text-gray-600">Key Events</div>
                     </div>
                   </div>
                 </div>
