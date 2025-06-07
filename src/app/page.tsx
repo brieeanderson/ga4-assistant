@@ -732,7 +732,7 @@ const GA4GTMAssistant = () => {
                       Property Settings
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {Object.entries(ga4Audit.audit.propertySettings || {}).map(([key, setting], index) => (
+                      {Object.entries(ga4Audit.audit.propertySettings || {}).map(([key, setting]) => (
                         <div key={key} className="border rounded-lg p-4">
                           <div className="flex items-center justify-between mb-2">
                             <h5 className="font-medium text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</h5>
@@ -759,7 +759,7 @@ const GA4GTMAssistant = () => {
                         Data Collection
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.entries(ga4Audit.audit.dataCollection).map(([key, setting], index) => (
+                        {Object.entries(ga4Audit.audit.dataCollection).map(([key, setting]) => (
                           <div key={key} className="border rounded-lg p-4">
                             <div className="flex items-center justify-between mb-2">
                               <h5 className="font-medium text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</h5>
@@ -788,7 +788,7 @@ const GA4GTMAssistant = () => {
                         Conversion Tracking
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.entries(ga4Audit.audit.conversions).map(([key, setting], index) => (
+                        {Object.entries(ga4Audit.audit.conversions).map(([key, setting]) => (
                           <div key={key} className="border rounded-lg p-4">
                             <div className="flex items-center justify-between mb-2">
                               <h5 className="font-medium text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</h5>
@@ -816,7 +816,7 @@ const GA4GTMAssistant = () => {
                         Integrations
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.entries(ga4Audit.audit.integrations).map(([key, setting], index) => (
+                        {Object.entries(ga4Audit.audit.integrations).map(([key, setting]) => (
                           <div key={key} className="border rounded-lg p-4">
                             <div className="flex items-center justify-between mb-2">
                               <h5 className="font-medium text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</h5>
