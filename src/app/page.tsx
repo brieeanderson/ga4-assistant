@@ -1,648 +1,131 @@
-'use client';
+import React, { useState } from 'react';
+import { Send, Globe, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, User, LogOut, Activity, Terminal, Cpu, Database } from 'lucide-react';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Send, Globe, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, User, LogOut } from 'lucide-react';
-import { useOAuth } from '@/hooks/useOAuth';
-
-interface GA4Property {
-  name: string;
-  propertyId: string;
-  displayName: string;
-  timeZone?: string;
-  currencyCode?: string;
-  accountName?: string;
-  accountId?: string;
-}
-
-interface GA4Audit {
-  property: {
-    displayName: string;
-    name: string;
-  };
-  dataStreams: Array<{
-    displayName: string;
-    type: string;
-  }>;
-  keyEvents: Array<{  // Changed from 'conversions' to 'keyEvents'
-    eventName: string;
-    createTime: string;
-  }>;
-  audit: {
-    propertySettings: { 
-      [key: string]: { 
-        status: string; 
-        value: string; 
-        recommendation: string; 
-      } 
-    };
-    dataCollection?: {
-      [key: string]: {
-        status: string;
-        value: string;
-        recommendation: string;
-      }
-    };
-    keyEvents?: {  // Also changed from 'conversions' to 'keyEvents'
-      [key: string]: {
-        status: string;
-        value: string;
-        recommendation: string;
-      }
-    };
-    integrations?: {
-      [key: string]: {
-        status: string;
-        value: string;
-        recommendation: string;
-      }
-    };
-  };
-}
-
-interface Message {
-  type: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  code?: string;
-}
-
-interface DebugInfo {
-  status: 'testing' | 'success' | 'error';
-  step: string;
-  userInfo?: {
-    email: string;
-    [key: string]: unknown;
-  };
-  accountCount?: number;
-  propertyCount?: number;
-  accounts?: Array<{
-    name: string;
-    displayName: string;
-    [key: string]: unknown;
-  }>;
-  error?: string;
-}
-
-const GA4GTMAssistant = () => {
+const HandDrawnGA4Assistant = () => {
   const [activeTab, setActiveTab] = useState('audit');
   const [message, setMessage] = useState('');
   const [website, setWebsite] = useState('');
   const [action, setAction] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisType, setAnalysisType] = useState<'single' | 'sitewide' | 'ga4account'>('sitewide');
-  const [ga4Properties, setGA4Properties] = useState<GA4Property[]>([]);
-  const [selectedProperty, setSelectedProperty] = useState<string>('');
-  const [ga4Audit, setGA4Audit] = useState<GA4Audit | null>(null);
-  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
-  const [ga4Error, setGA4Error] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      type: 'assistant',
-      content: "Hi! I'm your GA4 & GTM specialist. I can help you with implementation, troubleshooting, and tracking setup. How can I assist you today?",
-      timestamp: new Date()
-    }
-  ]);
+  const [analysisType, setAnalysisType] = useState('sitewide');
 
-  const { isAuthenticated, userEmail, login, logout, isLoading: oauthLoading, accessToken } = useOAuth();
+  // Hand-drawn SVG elements
+  const HandDrawnCircle = ({ className = "" }) => (
+    <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 50C20 35 25 20 40 15C55 10 70 15 80 25C90 35 85 50 80 65C75 80 60 85 45 80C30 75 20 65 20 50Z" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+    </svg>
+  );
 
-  // Debug function to test GA4 API access directly
-  const testGA4ApiAccess = async () => {
-    if (!accessToken) {
-      console.log('No access token available');
-      return;
-    }
+  const HandDrawnArrow = ({ className = "" }) => (
+    <svg className={className} viewBox="0 0 100 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 20L80 18M80 18L72 12M80 18L74 26" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 
-    console.log('=== GA4 API DEBUG TEST ===');
-    setDebugInfo({ status: 'testing', step: 'Starting tests...' });
+  const HandDrawnBox = ({ className = "" }) => (
+    <svg className={className} viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 15L85 18L82 65L18 62Z" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+    </svg>
+  );
 
-    // Test 1: Validate token
-    try {
-      const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-      });
-      
-      if (userResponse.ok) {
-        const userInfo = await userResponse.json();
-        console.log('✅ Token valid for user:', userInfo.email);
-        setDebugInfo({ status: 'testing', step: `Token valid for ${userInfo.email}` });
-      } else {
-        console.error('❌ Token validation failed:', userResponse.status);
-        setDebugInfo({ status: 'error', step: `Token validation failed: ${userResponse.status}` });
-        return;
-      }
-    } catch (error) {
-      console.error('❌ Token validation error:', error);
-      setDebugInfo({ status: 'error', step: `Token validation error: ${error}` });
-      return;
-    }
+  const HandDrawnStar = ({ className = "" }) => (
+    <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M50 15L58 38L82 40L65 58L70 82L50 70L30 82L35 58L18 40L42 38L50 15Z" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 
-    // Test 2: Test Analytics Admin API access
-    try {
-      const accountsResponse = await fetch(
-        'https://analyticsadmin.googleapis.com/v1beta/accounts',
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+  const HandDrawnSpiral = ({ className = "" }) => (
+    <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M50 10C65 15 80 30 75 50C70 70 45 80 30 65C15 50 25 25 45 20C60 15 70 35 60 50C50 65 35 60 30 45" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+    </svg>
+  );
 
-      console.log('Analytics Admin API response status:', accountsResponse.status);
-      
-      if (accountsResponse.ok) {
-        const accountsData = await accountsResponse.json();
-        console.log('✅ Analytics Admin API working');
-        console.log('Accounts found:', accountsData.accounts?.length || 0);
-        
-        // Test 3: Try to fetch properties from first account
-        if (accountsData.accounts && accountsData.accounts.length > 0) {
-          const firstAccount = accountsData.accounts[0];
-          console.log(`Testing property fetch for first account: ${firstAccount.displayName}`);
-          
-          try {
-            const propertiesUrl = `https://analyticsadmin.googleapis.com/v1beta/${firstAccount.name}/properties`;
-            console.log(`Fetching from: ${propertiesUrl}`);
-            
-            const propertiesResponse = await fetch(propertiesUrl, {
-              headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-              }
-            });
-            
-            console.log(`Properties response status: ${propertiesResponse.status}`);
-            
-            if (propertiesResponse.ok) {
-              const propertiesData = await propertiesResponse.json();
-              console.log('Properties data:', propertiesData);
-              console.log(`Found ${propertiesData.properties?.length || 0} properties in ${firstAccount.displayName}`);
-              
-              setDebugInfo({ 
-                status: 'success', 
-                step: `Found ${accountsData.accounts?.length} accounts, tested ${firstAccount.displayName}: ${propertiesData.properties?.length || 0} properties`,
-                accounts: accountsData.accounts
-              });
-            } else {
-              const errorText = await propertiesResponse.text();
-              console.error('Properties fetch failed:', errorText);
-              setDebugInfo({ 
-                status: 'error', 
-                step: `Properties fetch failed for ${firstAccount.displayName}: ${propertiesResponse.status}`,
-                error: errorText
-              });
-            }
-          } catch (error) {
-            console.error('Properties fetch error:', error);
-            setDebugInfo({ 
-              status: 'error', 
-              step: `Properties fetch error: ${error}`
-            });
-          }
-        }
-        
-      } else {
-        const errorText = await accountsResponse.text();
-        console.error('❌ Analytics Admin API failed');
-        
-        let suggestion = '';
-        if (accountsResponse.status === 403) {
-          suggestion = 'API not enabled or insufficient permissions';
-        } else if (accountsResponse.status === 401) {
-          suggestion = 'Invalid token or OAuth scopes issue';
-        }
-        
-        setDebugInfo({ 
-          status: 'error', 
-          step: `API failed with ${accountsResponse.status}: ${suggestion}`,
-          error: errorText
-        });
-      }
-    } catch (error) {
-      console.error('❌ Analytics Admin API error:', error);
-      setDebugInfo({ status: 'error', step: `API error: ${error}` });
-    }
-  };
+  const HandDrawnZigzag = ({ className = "" }) => (
+    <svg className={className} viewBox="0 0 100 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 30L25 10L40 30L55 10L70 30L85 10" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 
-  // Enhanced fetchGA4Properties function with better error handling
-  const fetchGA4Properties = useCallback(async () => {
-    if (!accessToken) return;
-    
-    setIsAnalyzing(true);
-    setGA4Error(null);
-    setDebugInfo(null);
-    
-    try {
-      const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:8888' : '';
-      console.log('Fetching GA4 properties...');
-      
-      const response = await fetch(`${baseUrl}/.netlify/functions/ga4-audit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken })
-      });
-
-      console.log('GA4 audit response status:', response.status);
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
-        console.error('API Error:', errorData);
-        setGA4Error(errorData.error || `HTTP ${response.status}`);
-        return;
-      }
-      
-      const result = await response.json();
-      console.log('GA4 audit result:', result);
-      
-      if (result.type === 'property_list') {
-        setGA4Properties(result.properties || []);
-        setDebugInfo({
-          status: 'success',
-          step: `Loaded ${result.properties?.length || 0} properties successfully`,
-          userInfo: result.userInfo,
-          accountCount: result.accounts?.length || 0,
-          propertyCount: result.properties?.length || 0
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching GA4 properties:', error);
-      setGA4Error(error instanceof Error ? error.message : 'Failed to fetch GA4 properties');
-    } finally {
-      setIsAnalyzing(false);
-    }
-  }, [accessToken]);
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('connected') === 'true') {
-      setAnalysisType('ga4account');
-      fetchGA4Properties();
-    }
-  }, [isAuthenticated, fetchGA4Properties]);
-
-  const runGA4Audit = async () => {
-    if (!selectedProperty || !accessToken) return;
-    
-    setIsAnalyzing(true);
-    setGA4Error(null);
-    
-    try {
-      const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:8888' : '';
-      const response = await fetch(`${baseUrl}/.netlify/functions/ga4-audit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken, propertyId: selectedProperty })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
-        setGA4Error(errorData.error || `HTTP ${response.status}`);
-        return;
-      }
-      
-      const result = await response.json();
-      setGA4Audit(result);
-    } catch (error) {
-      console.error('Error running GA4 audit:', error);
-      setGA4Error(error instanceof Error ? error.message : 'Failed to run GA4 audit');
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
-    
-    const newMessage: Message = {
-      type: 'user',
-      content: message,
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, newMessage]);
-    setMessage('');
-    
-    setTimeout(() => {
-      const aiResponse: Message = {
-        type: 'assistant',
-        content: "For GA4 Enhanced Ecommerce tracking, you'll need to implement the new event structure...",
-        timestamp: new Date(),
-        code: `gtag('event', 'purchase', {
-  transaction_id: '12345',
-  value: 25.42,
-  currency: 'USD'
-});`
-      };
-      
-      setMessages(prev => [...prev, aiResponse]);
-    }, 1000);
-  };
-
-  const analyzeWebsite = async () => {
-    if (!website.trim()) return;
-    
-    setIsAnalyzing(true);
-    
-    try {
-      const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:8888' : '';
-      const response = await fetch(`${baseUrl}/.netlify/functions/analyze-website`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          url: website,
-          crawlMode: analysisType,
-          maxPages: analysisType === 'sitewide' ? 100 : 1
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const result = await response.json();
-      console.log('Analysis result:', result);
-      
-    } catch (error: unknown) {
-      console.error('Error analyzing website:', error);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const generateTrackingCode = () => {
-    if (!action.trim()) return;
-    
-    const eventName = action.toLowerCase().replace(/\s+/g, '_');
-    const trackingCode = `gtag('event', '${eventName}', {
-  'event_category': 'engagement',
-  'custom_parameter_1': '${action}'
-});`;
-
-    const newMessage: Message = {
-      type: 'assistant',
-      content: `Here's the GA4 tracking code for "${action}":`,
-      code: trackingCode,
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, newMessage]);
-  };
-
-  const GA4Connection = () => {
-    if (oauthLoading) {
-      return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-          </div>
-        </div>
-      );
-    }
-
-    if (isAuthenticated) {
-      return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">GA4 Account Connected</h3>
-                <p className="text-sm text-gray-600">{userEmail}</p>
-              </div>
-            </div>
-            <button
-              onClick={logout}
-              className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm flex items-center space-x-1"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Disconnect</span>
-            </button>
-          </div>
-
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-            <h4 className="font-medium text-gray-900 mb-2">Connected Services:</h4>
-            <ul className="text-sm text-gray-700 space-y-1">
-              <li>✅ Google Analytics 4 (Read Access)</li>
-              <li>✅ Google Tag Manager (Read Access)</li>
-              <li>✅ User Profile Information</li>
-            </ul>
-          </div>
-
-          {/* Error Display */}
-          {ga4Error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-              <h4 className="font-medium text-red-800 mb-2">Configuration Issue</h4>
-              <p className="text-sm text-red-700 mb-3">{ga4Error}</p>
-              <div className="text-xs text-red-600">
-                <p className="font-medium mb-1">Common solutions:</p>
-                <ul className="list-disc ml-4 space-y-1">
-                  <li>Enable Google Analytics Admin API in Google Cloud Console</li>
-                  <li>Add redirect URI: https://ga4wise.netlify.app/oauth/callback</li>
-                  <li>Ensure you have access to GA4 properties in your account</li>
-                </ul>
-              </div>
-            </div>
-          )}
-
-          {ga4Properties.length > 0 && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select GA4 Property ({ga4Properties.length} found):
-              </label>
-              <select
-                value={selectedProperty}
-                onChange={(e) => setSelectedProperty(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-              >
-                <option value="">Choose a property...</option>
-                {ga4Properties.map((property) => (
-                  <option key={property.propertyId || property.name} value={property.propertyId || property.name}>
-                    {property.displayName} ({property.accountName || 'Unknown Account'}) - {property.propertyId || property.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <div className="flex space-x-3">
-            {ga4Properties.length === 0 ? (
-              <button
-                onClick={fetchGA4Properties}
-                disabled={isAnalyzing}
-                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isAnalyzing ? (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Loading Properties...</span>
-                  </div>
-                ) : (
-                  'Load GA4 Properties'
-                )}
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={fetchGA4Properties}
-                  disabled={isAnalyzing}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
-                >
-                  Refresh Properties
-                </button>
-                <button
-                  onClick={runGA4Audit}
-                  disabled={!selectedProperty || isAnalyzing}
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isAnalyzing ? (
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Running Audit...</span>
-                    </div>
-                  ) : (
-                    'Run Complete GA4 Audit'
-                  )}
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Debug Information Panel */}
-          {(debugInfo || ga4Error) && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-gray-900 text-sm">Debug Information</h4>
-                <button
-                  onClick={testGA4ApiAccess}
-                  className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                >
-                  🔍 Run Test
-                </button>
-              </div>
-              
-              {debugInfo && (
-                <div className="text-xs text-gray-600 space-y-1">
-                  <div><strong>Status:</strong> {debugInfo.status}</div>
-                  <div><strong>Step:</strong> {debugInfo.step}</div>
-                  {debugInfo.userInfo && (
-                    <div><strong>User:</strong> {debugInfo.userInfo.email}</div>
-                  )}
-                  {debugInfo.accountCount !== undefined && (
-                    <div><strong>Accounts:</strong> {debugInfo.accountCount}</div>
-                  )}
-                  {debugInfo.propertyCount !== undefined && (
-                    <div><strong>Properties:</strong> {debugInfo.propertyCount}</div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Quick Setup Guide */}
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-            <h4 className="font-medium text-gray-900 text-sm mb-2">Quick Setup Checklist:</h4>
-            <div className="text-xs text-gray-600 space-y-1">
-              <div>□ Google Analytics Admin API enabled</div>
-              <div>□ OAuth redirect URI configured</div>
-              <div>□ GA4 property access granted</div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6 border border-blue-200">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <BarChart3 className="w-8 h-8 text-blue-600" />
-          </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">Connect Your GA4 Account</h3>
-          <p className="text-gray-700 mb-6">
-            Get a complete 25-point audit of your GA4 property including configuration, 
-            audiences, conversions, and integration status.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-left">
-            <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Property Analysis:</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Timezone & Currency Settings</li>
-                <li>• Data Retention Configuration</li>
-                <li>• Enhanced Measurement Status</li>
-                <li>• Industry Category Setup</li>
-              </ul>
-            </div>
-            <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Advanced Features:</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Audience Configurations</li>
-                <li>• Conversion Goals Setup</li>
-                <li>• Custom Dimensions/Metrics</li>
-                <li>• Integration Status</li>
-              </ul>
-            </div>
-          </div>
-
-          <button
-            onClick={login}
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
-          >
-            Connect GA4 Account
-          </button>
-          
-          <div className="flex items-center justify-center space-x-2 mt-4 text-sm text-gray-500">
-            <User className="w-4 h-4" />
-            <span>Secure OAuth connection - we never store your passwords</span>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  const HandDrawnScribble = ({ className = "" }) => (
+    <svg className={className} viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 30C15 25 20 35 25 30C30 25 35 35 40 30C45 25 50 35 50 30M20 20C25 15 30 25 35 20M25 40C30 35 35 45 40 40" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+    </svg>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white relative overflow-hidden" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+      {/* Background scattered elements */}
+      <HandDrawnCircle className="absolute top-20 right-40 w-16 h-16 text-red-500/8" />
+      <HandDrawnStar className="absolute top-60 left-20 w-12 h-12 text-yellow-400/8" />
+      <HandDrawnSpiral className="absolute bottom-40 right-60 w-20 h-20 text-red-500/6" />
+
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
+      <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-gray-700 backdrop-blur-sm shadow-2xl relative overflow-hidden">
+        <HandDrawnCircle className="absolute top-4 right-20 w-8 h-8 text-red-500/20" />
+        <HandDrawnStar className="absolute bottom-2 left-32 w-6 h-6 text-yellow-400/20" />
+        <HandDrawnSpiral className="absolute top-6 left-60 w-10 h-10 text-red-500/15" />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg relative">
+                  <Activity className="w-6 h-6 text-white" />
+                  <HandDrawnCircle className="absolute -inset-2 w-16 h-16 text-yellow-400/40" />
+                </div>
               </div>
-              <h1 className="text-xl font-bold text-gray-900">GA4 & GTM Assistant</h1>
+              <div className="relative">
+                <h1 className="text-2xl font-black text-white tracking-tight" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                  GA4 ANALYTICS
+                  <span className="text-red-400 ml-2 font-light">AUDIT</span>
+                </h1>
+                <HandDrawnZigzag className="absolute -bottom-2 left-0 w-20 h-4 text-red-500/30" />
+                <p className="text-sm text-red-300 font-medium tracking-wide">
+                  by BEAST Analytics
+                </p>
+              </div>
             </div>
-            <div className="text-sm text-gray-600">
-              Complete Website Analytics Audit
+            <div className="hidden md:block relative">
+              <div className="bg-gray-800/50 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-700">
+                <span className="text-sm text-gray-300">Professional Analytics Assessment</span>
+              </div>
+              <HandDrawnArrow className="absolute -right-12 top-1/2 -translate-y-1/2 w-8 h-4 text-red-500/30" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
+      {/* Navigation */}
+      <div className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-700 relative">
+        <HandDrawnScribble className="absolute top-2 right-16 w-6 h-6 text-red-500/20" />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="flex space-x-1">
             {[
               { id: 'audit', label: 'Website Audit', icon: Search },
               { id: 'chat', label: 'AI Assistant', icon: Send },
               { id: 'implement', label: 'Code Generator', icon: Code },
               { id: 'docs', label: 'Documentation', icon: BookOpen }
-            ].map(tab => (
+            ].map((tab, index) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`group flex items-center space-x-2 py-4 px-6 font-semibold text-sm transition-all duration-200 relative ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'text-red-400 bg-red-500/10'
+                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
                 }`}
+                style={{ fontFamily: 'Bebas Neue, sans-serif' }}
               >
                 <tab.icon className="w-4 h-4" />
-                <span>{tab.label}</span>
+                <span className="tracking-wide">{tab.label}</span>
+                {activeTab === tab.id && (
+                  <>
+                    <svg className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-16 h-2" viewBox="0 0 60 8" fill="none">
+                      <path d="M5 4C15 2 25 6 35 4C45 2 55 5 55 4" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" fill="none" />
+                    </svg>
+                    <HandDrawnStar className="absolute -top-2 -right-1 w-4 h-4 text-yellow-400/60" />
+                  </>
+                )}
               </button>
             ))}
           </nav>
@@ -650,386 +133,290 @@ const GA4GTMAssistant = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {activeTab === 'audit' && (
-          <div className="space-y-8">
-            {/* Lead Magnet Header */}
-            <div className="text-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Complete GA4 & GTM Website Audit</h2>
-              <p className="text-lg text-gray-600 mb-6">
-                Choose between frontend analysis, site-wide crawling, or complete GA4 account audit with direct API access.
-              </p>
-              <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
-                <div className="flex items-center">
-                  <Search className="w-4 h-4 text-green-500 mr-1" />
-                  <span>Real-time Analysis</span>
-                </div>
-                <div className="flex items-center">
-                  <BarChart3 className="w-4 h-4 text-green-500 mr-1" />
-                  <span>Coverage Reports</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-4 h-4 text-green-500 mr-1" />
-                  <span>Expert Recommendations</span>
+          <div className="space-y-12">
+            {/* Hero Section */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-red-600/20 via-transparent to-red-600/20 rounded-2xl blur-3xl"></div>
+              
+              <HandDrawnStar className="absolute -top-4 -left-4 w-8 h-8 text-yellow-400/30" />
+              <HandDrawnCircle className="absolute top-8 right-12 w-12 h-12 text-red-500/20" />
+              <HandDrawnArrow className="absolute bottom-4 left-16 w-16 h-8 text-yellow-400/25 rotate-12" />
+              <HandDrawnSpiral className="absolute top-16 left-1/3 w-10 h-10 text-red-500/15" />
+              
+              <div className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl p-12 border border-gray-700/50 backdrop-blur-sm shadow-2xl">
+                <div className="text-center">
+                  <div className="inline-flex items-center space-x-2 bg-red-500/10 border border-red-500/20 rounded-full px-4 py-2 mb-6 relative">
+                    <Terminal className="w-4 h-4 text-red-400" />
+                    <span className="text-red-300 text-sm font-medium">Advanced Analytics Auditing</span>
+                    <HandDrawnCircle className="absolute -right-3 -top-2 w-6 h-6 text-yellow-400/40" />
+                  </div>
+                  
+                  <h2 className="text-6xl font-black text-white mb-6 tracking-tight leading-tight relative" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                    COMPLETE GA4 & GTM
+                    <HandDrawnSpiral className="absolute -left-8 top-4 w-12 h-12 text-yellow-400/20" />
+                    <br />
+                    <span className="text-red-400">WEBSITE AUDIT</span>
+                    <HandDrawnBox className="absolute -right-8 top-4 w-20 h-16 text-red-500/15" />
+                  </h2>
+                  
+                  <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed relative">
+                    Deep analytics assessment with real-time tracking detection, 
+                    configuration analysis, and actionable optimization recommendations
+                    <HandDrawnScribble className="absolute -right-8 top-0 w-8 h-8 text-yellow-400/30" />
+                  </p>
+                  
+                  <div className="flex items-center justify-center space-x-8 text-gray-400">
+                    {[
+                      { text: 'Real-time Analysis' },
+                      { text: 'Complete Coverage' },
+                      { text: 'Expert Insights' }
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-center space-x-2 relative">
+                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                        <span className="font-medium">{item.text}</span>
+                        {index === 0 && <HandDrawnCircle className="absolute -top-4 -right-2 w-6 h-6 text-red-500/20" />}
+                        {index === 1 && <HandDrawnStar className="absolute -top-4 -right-2 w-6 h-6 text-yellow-400/20" />}
+                        {index === 2 && <HandDrawnBox className="absolute -top-4 -right-2 w-6 h-6 text-red-500/20" />}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Analysis Type Selection */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Choose Analysis Type</h3>
+            <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl border border-gray-700/50 p-8 shadow-xl relative">
+              <HandDrawnStar className="absolute -top-3 -right-3 w-8 h-8 text-yellow-400/30" />
+              <HandDrawnSpiral className="absolute top-4 left-4 w-10 h-10 text-red-500/15" />
               
-              <div className="flex space-x-4 mb-6">
-                <button
-                  onClick={() => setAnalysisType('single')}
-                  className={`flex-1 p-4 rounded-lg border-2 transition-all ${
-                    analysisType === 'single'
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="text-center">
-                    <Globe className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                    <h4 className="font-semibold text-gray-900">Single Page Analysis</h4>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Deep dive into one page with detailed GA4 configuration audit
-                    </p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setAnalysisType('sitewide')}
-                  className={`flex-1 p-4 rounded-lg border-2 transition-all ${
-                    analysisType === 'sitewide'
-                      ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="text-center">
-                    <Search className="w-8 h-8 mx-auto mb-2 text-purple-600" />
-                    <h4 className="font-semibold text-gray-900">Site-Wide Crawl</h4>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Analyze entire website for tag coverage and missing pages
-                    </p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setAnalysisType('ga4account')}
-                  className={`flex-1 p-4 rounded-lg border-2 transition-all ${
-                    analysisType === 'ga4account'
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="text-center">
-                    <BarChart3 className="w-8 h-8 mx-auto mb-2 text-green-600" />
-                    <h4 className="font-semibold text-gray-900">GA4 Account Audit</h4>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Complete 25-point audit with direct GA4 API access
-                    </p>
-                  </div>
-                </button>
+              <div className="flex items-center space-x-3 mb-8 relative">
+                <Cpu className="w-6 h-6 text-red-400" />
+                <h3 className="text-2xl font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                  CHOOSE YOUR ANALYSIS METHOD
+                </h3>
+                <HandDrawnArrow className="absolute -bottom-2 left-8 w-12 h-6 text-red-500/30" />
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                {[
+                  {
+                    id: 'single',
+                    title: 'SINGLE PAGE',
+                    subtitle: 'Precision Analysis',
+                    icon: Globe,
+                    gradient: 'from-blue-500 to-blue-600',
+                    description: 'Detailed GA4 configuration audit for a specific page'
+                  },
+                  {
+                    id: 'sitewide',
+                    title: 'SITE-WIDE',
+                    subtitle: 'Complete Coverage',
+                    icon: Search,
+                    gradient: 'from-red-500 to-red-600',
+                    description: 'Comprehensive website crawl analyzing tracking coverage'
+                  },
+                  {
+                    id: 'ga4account',
+                    title: 'GA4 ACCOUNT',
+                    subtitle: 'Property Deep Dive',
+                    icon: BarChart3,
+                    gradient: 'from-purple-500 to-purple-600',
+                    description: 'Complete 25-point property assessment with API access'
+                  }
+                ].map((option, index) => (
+                  <button
+                    key={option.id}
+                    onClick={() => setAnalysisType(option.id)}
+                    className={`group relative p-6 rounded-xl border-2 transition-all duration-300 text-left transform hover:scale-[1.02] hover:-translate-y-1 ${
+                      analysisType === option.id
+                        ? 'border-red-500 bg-red-500/10 shadow-xl shadow-red-500/20'
+                        : 'border-gray-700 bg-gray-800/50 hover:border-gray-600 hover:bg-gray-800'
+                    }`}
+                  >
+                    {index === 0 && <HandDrawnCircle className="absolute -top-2 -right-2 w-8 h-8 text-yellow-400/30" />}
+                    {index === 1 && <HandDrawnStar className="absolute -top-2 -right-2 w-8 h-8 text-yellow-400/30" />}
+                    {index === 2 && <HandDrawnBox className="absolute -top-2 -right-2 w-8 h-8 text-yellow-400/30" />}
+                    
+                    <div className="flex items-start space-x-4">
+                      <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${option.gradient} flex items-center justify-center relative`}>
+                        <option.icon className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-lg font-bold text-white mb-1" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                          {option.title}
+                        </h4>
+                        <p className={`text-sm font-medium mb-3 ${
+                          analysisType === option.id ? 'text-red-300' : 'text-gray-400'
+                        }`}>
+                          {option.subtitle}
+                        </p>
+                        <p className="text-sm text-gray-400 leading-relaxed">
+                          {option.description}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
               </div>
 
-              {/* Conditional Content */}
-              {analysisType === 'ga4account' ? (
-                <GA4Connection />
-              ) : (
-                <>
-                  <div className="flex space-x-4">
+              {/* Input Section */}
+              <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700 relative">
+                <HandDrawnArrow className="absolute -top-4 left-1/2 -translate-x-1/2 w-16 h-8 text-red-500/40 rotate-180" />
+                
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1">
                     <input
                       type="url"
                       value={website}
                       onChange={(e) => setWebsite(e.target.value)}
                       placeholder="Enter your website URL (e.g., https://example.com)"
-                      className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                      className="w-full bg-gray-900/50 border border-gray-600 text-white px-4 py-4 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-gray-400 font-medium transition-all"
                     />
-                    <button
-                      onClick={analyzeWebsite}
-                      disabled={isAnalyzing}
-                      className={`px-8 py-3 rounded-lg font-medium text-white transition-colors disabled:opacity-50 ${
-                        analysisType === 'single' 
-                          ? 'bg-blue-600 hover:bg-blue-700' 
-                          : 'bg-purple-600 hover:bg-purple-700'
-                      }`}
-                    >
-                      {isAnalyzing ? 'Analyzing...' : `Start ${analysisType === 'single' ? 'Analysis' : 'Crawl'}`}
-                    </button>
                   </div>
-                  <p className="text-sm text-gray-500 mt-2">
-                    {analysisType === 'single' 
-                      ? 'Deep analysis of GA4 configuration, events, and integrations for one page'
-                      : 'Comprehensive crawl of your entire website to check tracking coverage'
-                    }
-                  </p>
-                </>
-              )}
+                  <button className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold px-8 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg shadow-red-500/25 relative" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                    START ANALYSIS
+                    <HandDrawnStar className="absolute -top-2 -right-2 w-6 h-6 text-yellow-400/60" />
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {/* GA4 Audit Results */}
-            {ga4Audit && (
-              <div className="space-y-6">
-                {/* Property Overview */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">GA4 Property Overview</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{ga4Audit.property.displayName}</div>
-                      <div className="text-sm text-gray-600">Property Name</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{ga4Audit.dataStreams.length}</div>
-                      <div className="text-sm text-gray-600">Data Streams</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">{ga4Audit.keyEvents.length}</div>
-                      <div className="text-sm text-gray-600">Key Events</div>
-                    </div>
-                  </div>
+            {/* Results Preview */}
+            <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl border border-gray-700/50 p-8 shadow-xl relative">
+              <HandDrawnCircle className="absolute top-4 right-8 w-10 h-10 text-red-500/20" />
+              <HandDrawnBox className="absolute bottom-4 left-4 w-8 h-6 text-yellow-400/20" />
+              
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center space-x-3 relative">
+                  <BarChart3 className="w-6 h-6 text-red-400" />
+                  <h3 className="text-2xl font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                    ANALYSIS RESULTS PREVIEW
+                  </h3>
+                  <HandDrawnArrow className="absolute -bottom-2 left-4 w-12 h-6 text-red-500/30" />
                 </div>
-
-                {/* 25-Point Audit Checklist */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">25-Point GA4 Configuration Audit</h3>
-                  
-                  {/* Property Settings */}
-                  <div className="mb-8">
-                    <h4 className="text-md font-medium text-gray-900 mb-4 flex items-center">
-                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2">
-                        <span className="text-blue-600 text-sm font-bold">1</span>
-                      </div>
-                      Property Settings
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {Object.entries(ga4Audit.audit.propertySettings || {}).map(([key, setting]) => (
-                        <div key={key} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-medium text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</h5>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              setting.status === 'configured' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                            }`}>
-                              {setting.status}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600 mb-2">Current: {setting.value}</p>
-                          <p className="text-xs text-gray-500">{setting.recommendation}</p>
-                        </div>
-                      ))}
+                <div className="bg-green-500/10 border border-green-500/20 rounded-full px-3 py-1 relative">
+                  <span className="text-green-400 text-sm font-medium">Live Demo</span>
+                  <HandDrawnStar className="absolute -top-1 -right-1 w-4 h-4 text-green-400/40" />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {[
+                  { title: 'GTM-XXXXX', subtitle: 'Google Tag Manager', status: 'Detected', color: 'green', icon: Code },
+                  { title: 'G-XXXXXX', subtitle: 'GA4 Property', status: 'Active', color: 'green', icon: BarChart3 },
+                  { title: '95%', subtitle: 'Coverage Score', status: 'Excellent', color: 'yellow', icon: CheckCircle }
+                ].map((item, index) => (
+                  <div key={index} className="bg-gray-800/50 rounded-xl p-6 border border-gray-700 hover:border-gray-600 transition-all relative">
+                    {index === 0 && <HandDrawnCircle className="absolute -top-2 -right-2 w-6 h-6 text-red-500/20" />}
+                    {index === 1 && <HandDrawnStar className="absolute -top-2 -right-2 w-6 h-6 text-yellow-400/20" />}
+                    {index === 2 && <HandDrawnBox className="absolute -top-2 -right-2 w-6 h-6 text-red-500/20" />}
+                    
+                    <div className="flex items-center space-x-3 mb-4">
+                      <item.icon className="w-5 h-5 text-gray-400" />
+                      <span className="text-sm text-gray-400">{item.subtitle}</span>
+                    </div>
+                    <div className="text-2xl font-bold text-white mb-2" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                      {item.title}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-2 h-2 rounded-full ${
+                        item.color === 'green' ? 'bg-green-500' : 
+                        item.color === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}></div>
+                      <span className={`text-sm font-medium ${
+                        item.color === 'green' ? 'text-green-400' : 
+                        item.color === 'yellow' ? 'text-yellow-400' : 'text-red-400'
+                      }`}>
+                        {item.status}
+                      </span>
                     </div>
                   </div>
+                ))}
+              </div>
 
-                  {/* Data Collection */}
-                  {ga4Audit.audit.dataCollection && (
-                    <div className="mb-8">
-                      <h4 className="text-md font-medium text-gray-900 mb-4 flex items-center">
-                        <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
-                          <span className="text-green-600 text-sm font-bold">2</span>
-                        </div>
-                        Data Collection
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.entries(ga4Audit.audit.dataCollection).map(([key, setting]) => (
-                          <div key={key} className="border rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <h5 className="font-medium text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</h5>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                setting.status === 'configured' ? 'bg-green-100 text-green-800' : 
-                                setting.status === 'not_configured' ? 'bg-red-100 text-red-800' :
-                                setting.status === 'detected' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
-                              }`}>
-                                {setting.status.replace(/_/g, ' ')}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-600 mb-2">Current: {setting.value}</p>
-                            <p className="text-xs text-gray-500">{setting.recommendation}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Key Events */}
-                  {ga4Audit.audit.keyEvents && (
-                    <div className="mb-8">
-                      <h4 className="text-md font-medium text-gray-900 mb-4 flex items-center">
-                        <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-2">
-                          <span className="text-purple-600 text-sm font-bold">3</span>
-                        </div>
-                        Key Events (Conversions)
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.entries(ga4Audit.audit.keyEvents).map(([key, setting]) => (
-                          <div key={key} className="border rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <h5 className="font-medium text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</h5>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                setting.status === 'configured' ? 'bg-green-100 text-green-800' : 
-                                setting.status === 'requires_manual_check' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
-                              }`}>
-                                {setting.status.replace(/_/g, ' ')}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-600 mb-2">Current: {setting.value}</p>
-                            <p className="text-xs text-gray-500">{setting.recommendation}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Integrations */}
-                  {ga4Audit.audit.integrations && (
-                    <div className="mb-8">
-                      <h4 className="text-md font-medium text-gray-900 mb-4 flex items-center">
-                        <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center mr-2">
-                          <span className="text-orange-600 text-sm font-bold">4</span>
-                        </div>
-                        Integrations
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.entries(ga4Audit.audit.integrations).map(([key, setting]) => (
-                          <div key={key} className="border rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <h5 className="font-medium text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</h5>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                setting.status === 'configured' ? 'bg-green-100 text-green-800' : 
-                                setting.status === 'requires_manual_check' ? 'bg-yellow-100 text-yellow-800' :
-                                setting.status === 'detected' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                              }`}>
-                                {setting.status.replace(/_/g, ' ')}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-600 mb-2">Current: {setting.value}</p>
-                            <p className="text-xs text-gray-500">{setting.recommendation}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Overall Score */}
-                  <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-6 mt-6">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-2">Audit Complete</h4>
-                    <p className="text-gray-600">
-                      Your GA4 property "{ga4Audit.property.displayName}" has been analyzed across all major configuration areas. 
-                      Review the recommendations above to optimize your analytics setup.
-                    </p>
+              <div className="bg-gradient-to-r from-red-500/10 via-red-500/5 to-red-500/10 border border-red-500/20 rounded-xl p-6 relative">
+                <HandDrawnArrow className="absolute top-2 right-4 w-8 h-4 text-yellow-400/40" />
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
+                    <User className="w-6 h-6 text-red-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-bold text-lg mb-1" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                      CONNECT YOUR GA4 ACCOUNT FOR COMPLETE AUDIT
+                    </h4>
+                    <p className="text-gray-300">Get detailed configuration analysis, property insights, and actionable recommendations</p>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
         )}
 
         {/* Chat Tab */}
         {activeTab === 'chat' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">GA4 & GTM AI Assistant</h2>
-            <div className="flex flex-col space-y-4">
-              <div className="flex-1 max-h-96 overflow-y-auto">
-                {messages.map((msg, index) => (
-                  <div key={index} className={`mb-4 ${msg.type === 'user' ? 'text-right' : 'text-left'}`}>
-                    <div className={`inline-block p-3 rounded-lg max-w-xs ${
-                      msg.type === 'user' 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      <p className="text-sm">{msg.content}</p>
-                      {msg.code && (
-                        <div className="mt-2 p-2 bg-gray-900 rounded text-green-400 text-xs font-mono overflow-x-auto">
-                          <pre>{msg.code}</pre>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Ask about GA4 or GTM..."
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                />
-                <button
-                  onClick={handleSendMessage}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Implement Tab */}
-        {activeTab === 'implement' && (
-          <div className="space-y-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">GA4 Event Code Generator</h2>
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  value={action}
-                  onChange={(e) => setAction(e.target.value)}
-                  placeholder="e.g., Download PDF pricing guide"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                />
-                <button
-                  onClick={generateTrackingCode}
-                  className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  Generate GA4 Code
-                </button>
-              </div>
-            </div>
-
-            {messages.filter(msg => msg.code).length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Generated Code</h3>
-                {messages.filter(msg => msg.code).slice(-1).map((msg, index) => (
-                  <div key={index}>
-                    <p className="text-sm text-gray-700 mb-3">{msg.content}</p>
-                    <div className="p-4 bg-gray-900 rounded-lg text-green-400 text-sm font-mono overflow-x-auto">
-                      <pre>{msg.code}</pre>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Docs Tab */}
-        {activeTab === 'docs' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">GA4 & GTM Documentation</h2>
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl border border-gray-700/50 p-8 shadow-xl relative">
+            <HandDrawnStar className="absolute -top-3 -right-3 w-8 h-8 text-yellow-400/30" />
             
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Getting Started</h3>
-                <div className="space-y-2">
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <h4 className="font-medium text-gray-900">1. Set Up Google Analytics 4</h4>
-                    <p className="text-sm text-gray-600">Create a new GA4 property in your Google Analytics account</p>
-                  </div>
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <h4 className="font-medium text-gray-900">2. Install Google Tag Manager</h4>
-                    <p className="text-sm text-gray-600">GTM makes it easier to manage all your tracking codes</p>
-                  </div>
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <h4 className="font-medium text-gray-900">3. Connect GA4 to GTM</h4>
-                    <p className="text-sm text-gray-600">Create a GA4 Configuration tag in GTM</p>
-                  </div>
+            <div className="flex items-center space-x-3 mb-8">
+              <Send className="w-6 h-6 text-red-400" />
+              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                GA4 & GTM AI ASSISTANT
+              </h2>
+            </div>
+            
+            <div className="bg-gray-800/50 rounded-xl p-6 mb-6 border border-gray-700 relative">
+              <HandDrawnBox className="absolute -top-2 -left-2 w-8 h-6 text-yellow-400/30" />
+              <div className="flex items-start space-x-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-white font-medium mb-2">Hi! I'm your GA4 & GTM specialist.</p>
+                  <p className="text-gray-300">I can help you with implementation, troubleshooting, and tracking setup.</p>
                 </div>
               </div>
             </div>
+            
+            <div className="flex space-x-4">
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Ask about GA4 setup, tracking issues..."
+                className="flex-1 bg-gray-800/50 border border-gray-600 text-white px-4 py-4 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-gray-400 font-medium"
+              />
+              <button className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-4 rounded-lg transition-all duration-200 transform hover:scale-105">
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         )}
+      </div>
+
+      {/* Footer */}
+      <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-gray-700 mt-16 relative">
+        <HandDrawnCircle className="absolute top-4 left-8 w-6 h-6 text-red-500/20" />
+        
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
+                <Activity className="w-4 h-4 text-white" />
+              </div>
+              <p className="text-gray-300">
+                Powered by <span className="text-red-400 font-bold" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>BEAST ANALYTICS</span>
+              </p>
+            </div>
+            <p className="text-gray-500 text-sm">
+              Professional analytics auditing since 2011
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default GA4GTMAssistant;
+export default HandDrawnGA4Assistant;
