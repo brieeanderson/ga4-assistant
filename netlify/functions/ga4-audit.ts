@@ -30,8 +30,10 @@ const handler: Handler = async (event, context) => {
       };
     }
 
+    console.log('=== GA4 AUDIT v2.0 - ENHANCED DEBUGGING ===');
     console.log('GA4 Audit - Starting request');
     console.log('PropertyId provided:', !!propertyId);
+    console.log('Access token length:', accessToken.length);
 
     // Test the access token first
     const testResponse = await fetch(
