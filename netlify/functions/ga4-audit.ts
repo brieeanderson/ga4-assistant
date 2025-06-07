@@ -98,6 +98,9 @@ const handler: Handler = async (event, context) => {
         
         console.log('Accounts data received:', JSON.stringify(accountsData, null, 2));
         
+        // CRITICAL: Make sure we continue to property fetching
+        console.log('=== STARTING PROPERTY FETCH PHASE ===');
+        
         // Get properties for each account
         let allProperties: any[] = [];
         
@@ -177,6 +180,8 @@ const handler: Handler = async (event, context) => {
             propertyId: p.propertyId
           })));
           console.log(`=== END PROPERTY FETCH DEBUG ===`);
+        } else {
+          console.log('No accounts found - cannot fetch properties');
         }
 
         return {
