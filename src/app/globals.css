@@ -3,6 +3,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --font-bebas-neue: 'Bebas Neue', sans-serif;
+  --font-inter: 'Inter', sans-serif;
 }
 
 @theme inline {
