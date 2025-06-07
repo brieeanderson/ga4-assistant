@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Send, Globe, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, User, LogOut, Activity, Terminal, Cpu, Database } from 'lucide-react';
+import { Send, Globe, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, User, Activity, Terminal, Cpu } from 'lucide-react';
 
 const HandDrawnGA4Assistant = () => {
   const [activeTab, setActiveTab] = useState('audit');
   const [message, setMessage] = useState('');
   const [website, setWebsite] = useState('');
-  const [action, setAction] = useState('');
   const [analysisType, setAnalysisType] = useState('sitewide');
 
   // Hand-drawn SVG elements
@@ -54,7 +53,7 @@ const HandDrawnGA4Assistant = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white relative overflow-hidden" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white relative overflow-hidden" style={{ fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
       {/* Background scattered elements */}
       <HandDrawnCircle className="absolute top-20 right-40 w-16 h-16 text-red-500/8" />
       <HandDrawnStar className="absolute top-60 left-20 w-12 h-12 text-yellow-400/8" />
@@ -76,7 +75,7 @@ const HandDrawnGA4Assistant = () => {
                 </div>
               </div>
               <div className="relative">
-                <h1 className="text-2xl font-black text-white tracking-tight" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                <h1 className="text-2xl font-black text-white tracking-tight" style={{ fontFamily: '"Bebas Neue", Impact, "Arial Black", sans-serif' }}>
                   GA4 ANALYTICS
                   <span className="text-red-400 ml-2 font-light">AUDIT</span>
                 </h1>
@@ -116,7 +115,7 @@ const HandDrawnGA4Assistant = () => {
                     ? 'text-red-400 bg-red-500/10'
                     : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
                 }`}
-                style={{ fontFamily: 'Bebas Neue, sans-serif' }}
+                style={{ fontFamily: '"Bebas Neue", Impact, "Arial Black", sans-serif' }}
               >
                 <tab.icon className="w-4 h-4" />
                 <span className="tracking-wide">{tab.label}</span>
@@ -155,7 +154,7 @@ const HandDrawnGA4Assistant = () => {
                     <HandDrawnCircle className="absolute -right-3 -top-2 w-6 h-6 text-yellow-400/40" />
                   </div>
                   
-                  <h2 className="text-6xl font-black text-white mb-6 tracking-tight leading-tight relative" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                  <h2 className="text-6xl font-black text-white mb-6 tracking-tight leading-tight relative" style={{ fontFamily: '"Bebas Neue", Impact, "Arial Black", sans-serif' }}>
                     COMPLETE GA4 & GTM
                     <HandDrawnSpiral className="absolute -left-8 top-4 w-12 h-12 text-yellow-400/20" />
                     <br />
@@ -174,13 +173,13 @@ const HandDrawnGA4Assistant = () => {
                       { text: 'Real-time Analysis' },
                       { text: 'Complete Coverage' },
                       { text: 'Expert Insights' }
-                    ].map((item, index) => (
-                      <div key={index} className="flex items-center space-x-2 relative">
+                    ].map((item) => (
+                      <div key={item.text} className="flex items-center space-x-2 relative">
                         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                         <span className="font-medium">{item.text}</span>
-                        {index === 0 && <HandDrawnCircle className="absolute -top-4 -right-2 w-6 h-6 text-red-500/20" />}
-                        {index === 1 && <HandDrawnStar className="absolute -top-4 -right-2 w-6 h-6 text-yellow-400/20" />}
-                        {index === 2 && <HandDrawnBox className="absolute -top-4 -right-2 w-6 h-6 text-red-500/20" />}
+                        {item.text === 'Real-time Analysis' && <HandDrawnCircle className="absolute -top-4 -right-2 w-6 h-6 text-red-500/20" />}
+                        {item.text === 'Complete Coverage' && <HandDrawnStar className="absolute -top-4 -right-2 w-6 h-6 text-yellow-400/20" />}
+                        {item.text === 'Expert Insights' && <HandDrawnBox className="absolute -top-4 -right-2 w-6 h-6 text-red-500/20" />}
                       </div>
                     ))}
                   </div>
@@ -195,7 +194,7 @@ const HandDrawnGA4Assistant = () => {
               
               <div className="flex items-center space-x-3 mb-8 relative">
                 <Cpu className="w-6 h-6 text-red-400" />
-                <h3 className="text-2xl font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                <h3 className="text-2xl font-bold text-white" style={{ fontFamily: '"Bebas Neue", Impact, "Arial Black", sans-serif' }}>
                   CHOOSE YOUR ANALYSIS METHOD
                 </h3>
                 <HandDrawnArrow className="absolute -bottom-2 left-8 w-12 h-6 text-red-500/30" />
@@ -227,7 +226,7 @@ const HandDrawnGA4Assistant = () => {
                     gradient: 'from-purple-500 to-purple-600',
                     description: 'Complete 25-point property assessment with API access'
                   }
-                ].map((option, index) => (
+                ].map((option) => (
                   <button
                     key={option.id}
                     onClick={() => setAnalysisType(option.id)}
@@ -246,7 +245,7 @@ const HandDrawnGA4Assistant = () => {
                         <option.icon className="w-6 h-6 text-white" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-lg font-bold text-white mb-1" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                        <h4 className="text-lg font-bold text-white mb-1" style={{ fontFamily: '"Bebas Neue", Impact, "Arial Black", sans-serif' }}>
                           {option.title}
                         </h4>
                         <p className={`text-sm font-medium mb-3 ${
@@ -277,7 +276,7 @@ const HandDrawnGA4Assistant = () => {
                       className="w-full bg-gray-900/50 border border-gray-600 text-white px-4 py-4 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-gray-400 font-medium transition-all"
                     />
                   </div>
-                  <button className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold px-8 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg shadow-red-500/25 relative" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                  <button className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold px-8 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg shadow-red-500/25 relative" style={{ fontFamily: '"Bebas Neue", Impact, "Arial Black", sans-serif' }}>
                     START ANALYSIS
                     <HandDrawnStar className="absolute -top-2 -right-2 w-6 h-6 text-yellow-400/60" />
                   </button>
@@ -293,7 +292,7 @@ const HandDrawnGA4Assistant = () => {
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center space-x-3 relative">
                   <BarChart3 className="w-6 h-6 text-red-400" />
-                  <h3 className="text-2xl font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                  <h3 className="text-2xl font-bold text-white" style={{ fontFamily: '"Bebas Neue", Impact, "Arial Black", sans-serif' }}>
                     ANALYSIS RESULTS PREVIEW
                   </h3>
                   <HandDrawnArrow className="absolute -bottom-2 left-4 w-12 h-6 text-red-500/30" />
@@ -309,17 +308,17 @@ const HandDrawnGA4Assistant = () => {
                   { title: 'GTM-XXXXX', subtitle: 'Google Tag Manager', status: 'Detected', color: 'green', icon: Code },
                   { title: 'G-XXXXXX', subtitle: 'GA4 Property', status: 'Active', color: 'green', icon: BarChart3 },
                   { title: '95%', subtitle: 'Coverage Score', status: 'Excellent', color: 'yellow', icon: CheckCircle }
-                ].map((item, index) => (
-                  <div key={index} className="bg-gray-800/50 rounded-xl p-6 border border-gray-700 hover:border-gray-600 transition-all relative">
-                    {index === 0 && <HandDrawnCircle className="absolute -top-2 -right-2 w-6 h-6 text-red-500/20" />}
-                    {index === 1 && <HandDrawnStar className="absolute -top-2 -right-2 w-6 h-6 text-yellow-400/20" />}
-                    {index === 2 && <HandDrawnBox className="absolute -top-2 -right-2 w-6 h-6 text-red-500/20" />}
+                ].map((item) => (
+                  <div key={item.title} className="bg-gray-800/50 rounded-xl p-6 border border-gray-700 hover:border-gray-600 transition-all relative">
+                    {item.title === 'GTM-XXXXX' && <HandDrawnCircle className="absolute -top-2 -right-2 w-6 h-6 text-red-500/20" />}
+                    {item.title === 'G-XXXXXX' && <HandDrawnStar className="absolute -top-2 -right-2 w-6 h-6 text-yellow-400/20" />}
+                    {item.title === '95%' && <HandDrawnBox className="absolute -top-2 -right-2 w-6 h-6 text-red-500/20" />}
                     
                     <div className="flex items-center space-x-3 mb-4">
                       <item.icon className="w-5 h-5 text-gray-400" />
                       <span className="text-sm text-gray-400">{item.subtitle}</span>
                     </div>
-                    <div className="text-2xl font-bold text-white mb-2" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                    <div className="text-2xl font-bold text-white mb-2" style={{ fontFamily: '"Bebas Neue", Impact, "Arial Black", sans-serif' }}>
                       {item.title}
                     </div>
                     <div className="flex items-center space-x-2">
@@ -345,7 +344,7 @@ const HandDrawnGA4Assistant = () => {
                     <User className="w-6 h-6 text-red-400" />
                   </div>
                   <div>
-                    <h4 className="text-white font-bold text-lg mb-1" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                    <h4 className="text-white font-bold text-lg mb-1" style={{ fontFamily: '"Bebas Neue", Impact, "Arial Black", sans-serif' }}>
                       CONNECT YOUR GA4 ACCOUNT FOR COMPLETE AUDIT
                     </h4>
                     <p className="text-gray-300">Get detailed configuration analysis, property insights, and actionable recommendations</p>
@@ -363,7 +362,7 @@ const HandDrawnGA4Assistant = () => {
             
             <div className="flex items-center space-x-3 mb-8">
               <Send className="w-6 h-6 text-red-400" />
-              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: '"Bebas Neue", Impact, "Arial Black", sans-serif' }}>
                 GA4 & GTM AI ASSISTANT
               </h2>
             </div>
@@ -408,7 +407,7 @@ const HandDrawnGA4Assistant = () => {
                 <Activity className="w-4 h-4 text-white" />
               </div>
               <p className="text-gray-300">
-                Powered by <span className="text-red-400 font-bold" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>BEAST ANALYTICS</span>
+                Powered by <span className="text-red-400 font-bold" style={{ fontFamily: '"Bebas Neue", Impact, "Arial Black", sans-serif' }}>BEAST ANALYTICS</span>
               </p>
             </div>
             <p className="text-gray-500 text-sm">
