@@ -155,11 +155,52 @@ const GA4GTMAssistant = () => {
         console.log('✅ Analytics Admin API working');
         console.log('Accounts found:', accountsData.accounts?.length || 0);
         
-        setDebugInfo({ 
-          status: 'success', 
-          step: `Found ${accountsData.accounts?.length || 0} GA4 accounts`,
-          accounts: accountsData.accounts
-        });
+        // Test 3: Try to fetch properties from first account
+        if (accountsData.accounts && accountsData.accounts.length > 0) {
+          const firstAccount = accountsData.accounts[0];
+          console.log(`Testing property fetch for first account: ${firstAccount.displayName}`);
+          
+          try {
+            const propertiesUrl = `https://analyticsadmin.googleapis.com/v1beta/${firstAccount.name}/properties`;
+            console.log(`Fetching from: ${propertiesUrl}`);
+            
+            const propertiesResponse = await fetch(propertiesUrl, {
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            console.log(`Properties response status: ${propertiesResponse.status}`);
+            
+            if (propertiesResponse.ok) {
+              const propertiesData = await propertiesResponse.json();
+              console.log('Properties data:', propertiesData);
+              console.log(`Found ${propertiesData.properties?.length || 0} properties in ${firstAccount.displayName}`);
+              
+              setDebugInfo({ 
+                status: 'success', 
+                step: `Found ${accountsData.accounts?.length} accounts, tested ${firstAccount.displayName}: ${propertiesData.properties?.length || 0} properties`,
+                accounts: accountsData.accounts
+              });
+            } else {
+              const errorText = await propertiesResponse.text();
+              console.error('Properties fetch failed:', errorText);
+              setDebugInfo({ 
+                status: 'error', 
+                step: `Properties fetch failed for ${firstAccount.displayName}: ${propertiesResponse.status}`,
+                error: errorText
+              });
+            }
+          } catch (error) {
+            console.error('Properties fetch error:', error);
+            setDebugInfo({ 
+              status: 'error', 
+              step: `Properties fetch error: ${error}`
+            });
+          }
+        }
+        
       } else {
         const errorText = await accountsResponse.text();
         console.error('❌ Analytics Admin API failed');
