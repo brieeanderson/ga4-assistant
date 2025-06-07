@@ -23,7 +23,7 @@ interface GA4Audit {
     displayName: string;
     type: string;
   }>;
-  conversions: Array<{
+  keyEvents: Array<{
     eventName: string;
     createTime: string;
   }>;
@@ -42,7 +42,7 @@ interface GA4Audit {
         recommendation: string;
       }
     };
-    conversions?: {
+    keyEvents?: {
       [key: string]: {
         status: string;
         value: string;
@@ -833,9 +833,10 @@ const GA4GTMAssistant = () => {
                               <h5 className="font-medium text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</h5>
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                                 setting.status === 'configured' ? 'bg-green-100 text-green-800' : 
-                                setting.status === 'detected' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'
+                                setting.status === 'not_configured' ? 'bg-red-100 text-red-800' :
+                                setting.status === 'detected' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
                               }`}>
-                                {setting.status}
+                                {setting.status.replace(/_/g, ' ')}
                               </span>
                             </div>
                             <p className="text-sm text-gray-600 mb-2">Current: {setting.value}</p>
@@ -846,24 +847,25 @@ const GA4GTMAssistant = () => {
                     </div>
                   )}
 
-                  {/* Conversions */}
-                  {ga4Audit.audit.conversions && (
+                  {/* Key Events */}
+                  {ga4Audit.audit.keyEvents && (
                     <div className="mb-8">
                       <h4 className="text-md font-medium text-gray-900 mb-4 flex items-center">
                         <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-2">
                           <span className="text-purple-600 text-sm font-bold">3</span>
                         </div>
-                        Conversion Tracking
+                        Key Events (Conversions)
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.entries(ga4Audit.audit.conversions).map(([key, setting]) => (
+                        {Object.entries(ga4Audit.audit.keyEvents).map(([key, setting]) => (
                           <div key={key} className="border rounded-lg p-4">
                             <div className="flex items-center justify-between mb-2">
                               <h5 className="font-medium text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</h5>
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                setting.status === 'configured' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                setting.status === 'configured' ? 'bg-green-100 text-green-800' : 
+                                setting.status === 'requires_manual_check' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
                               }`}>
-                                {setting.status}
+                                {setting.status.replace(/_/g, ' ')}
                               </span>
                             </div>
                             <p className="text-sm text-gray-600 mb-2">Current: {setting.value}</p>
@@ -890,9 +892,10 @@ const GA4GTMAssistant = () => {
                               <h5 className="font-medium text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</h5>
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                                 setting.status === 'configured' ? 'bg-green-100 text-green-800' : 
+                                setting.status === 'requires_manual_check' ? 'bg-yellow-100 text-yellow-800' :
                                 setting.status === 'detected' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
                               }`}>
-                                {setting.status}
+                                {setting.status.replace(/_/g, ' ')}
                               </span>
                             </div>
                             <p className="text-sm text-gray-600 mb-2">Current: {setting.value}</p>
