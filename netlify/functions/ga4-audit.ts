@@ -119,7 +119,8 @@ const handler: Handler = async (event, context) => {
             console.log(`Account display name: ${account.displayName}`);
             
             try {
-              const propertiesUrl = `https://analyticsadmin.googleapis.com/v1beta/${account.name}/properties`;
+              // CORRECT API endpoint format - properties is NOT nested under accounts!
+              const propertiesUrl = `https://analyticsadmin.googleapis.com/v1beta/properties?filter=parent:${account.name}`;
               console.log(`Making request to: ${propertiesUrl}`);
               
               const propertiesResponse = await fetch(propertiesUrl, {
@@ -174,6 +175,13 @@ const handler: Handler = async (event, context) => {
           
           console.log(`\n=== FINAL RESULTS ===`);
           console.log(`Total properties found across ${accountsToProcess.length} accounts: ${allProperties.length}`);
+          
+          if (allProperties.length === 0) {
+            console.log(`NOTE: No GA4 properties found in the first ${accountsToProcess.length} accounts.`);
+            console.log(`This is normal for older accounts that only have Universal Analytics properties.`);
+            console.log(`GA4 was launched in October 2020, so accounts created before then typically only have UA properties.`);
+          }
+          
           console.log(`All properties summary:`, allProperties.map(p => ({
             name: p.displayName,
             account: p.accountName,
@@ -184,6 +192,7 @@ const handler: Handler = async (event, context) => {
           console.log('No accounts found - cannot fetch properties');
         }
 
+        // Return results with helpful messaging
         return {
           statusCode: 200,
           headers,
@@ -191,7 +200,10 @@ const handler: Handler = async (event, context) => {
             type: 'property_list',
             accounts: accountsData.accounts || [],
             properties: allProperties,
-            userInfo: userInfo
+            userInfo: userInfo,
+            message: allProperties.length === 0 
+              ? `No GA4 properties found in the first ${Math.min(3, accountsData.accounts?.length || 0)} accounts checked. This is normal for older accounts that only have Universal Analytics properties. GA4 was launched in October 2020.`
+              : `Found ${allProperties.length} GA4 properties`
           }),
         };
 
