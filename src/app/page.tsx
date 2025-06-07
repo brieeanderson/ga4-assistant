@@ -28,7 +28,34 @@ interface GA4Audit {
     createTime: string;
   }>;
   audit: {
-    propertySettings: { [key: string]: { status: string; value: string; recommendation: string; } };
+    propertySettings: { 
+      [key: string]: { 
+        status: string; 
+        value: string; 
+        recommendation: string; 
+      } 
+    };
+    dataCollection?: {
+      [key: string]: {
+        status: string;
+        value: string;
+        recommendation: string;
+      }
+    };
+    conversions?: {
+      [key: string]: {
+        status: string;
+        value: string;
+        recommendation: string;
+      }
+    };
+    integrations?: {
+      [key: string]: {
+        status: string;
+        value: string;
+        recommendation: string;
+      }
+    };
   };
 }
 
