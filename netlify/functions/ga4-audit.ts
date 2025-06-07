@@ -94,18 +94,24 @@ const handler: Handler = async (event, context) => {
         const accountsData = await accountsResponse.json();
         console.log('Accounts data:', JSON.stringify(accountsData, null, 2));
         
+        console.log('Accounts data received:', JSON.stringify(accountsData, null, 2));
+        
         // Get properties for each account
         let allProperties: any[] = [];
         
         if (accountsData.accounts && accountsData.accounts.length > 0) {
+          console.log(`=== PROPERTY FETCH DEBUG ===`);
           console.log(`Processing ${accountsData.accounts.length} accounts for properties...`);
           
-          // Process first few accounts to avoid timeout
-          const accountsToProcess = accountsData.accounts.slice(0, 5); // Limit to 5 accounts initially
+          // Process only first 3 accounts to avoid timeout and debug issues
+          const accountsToProcess = accountsData.accounts.slice(0, 3);
           console.log(`Processing first ${accountsToProcess.length} accounts to avoid timeout`);
           
-          for (const account of accountsToProcess) {
-            console.log(`Fetching properties for account: ${account.name} (${account.displayName})`);
+          for (let i = 0; i < accountsToProcess.length; i++) {
+            const account = accountsToProcess[i];
+            console.log(`\n--- Account ${i + 1}/${accountsToProcess.length} ---`);
+            console.log(`Account name: ${account.name}`);
+            console.log(`Account display name: ${account.displayName}`);
             
             try {
               const propertiesUrl = `https://analyticsadmin.googleapis.com/v1beta/${account.name}/properties`;
@@ -118,46 +124,57 @@ const handler: Handler = async (event, context) => {
                 }
               });
 
-              console.log(`Properties response for ${account.name}:`, propertiesResponse.status);
+              console.log(`Response status: ${propertiesResponse.status}`);
+              console.log(`Response ok: ${propertiesResponse.ok}`);
 
               if (propertiesResponse.ok) {
                 const propertiesData = await propertiesResponse.json();
-                console.log(`Raw properties data for ${account.name}:`, JSON.stringify(propertiesData, null, 2));
-                console.log(`Found ${propertiesData.properties?.length || 0} properties in ${account.displayName}`);
+                console.log(`Raw properties response:`, JSON.stringify(propertiesData, null, 2));
+                
+                const propertyCount = propertiesData.properties?.length || 0;
+                console.log(`Found ${propertyCount} properties in ${account.displayName}`);
                 
                 if (propertiesData.properties && propertiesData.properties.length > 0) {
                   // Add account info to each property for better display
-                  const propertiesWithAccount = propertiesData.properties.map((property: any) => ({
-                    ...property,
-                    accountName: account.displayName,
-                    accountId: account.name,
-                    // Ensure we have both propertyId and name for compatibility
-                    propertyId: property.name ? property.name.split('/').pop() : property.propertyId
-                  }));
-                  console.log(`Processed properties for ${account.name}:`, propertiesWithAccount);
+                  const propertiesWithAccount = propertiesData.properties.map((property: any) => {
+                    console.log(`Processing property:`, property);
+                    return {
+                      ...property,
+                      accountName: account.displayName,
+                      accountId: account.name,
+                      // Ensure we have propertyId - it might be in different places
+                      propertyId: property.name ? property.name.split('/').pop() : (property.propertyId || property.id)
+                    };
+                  });
+                  console.log(`Processed properties:`, propertiesWithAccount);
                   allProperties.push(...propertiesWithAccount);
                 } else {
-                  console.log(`No properties found in account ${account.displayName}`);
+                  console.log(`No properties found in account ${account.displayName} (this is normal for many accounts)`);
                 }
               } else {
                 const errorText = await propertiesResponse.text();
-                console.error(`Failed to fetch properties for ${account.name}:`, {
-                  status: propertiesResponse.status,
-                  statusText: propertiesResponse.statusText,
-                  error: errorText,
-                  url: propertiesUrl
-                });
+                console.error(`ERROR fetching properties for ${account.name}:`);
+                console.error(`Status: ${propertiesResponse.status}`);
+                console.error(`Status Text: ${propertiesResponse.statusText}`);
+                console.error(`Error Body: ${errorText}`);
+                console.error(`URL: ${propertiesUrl}`);
               }
             } catch (error) {
-              console.error(`Error fetching properties for ${account.name}:`, error);
+              console.error(`EXCEPTION fetching properties for ${account.name}:`, error);
             }
             
-            // Small delay between requests to avoid rate limiting
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Small delay between requests
+            await new Promise(resolve => setTimeout(resolve, 200));
           }
           
+          console.log(`\n=== FINAL RESULTS ===`);
           console.log(`Total properties found across ${accountsToProcess.length} accounts: ${allProperties.length}`);
-          console.log(`All properties:`, allProperties);
+          console.log(`All properties summary:`, allProperties.map(p => ({
+            name: p.displayName,
+            account: p.accountName,
+            propertyId: p.propertyId
+          })));
+          console.log(`=== END PROPERTY FETCH DEBUG ===`);
         }
 
         return {
