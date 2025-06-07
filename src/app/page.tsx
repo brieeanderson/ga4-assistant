@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Send, Globe, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, User, LogOut, AlertTriangle, ArrowRight, Star, Shield, Clock, Target } from 'lucide-react';
+import { Send, Globe, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, User, LogOut, ArrowRight } from 'lucide-react';
 import { useOAuth } from '@/hooks/useOAuth';
 
 interface GA4Property {
@@ -58,7 +58,7 @@ interface WebsiteAnalysis {
     consentMode: boolean;
     debugMode: boolean;
   };
-  configurationAudit: any;
+  configurationAudit: Record<string, unknown>;
   recommendations: string[];
   analysisMethod: string;
 }
@@ -75,9 +75,9 @@ interface CrawlResults {
     isComplete: boolean;
     estimatedPagesRemaining: number;
   };
-  pageDetails: any[];
-  errorPages: any[];
-  untaggedPages: any[];
+  pageDetails: Record<string, unknown>[];
+  errorPages: Record<string, unknown>[];
+  untaggedPages: Record<string, unknown>[];
   insights: string[];
   recommendations: string[];
   nextSteps: string[];
