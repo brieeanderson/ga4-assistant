@@ -30,7 +30,7 @@ const handler: Handler = async (event, context) => {
       };
     }
 
-    console.log('=== GA4 AUDIT v2.0 - ENHANCED DEBUGGING ===');
+    console.log('=== GA4 AUDIT v2.1 - 2025 KEY EVENTS UPDATE ===');
     console.log('GA4 Audit - Starting request');
     console.log('PropertyId provided:', !!propertyId);
     console.log('Access token length:', accessToken.length);
@@ -96,11 +96,6 @@ const handler: Handler = async (event, context) => {
         const accountsData = await accountsResponse.json();
         console.log('Accounts data:', JSON.stringify(accountsData, null, 2));
         
-        console.log('Accounts data received:', JSON.stringify(accountsData, null, 2));
-        
-        // CRITICAL: Make sure we continue to property fetching
-        console.log('=== STARTING PROPERTY FETCH PHASE ===');
-        
         // Get properties for each account
         let allProperties: any[] = [];
         
@@ -119,7 +114,6 @@ const handler: Handler = async (event, context) => {
             console.log(`Account display name: ${account.displayName}`);
             
             try {
-              // CORRECT API endpoint format - properties is NOT nested under accounts!
               const propertiesUrl = `https://analyticsadmin.googleapis.com/v1beta/properties?filter=parent:${account.name}`;
               console.log(`Making request to: ${propertiesUrl}`);
               
@@ -251,12 +245,13 @@ const handler: Handler = async (event, context) => {
     const propertyData = await propertyResponse.json();
     console.log('Property data fetched successfully');
 
-    // Get additional property details with error handling
+    // Get additional property details with error handling - UPDATED FOR KEY EVENTS
     const [dataStreamsResult, keyEventsResult] = await Promise.allSettled([
       fetch(`https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/dataStreams`, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
       }).then(r => r.ok ? r.json() : { dataStreams: [] }),
       
+      // UPDATED: Use keyEvents endpoint instead of conversionEvents
       fetch(`https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/keyEvents`, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
       }).then(r => r.ok ? r.json() : { keyEvents: [] })
@@ -285,65 +280,87 @@ const handler: Handler = async (event, context) => {
       }
     }
 
-    // Build comprehensive audit
+    // Build comprehensive audit with 2025 GA4 best practices
     const audit = {
       property: propertyData,
       dataStreams: dataStreams.dataStreams || [],
-      keyEvents: keyEvents.keyEvents || [],
+      keyEvents: keyEvents.keyEvents || [], // UPDATED: keyEvents instead of conversions
       audit: {
         propertySettings: {
           timezone: {
             status: propertyData.timeZone ? 'configured' : 'missing',
             value: propertyData.timeZone || 'Not set',
-            recommendation: propertyData.timeZone ? 'Timezone is properly configured' : 'Set your property timezone for accurate reporting'
+            recommendation: propertyData.timeZone ? 'Timezone is properly configured' : 'Set your property timezone for accurate reporting. Try to keep timezones consistent across marketing platforms.'
           },
           currency: {
             status: propertyData.currencyCode ? 'configured' : 'missing',
             value: propertyData.currencyCode || 'Not set',
-            recommendation: propertyData.currencyCode ? 'Currency is properly configured' : 'Set your default currency for e-commerce tracking'
+            recommendation: propertyData.currencyCode ? 'Currency is properly configured' : 'GA4 defaults to USD and will convert all transactions to USD based on daily conversion rate. Set your default currency for accurate e-commerce tracking.'
           },
           industryCategory: {
             status: propertyData.industryCategory ? 'configured' : 'missing',
             value: propertyData.industryCategory || 'Not set',
-            recommendation: propertyData.industryCategory ? 'Industry category is set for benchmarking' : 'Set industry category for benchmarking insights'
+            recommendation: propertyData.industryCategory ? 'Industry category is set for benchmarking' : 'Set industry category for benchmarking insights and better machine learning predictions.'
           },
           dataRetention: {
             status: 'configured',
-            value: '14 months (default)',
-            recommendation: 'Consider extending data retention if you need longer historical analysis'
+            value: '14 months (recommended)',
+            recommendation: 'Data retention should be set to 14 months (maximum available) unless legal requirements dictate otherwise. Default is only 2 months.'
           }
         },
         dataCollection: {
           dataStreams: {
             status: dataStreams.dataStreams?.length > 0 ? 'configured' : 'missing',
             value: `${dataStreams.dataStreams?.length || 0} data stream(s) configured`,
-            recommendation: dataStreams.dataStreams?.length > 0 ? 'Data streams are configured' : 'Add a web data stream for your website'
+            recommendation: dataStreams.dataStreams?.length > 0 ? 'Data streams are configured' : 'Add a web data stream for your website. Each platform (web, iOS, Android) needs its own data stream.'
           },
           enhancedMeasurement: {
             status: enhancedMeasurementStatus,
             value: enhancedMeasurementDetails,
             recommendation: enhancedMeasurementStatus === 'configured' 
-              ? 'Enhanced measurement provides automatic event tracking for web streams'
-              : 'Enable enhanced measurement for automatic event tracking (page views, scrolls, outbound clicks, site search, video engagement, file downloads)'
+              ? 'Enhanced measurement provides automatic event tracking for web streams (page views, scrolls, outbound clicks, site search, video engagement, file downloads)'
+              : 'Enable enhanced measurement for automatic event tracking. This tracks many interactions without additional code.'
+          },
+          crossDomainTracking: {
+            status: 'requires_manual_check',
+            value: 'Check data stream settings for cross-domain configuration',
+            recommendation: 'Configure cross-domain tracking in Data Streams > Configure tag settings > Configure your domains if you have multiple domains.'
+          },
+          internalTrafficFilter: {
+            status: 'requires_manual_check',
+            value: 'Check data stream settings for internal traffic filters',
+            recommendation: 'Define internal traffic by IP addresses in Data Streams > Configure tag settings > Define internal traffic to exclude office/employee traffic.'
           }
         },
         keyEvents: {
           keyEvents: {
             status: keyEvents.keyEvents?.length > 0 ? 'configured' : 'missing',
             value: `${keyEvents.keyEvents?.length || 0} key event(s) configured`,
-            recommendation: keyEvents.keyEvents?.length > 0 ? 'Key events are configured for conversion tracking' : 'Set up key events for your important business goals (purchases, sign-ups, downloads, etc.)'
+            recommendation: keyEvents.keyEvents?.length > 0 
+              ? `Key events are configured for conversion tracking. Remember: Key Events replaced "Conversions" in GA4 as of 2025.` 
+              : 'Set up key events for your important business goals (purchases, sign-ups, downloads, etc.). These are essential for measuring success and can be imported to Google Ads as conversions.'
+          },
+          keyEventCounting: {
+            status: 'requires_manual_check',
+            value: 'Check individual key events for counting method',
+            recommendation: 'For each key event, choose between "once per session" vs "once per event" counting. Lead generation typically uses "once per session", e-commerce uses "once per event".'
           }
         },
         integrations: {
           googleAds: {
             status: 'requires_manual_check',
             value: 'Check Google Ads linking in GA4 interface',
-            recommendation: 'Link Google Ads account in GA4 Admin > Product linking for conversion importing and audience sharing'
+            recommendation: 'Link Google Ads account in GA4 Admin > Product linking for conversion importing and audience sharing. Key events can be imported as Google Ads conversions.'
           },
           searchConsole: {
             status: 'requires_manual_check',
             value: 'Check Search Console linking in GA4 interface', 
-            recommendation: 'Link Search Console in GA4 Admin > Product linking for organic search insights and page performance data'
+            recommendation: 'Link Search Console in GA4 Admin > Product linking for organic search insights and page performance data. Enable the Search Console collection in Reports > Library.'
+          },
+          bigQuery: {
+            status: 'requires_manual_check',
+            value: 'Check BigQuery linking for advanced analysis',
+            recommendation: 'Consider linking BigQuery for advanced analysis, custom attribution models, and raw data export. Free tier available for GA4 properties.'
           }
         }
       },
