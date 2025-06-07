@@ -10,6 +10,8 @@ interface GA4Property {
   displayName: string;
   timeZone?: string;
   currencyCode?: string;
+  accountName?: string;
+  accountId?: string;
 }
 
 interface GA4Audit {
@@ -389,8 +391,8 @@ const GA4GTMAssistant = () => {
               >
                 <option value="">Choose a property...</option>
                 {ga4Properties.map((property) => (
-                  <option key={property.propertyId} value={property.propertyId}>
-                    {property.displayName} ({property.propertyId})
+                  <option key={property.propertyId || property.name} value={property.propertyId || property.name}>
+                    {property.displayName} ({property.accountName || 'Unknown Account'}) - {property.propertyId || property.name}
                   </option>
                 ))}
               </select>
@@ -697,20 +699,149 @@ const GA4GTMAssistant = () => {
 
             {/* GA4 Audit Results */}
             {ga4Audit && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">GA4 Property Overview</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{ga4Audit.property.displayName}</div>
-                    <div className="text-sm text-gray-600">Property Name</div>
+              <div className="space-y-6">
+                {/* Property Overview */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">GA4 Property Overview</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{ga4Audit.property.displayName}</div>
+                      <div className="text-sm text-gray-600">Property Name</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{ga4Audit.dataStreams.length}</div>
+                      <div className="text-sm text-gray-600">Data Streams</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">{ga4Audit.conversions.length}</div>
+                      <div className="text-sm text-gray-600">Conversion Events</div>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{ga4Audit.dataStreams.length}</div>
-                    <div className="text-sm text-gray-600">Data Streams</div>
+                </div>
+
+                {/* 25-Point Audit Checklist */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6">25-Point GA4 Configuration Audit</h3>
+                  
+                  {/* Property Settings */}
+                  <div className="mb-8">
+                    <h4 className="text-md font-medium text-gray-900 mb-4 flex items-center">
+                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+                        <span className="text-blue-600 text-sm font-bold">1</span>
+                      </div>
+                      Property Settings
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {Object.entries(ga4Audit.audit.propertySettings || {}).map(([key, setting], index) => (
+                        <div key={key} className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-medium text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</h5>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              setting.status === 'configured' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>
+                              {setting.status}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">Current: {setting.value}</p>
+                          <p className="text-xs text-gray-500">{setting.recommendation}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">{ga4Audit.conversions.length}</div>
-                    <div className="text-sm text-gray-600">Conversion Events</div>
+
+                  {/* Data Collection */}
+                  {ga4Audit.audit.dataCollection && (
+                    <div className="mb-8">
+                      <h4 className="text-md font-medium text-gray-900 mb-4 flex items-center">
+                        <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
+                          <span className="text-green-600 text-sm font-bold">2</span>
+                        </div>
+                        Data Collection
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.entries(ga4Audit.audit.dataCollection).map(([key, setting], index) => (
+                          <div key={key} className="border rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <h5 className="font-medium text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</h5>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                setting.status === 'configured' ? 'bg-green-100 text-green-800' : 
+                                setting.status === 'detected' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'
+                              }`}>
+                                {setting.status}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-2">Current: {setting.value}</p>
+                            <p className="text-xs text-gray-500">{setting.recommendation}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Conversions */}
+                  {ga4Audit.audit.conversions && (
+                    <div className="mb-8">
+                      <h4 className="text-md font-medium text-gray-900 mb-4 flex items-center">
+                        <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-2">
+                          <span className="text-purple-600 text-sm font-bold">3</span>
+                        </div>
+                        Conversion Tracking
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.entries(ga4Audit.audit.conversions).map(([key, setting], index) => (
+                          <div key={key} className="border rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <h5 className="font-medium text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</h5>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                setting.status === 'configured' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                              }`}>
+                                {setting.status}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-2">Current: {setting.value}</p>
+                            <p className="text-xs text-gray-500">{setting.recommendation}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Integrations */}
+                  {ga4Audit.audit.integrations && (
+                    <div className="mb-8">
+                      <h4 className="text-md font-medium text-gray-900 mb-4 flex items-center">
+                        <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center mr-2">
+                          <span className="text-orange-600 text-sm font-bold">4</span>
+                        </div>
+                        Integrations
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.entries(ga4Audit.audit.integrations).map(([key, setting], index) => (
+                          <div key={key} className="border rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <h5 className="font-medium text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</h5>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                setting.status === 'configured' ? 'bg-green-100 text-green-800' : 
+                                setting.status === 'detected' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {setting.status}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-2">Current: {setting.value}</p>
+                            <p className="text-xs text-gray-500">{setting.recommendation}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Overall Score */}
+                  <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-6 mt-6">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">Audit Complete</h4>
+                    <p className="text-gray-600">
+                      Your GA4 property "{ga4Audit.property.displayName}" has been analyzed across all major configuration areas. 
+                      Review the recommendations above to optimize your analytics setup.
+                    </p>
                   </div>
                 </div>
               </div>
