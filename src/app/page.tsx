@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Send, Globe, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, User, LogOut, Activity, Terminal, Cpu, Database } from 'lucide-react';
 
@@ -11,43 +13,43 @@ const HandDrawnGA4Assistant = () => {
   // Hand-drawn SVG elements
   const HandDrawnCircle = ({ className = "" }) => (
     <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 50C20 35 25 20 40 15C55 10 70 15 80 25C90 35 85 50 80 65C75 80 60 85 45 80C30 75 20 65 20 50Z" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <path d="M20 50C20 35 25 20 40 15C55 10 70 15 80 25C90 35 85 50 80 65C75 80 60 85 45 80C30 75 20 65 20 50Z" stroke="currentColor" strokeWidth={2} fill="none" strokeLinecap="round" />
     </svg>
   );
 
   const HandDrawnArrow = ({ className = "" }) => (
     <svg className={className} viewBox="0 0 100 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M10 20L80 18M80 18L72 12M80 18L74 26" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 20L80 18M80 18L72 12M80 18L74 26" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 
   const HandDrawnBox = ({ className = "" }) => (
     <svg className={className} viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M15 15L85 18L82 65L18 62Z" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <path d="M15 15L85 18L82 65L18 62Z" stroke="currentColor" strokeWidth={2} fill="none" strokeLinecap="round" />
     </svg>
   );
 
   const HandDrawnStar = ({ className = "" }) => (
     <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M50 15L58 38L82 40L65 58L70 82L50 70L30 82L35 58L18 40L42 38L50 15Z" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M50 15L58 38L82 40L65 58L70 82L50 70L30 82L35 58L18 40L42 38L50 15Z" stroke="currentColor" strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 
   const HandDrawnSpiral = ({ className = "" }) => (
     <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M50 10C65 15 80 30 75 50C70 70 45 80 30 65C15 50 25 25 45 20C60 15 70 35 60 50C50 65 35 60 30 45" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <path d="M50 10C65 15 80 30 75 50C70 70 45 80 30 65C15 50 25 25 45 20C60 15 70 35 60 50C50 65 35 60 30 45" stroke="currentColor" strokeWidth={2} fill="none" strokeLinecap="round" />
     </svg>
   );
 
   const HandDrawnZigzag = ({ className = "" }) => (
     <svg className={className} viewBox="0 0 100 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M10 30L25 10L40 30L55 10L70 30L85 10" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 30L25 10L40 30L55 10L70 30L85 10" stroke="currentColor" strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 
   const HandDrawnScribble = ({ className = "" }) => (
     <svg className={className} viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M10 30C15 25 20 35 25 30C30 25 35 35 40 30C45 25 50 35 50 30M20 20C25 15 30 25 35 20M25 40C30 35 35 45 40 40" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <path d="M10 30C15 25 20 35 25 30C30 25 35 35 40 30C45 25 50 35 50 30M20 20C25 15 30 25 35 20M25 40C30 35 35 45 40 40" stroke="currentColor" strokeWidth={2} fill="none" strokeLinecap="round" />
     </svg>
   );
 
