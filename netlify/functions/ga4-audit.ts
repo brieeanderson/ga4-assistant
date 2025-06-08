@@ -353,13 +353,13 @@ const handler: Handler = async (event, context) => {
 };
 
 // Helper function to get enhanced measurement settings for all web streams
-async function getEnhancedMeasurementForStreams(accessToken: string, propertyId: string, streams: any[]) {
+async function getEnhancedMeasurementForStreams(accessToken: string, propertyId: string, streams: Array<Record<string, unknown>>) {
   const webStreams = streams.filter(stream => stream.type === 'WEB_DATA_STREAM');
-  const enhancedMeasurementData: any[] = [];
+  const enhancedMeasurementData: Array<Record<string, unknown>> = [];
   
   for (const stream of webStreams) {
     try {
-      const streamId = stream.name.split('/').pop();
+      const streamId = (stream.name as string)?.split('/').pop();
       const response = await fetch(
         `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/dataStreams/${streamId}/enhancedMeasurementSettings`,
         {
@@ -384,12 +384,12 @@ async function getEnhancedMeasurementForStreams(accessToken: string, propertyId:
 }
 
 // Helper function to get measurement protocol secrets
-async function getMeasurementProtocolSecrets(accessToken: string, propertyId: string, streams: any[]) {
-  const secretsData: any[] = [];
+async function getMeasurementProtocolSecrets(accessToken: string, propertyId: string, streams: Array<Record<string, unknown>>) {
+  const secretsData: Array<Record<string, unknown>> = [];
   
   for (const stream of streams) {
     try {
-      const streamId = stream.name.split('/').pop();
+      const streamId = (stream.name as string)?.split('/').pop();
       const response = await fetch(
         `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/dataStreams/${streamId}/measurementProtocolSecrets`,
         {
@@ -403,7 +403,7 @@ async function getMeasurementProtocolSecrets(accessToken: string, propertyId: st
           secretsData.push({
             streamId,
             streamName: stream.displayName,
-            secrets: secrets.measurementProtocolSecrets.map((secret: any) => ({
+            secrets: secrets.measurementProtocolSecrets.map((secret: Record<string, unknown>) => ({
               displayName: secret.displayName,
               // Don't include the actual secret value for security
             }))
@@ -419,12 +419,12 @@ async function getMeasurementProtocolSecrets(accessToken: string, propertyId: st
 }
 
 // Helper function to get event create rules for all streams
-async function getEventCreateRulesForStreams(accessToken: string, propertyId: string, streams: any[]) {
-  const eventCreateRulesData: any[] = [];
+async function getEventCreateRulesForStreams(accessToken: string, propertyId: string, streams: Array<Record<string, unknown>>) {
+  const eventCreateRulesData: Array<Record<string, unknown>> = [];
   
   for (const stream of streams) {
     try {
-      const streamId = stream.name.split('/').pop();
+      const streamId = (stream.name as string)?.split('/').pop();
       const response = await fetch(
         `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/dataStreams/${streamId}/eventCreateRules`,
         {
@@ -451,11 +451,11 @@ async function getEventCreateRulesForStreams(accessToken: string, propertyId: st
 }
 
 // Helper function to check Search Console data availability
-async function checkSearchConsoleDataAvailability(accessToken: string, propertyId: string, searchConsoleLinks: any[]) {
+async function checkSearchConsoleDataAvailability(accessToken: string, propertyId: string, searchConsoleLinks: Array<Record<string, unknown>>) {
   const searchConsoleStatus = {
     isLinked: searchConsoleLinks.length > 0,
     hasData: false,
-    lastDataDate: null,
+    lastDataDate: null as string | null,
     linkDetails: searchConsoleLinks
   };
 
@@ -499,7 +499,7 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
 }
 
 // Helper function to build comprehensive audit with enhanced warnings
-function buildComprehensiveAudit(data: any) {
+function buildComprehensiveAudit(data: Record<string, unknown>) {
   const {
     propertyData,
     dataStreams,
@@ -710,17 +710,17 @@ function buildComprehensiveAudit(data: any) {
 }
 
 // Helper function to analyze enhanced measurement dimensions
-function analyzeEnhancedMeasurementDimensions(enhancedMeasurement: any[], customDimensions: any[]) {
+function analyzeEnhancedMeasurementDimensions(enhancedMeasurement: Array<Record<string, unknown>>, customDimensions: Array<Record<string, unknown>>) {
   const warnings: string[] = [];
   const requiredDimensions = {
     video: ['video_current_time', 'video_duration', 'video_percent'],
     form: ['form_id', 'form_name', 'form_destination', 'form_submit_text']
   };
 
-  const existingDimensionParams = customDimensions.map(cd => cd.parameterName?.toLowerCase()).filter(Boolean);
+  const existingDimensionParams = customDimensions.map(cd => (cd.parameterName as string)?.toLowerCase()).filter(Boolean);
 
   enhancedMeasurement.forEach(stream => {
-    const settings = stream.settings;
+    const settings = stream.settings as Record<string, unknown>;
     
     if (settings.videoEngagementEnabled) {
       const missingVideoDimensions = requiredDimensions.video.filter(
@@ -751,11 +751,11 @@ function analyzeEnhancedMeasurementDimensions(enhancedMeasurement: any[], custom
 }
 
 // Helper function to analyze event create rules
-function analyzeEventCreateRules(eventCreateRules: any[]) {
+function analyzeEventCreateRules(eventCreateRules: Array<Record<string, unknown>>) {
   const warnings: string[] = [];
 
   eventCreateRules.forEach(stream => {
-    stream.rules.forEach((rule: any) => {
+    (stream.rules as Array<Record<string, unknown>>).forEach((rule: Record<string, unknown>) => {
       warnings.push(
         `⚠️ CRITICAL: Event create rule "${rule.displayName}" on ${stream.streamName}. Very few people configure these correctly - they require deep understanding of GA4 data structure. Review implementation carefully!`
       );
@@ -772,7 +772,7 @@ function analyzeEventCreateRules(eventCreateRules: any[]) {
 }
 
 // Helper functions for data stream analysis
-function getDataStreamSummary(streams: any[]): string {
+function getDataStreamSummary(streams: Array<Record<string, unknown>>): string {
   const webStreams = streams.filter(s => s.type === 'WEB_DATA_STREAM').length;
   const appStreams = streams.filter(s => s.type !== 'WEB_DATA_STREAM').length;
   
@@ -786,14 +786,14 @@ function getDataStreamSummary(streams: any[]): string {
   return 'No streams configured';
 }
 
-function getDataStreamDetails(streams: any[]): string {
+function getDataStreamDetails(streams: Array<Record<string, unknown>>): string {
   if (streams.length === 0) {
     return 'No data streams found. Create a web data stream for your website in Admin > Data streams.';
   }
   
   const details = streams.map(stream => {
     if (stream.type === 'WEB_DATA_STREAM') {
-      return `Web: ${stream.webStreamData?.defaultUri || stream.displayName}`;
+      return `Web: ${(stream.webStreamData as Record<string, unknown>)?.defaultUri || stream.displayName}`;
     } else {
       return `App: ${stream.displayName}`;
     }
@@ -802,14 +802,14 @@ function getDataStreamDetails(streams: any[]): string {
   return `Configured streams: ${details}`;
 }
 
-function getEnhancedMeasurementDetails(enhancedMeasurement: any[]): string {
+function getEnhancedMeasurementDetails(enhancedMeasurement: Array<Record<string, unknown>>): string {
   if (enhancedMeasurement.length === 0) {
     return 'Enhanced Measurement provides automatic tracking for common website interactions without additional code.';
   }
   
-  const allEvents = enhancedMeasurement.reduce((events, stream) => {
-    const settings = stream.settings;
-    const activeEvents = [];
+  const allEvents = enhancedMeasurement.reduce((events: string[], stream) => {
+    const settings = stream.settings as Record<string, unknown>;
+    const activeEvents: string[] = [];
     
     if (settings.streamEnabled) {
       if (settings.scrollsEnabled) activeEvents.push('scroll (90% page scroll)');
@@ -828,13 +828,14 @@ function getEnhancedMeasurementDetails(enhancedMeasurement: any[]): string {
 }
 
 // Helper functions for custom definitions
-function getCustomDimensionsDetails(customDimensions: any[]): string {
+function getCustomDimensionsDetails(customDimensions: Array<Record<string, unknown>>): string {
   if (customDimensions.length === 0) {
     return 'Custom dimensions allow tracking business-specific categorical data like user types, content categories, or campaign details.';
   }
 
-  const byScope = customDimensions.reduce((acc, cd) => {
-    acc[cd.scope] = (acc[cd.scope] || 0) + 1;
+  const byScope = customDimensions.reduce((acc: Record<string, number>, cd) => {
+    const scope = cd.scope as string;
+    acc[scope] = (acc[scope] || 0) + 1;
     return acc;
   }, {});
 
@@ -843,6 +844,38 @@ function getCustomDimensionsDetails(customDimensions: any[]): string {
     .join(', ');
 
   return `Breakdown by scope: ${scopeBreakdown}. Custom dimensions capture business-specific data for detailed analysis.`;
+}
+
+function getCustomMetricsDetails(customMetrics: Array<Record<string, unknown>>): string {
+  if (customMetrics.length === 0) {
+    return 'Custom metrics allow tracking business-specific numerical data like engagement scores, revenue per user, or completion rates.';
+  }
+
+  const byScope = customMetrics.reduce((acc: Record<string, number>, cm) => {
+    const scope = cm.scope as string;
+    acc[scope] = (acc[scope] || 0) + 1;
+    return acc;
+  }, {});
+
+  const scopeBreakdown = Object.entries(byScope)
+    .map(([scope, count]) => `${count} ${scope.toLowerCase()}`)
+    .join(', ');
+
+  return `Breakdown by scope: ${scopeBreakdown}. Custom metrics track numerical values for business-specific KPIs.`;
+}
+
+function getEventCreateRulesDetails(eventCreateRules: Array<Record<string, unknown>>): string {
+  if (eventCreateRules.length === 0) {
+    return 'Event create rules allow creating new events based on existing event data. Rarely needed and complex to configure correctly.';
+  }
+
+  const totalRules = eventCreateRules.reduce((total, stream) => total + (stream.rules as Array<unknown>).length, 0);
+  const streamDetails = eventCreateRules.map(stream => 
+    `${stream.streamName}: ${(stream.rules as Array<unknown>).length} rule(s)`
+  ).join(', ');
+
+  return `${totalRules} total rules across streams (${streamDetails}). These modify or create events and require expert-level GA4 knowledge.`;
+} business-specific data for detailed analysis.`;
 }
 
 function getCustomMetricsDetails(customMetrics: any[]): string {
