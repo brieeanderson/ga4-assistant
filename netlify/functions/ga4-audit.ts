@@ -895,37 +895,6 @@ function getEventCreateRulesDetails(eventCreateRules: Array<Record<string, unkno
   ).join(', ');
 
   return `${totalRules} total rules across streams (${streamDetails}). These modify or create events and require expert-level GA4 knowledge.`;
-} business-specific data for detailed analysis.`;
-}
-
-function getCustomMetricsDetails(customMetrics: any[]): string {
-  if (customMetrics.length === 0) {
-    return 'Custom metrics allow tracking business-specific numerical data like engagement scores, revenue per user, or completion rates.';
-  }
-
-  const byScope = customMetrics.reduce((acc, cm) => {
-    acc[cm.scope] = (acc[cm.scope] || 0) + 1;
-    return acc;
-  }, {});
-
-  const scopeBreakdown = Object.entries(byScope)
-    .map(([scope, count]) => `${count} ${scope.toLowerCase()}`)
-    .join(', ');
-
-  return `Breakdown by scope: ${scopeBreakdown}. Custom metrics track numerical values for business-specific KPIs.`;
-}
-
-function getEventCreateRulesDetails(eventCreateRules: any[]): string {
-  if (eventCreateRules.length === 0) {
-    return 'Event create rules allow creating new events based on existing event data. Rarely needed and complex to configure correctly.';
-  }
-
-  const totalRules = eventCreateRules.reduce((total, stream) => total + stream.rules.length, 0);
-  const streamDetails = eventCreateRules.map(stream => 
-    `${stream.streamName}: ${stream.rules.length} rule(s)`
-  ).join(', ');
-
-  return `${totalRules} total rules across streams (${streamDetails}). These modify or create events and require expert-level GA4 knowledge.`;
 }
 
 export { handler };
