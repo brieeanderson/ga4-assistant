@@ -30,8 +30,7 @@ const handler: Handler = async (event, context) => {
       };
     }
 
-    console.log('=== GA4 AUDIT v3.0 - ENHANCED 2025 EDITION ===');
-    console.log('GA4 Audit - Starting request');
+    console.log('=== COMPREHENSIVE GA4 AUDIT v4.0 - 2025 EDITION ===');
     console.log('PropertyId provided:', !!propertyId);
 
     // Test the access token first
@@ -46,24 +45,19 @@ const handler: Handler = async (event, context) => {
     );
 
     if (!testResponse.ok) {
-      console.error('Token validation failed:', testResponse.status);
       return {
         statusCode: 401,
         headers,
         body: JSON.stringify({ 
-          error: 'Invalid or expired access token',
-          details: `Token validation failed with status ${testResponse.status}`
+          error: 'Invalid or expired access token'
         }),
       };
     }
 
     const userInfo = await testResponse.json();
-    console.log('Token validated for user:', userInfo.email);
 
     // If no propertyId provided, get the user's accounts and properties
     if (!propertyId) {
-      console.log('Fetching accounts...');
-      
       try {
         const accountsResponse = await fetch(
           'https://analyticsadmin.googleapis.com/v1beta/accounts',
@@ -77,15 +71,12 @@ const handler: Handler = async (event, context) => {
 
         if (!accountsResponse.ok) {
           const errorText = await accountsResponse.text();
-          console.error('Accounts API error:', errorText);
-          
           return {
             statusCode: accountsResponse.status,
             headers,
             body: JSON.stringify({ 
               error: `Failed to fetch accounts: ${accountsResponse.status}`,
-              details: errorText,
-              suggestion: 'Make sure Google Analytics Admin API is enabled in your Google Cloud Console'
+              details: errorText
             }),
           };
         }
@@ -98,9 +89,7 @@ const handler: Handler = async (event, context) => {
         if (accountsData.accounts && accountsData.accounts.length > 0) {
           const accountsToProcess = accountsData.accounts.slice(0, 3);
           
-          for (let i = 0; i < accountsToProcess.length; i++) {
-            const account = accountsToProcess[i];
-            
+          for (const account of accountsToProcess) {
             try {
               const propertiesUrl = `https://analyticsadmin.googleapis.com/v1beta/properties?filter=parent:${account.name}`;
               
@@ -119,13 +108,13 @@ const handler: Handler = async (event, context) => {
                     ...property,
                     accountName: account.displayName,
                     accountId: account.name,
-                    propertyId: property.name ? property.name.split('/').pop() : (property.propertyId || property.id)
+                    propertyId: property.name ? property.name.split('/').pop() : property.id
                   }));
                   allProperties.push(...propertiesWithAccount);
                 }
               }
             } catch (error) {
-              console.error(`EXCEPTION fetching properties for ${account.name}:`, error);
+              console.error(`Error fetching properties for ${account.name}:`, error);
             }
             
             await new Promise(resolve => setTimeout(resolve, 200));
@@ -139,15 +128,11 @@ const handler: Handler = async (event, context) => {
             type: 'property_list',
             accounts: accountsData.accounts || [],
             properties: allProperties,
-            userInfo: userInfo,
-            message: allProperties.length === 0 
-              ? `No GA4 properties found. This is normal for older accounts that only have Universal Analytics properties.`
-              : `Found ${allProperties.length} GA4 properties`
+            userInfo: userInfo
           }),
         };
 
       } catch (accountsError) {
-        console.error('Accounts fetch error:', accountsError);
         return {
           statusCode: 500,
           headers,
@@ -159,173 +144,142 @@ const handler: Handler = async (event, context) => {
       }
     }
 
-    // If propertyId is provided, get detailed property audit
-    console.log(`Fetching detailed audit for property: ${propertyId}`);
+    // COMPREHENSIVE PROPERTY AUDIT WITH REAL API CALLS
+    console.log(`Starting comprehensive audit for property: ${propertyId}`);
     
-    const propertyResponse = await fetch(
-      `https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    if (!propertyResponse.ok) {
-      const errorText = await propertyResponse.text();
-      console.error('Property fetch error:', errorText);
+    // Build all API calls for parallel execution
+    const apiCalls = [
+      // Basic property info (v1beta)
+      fetch(`https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      }),
       
-      return {
-        statusCode: propertyResponse.status,
-        headers,
-        body: JSON.stringify({
-          error: `Failed to fetch property: ${propertyResponse.status}`,
-          details: errorText
-        }),
-      };
-    }
-
-    const propertyData = await propertyResponse.json();
-    console.log('Property data fetched successfully');
-
-    // Get additional property details
-    const [dataStreamsResult, keyEventsResult, enhancedMeasurementResult] = await Promise.allSettled([
+      // Data streams (v1beta)
       fetch(`https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/dataStreams`, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
-      }).then(r => r.ok ? r.json() : { dataStreams: [] }),
+      }),
       
+      // Key events (v1beta)
       fetch(`https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/keyEvents`, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
-      }).then(r => r.ok ? r.json() : { keyEvents: [] }),
+      }),
+      
+      // Data retention settings (v1beta)
+      fetch(`https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/dataRetentionSettings`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      }),
+      
+      // Attribution settings (v1alpha)
+      fetch(`https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/attributionSettings`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      }),
+      
+      // Google Signals settings (v1alpha)
+      fetch(`https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/googleSignalsSettings`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      }),
+      
+      // Google Ads links (v1alpha)
+      fetch(`https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/googleAdsLinks`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      }),
+      
+      // BigQuery links (v1alpha)
+      fetch(`https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/bigQueryLinks`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      }),
+      
+      // Connected site tags (v1alpha)
+      fetch(`https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/connectedSiteTags`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      })
+    ];
 
-      // Try to fetch enhanced measurement settings for web streams
-      getEnhancedMeasurementDetails(accessToken, propertyId)
-    ]);
+    // Execute all API calls in parallel
+    const results = await Promise.allSettled(apiCalls);
+    
+    // Parse results
+    const [
+      propertyResult,
+      dataStreamsResult,
+      keyEventsResult,
+      dataRetentionResult,
+      attributionResult,
+      googleSignalsResult,
+      googleAdsLinksResult,
+      bigQueryLinksResult,
+      connectedSiteTagsResult
+    ] = results;
 
-    const dataStreams = dataStreamsResult.status === 'fulfilled' 
-      ? dataStreamsResult.value 
-      : { dataStreams: [] };
+    // Extract data from successful calls
+    const propertyData = propertyResult.status === 'fulfilled' && propertyResult.value.ok 
+      ? await propertyResult.value.json() : {};
+    
+    const dataStreams = dataStreamsResult.status === 'fulfilled' && dataStreamsResult.value.ok 
+      ? await dataStreamsResult.value.json() : { dataStreams: [] };
+    
+    const keyEvents = keyEventsResult.status === 'fulfilled' && keyEventsResult.value.ok 
+      ? await keyEventsResult.value.json() : { keyEvents: [] };
+    
+    const dataRetention = dataRetentionResult.status === 'fulfilled' && dataRetentionResult.value.ok 
+      ? await dataRetentionResult.value.json() : {};
+    
+    const attribution = attributionResult.status === 'fulfilled' && attributionResult.value.ok 
+      ? await attributionResult.value.json() : {};
+    
+    const googleSignals = googleSignalsResult.status === 'fulfilled' && googleSignalsResult.value.ok 
+      ? await googleSignalsResult.value.json() : {};
+    
+    const googleAdsLinks = googleAdsLinksResult.status === 'fulfilled' && googleAdsLinksResult.value.ok 
+      ? await googleAdsLinksResult.value.json() : { googleAdsLinks: [] };
+    
+    const bigQueryLinks = bigQueryLinksResult.status === 'fulfilled' && bigQueryLinksResult.value.ok 
+      ? await bigQueryLinksResult.value.json() : { bigQueryLinks: [] };
+    
+    const connectedSiteTags = connectedSiteTagsResult.status === 'fulfilled' && connectedSiteTagsResult.value.ok 
+      ? await connectedSiteTagsResult.value.json() : { connectedSiteTags: [] };
 
-    const keyEvents = keyEventsResult.status === 'fulfilled' 
-      ? keyEventsResult.value 
-      : { keyEvents: [] };
+    // Get enhanced measurement settings for web streams
+    const enhancedMeasurementDetails = await getEnhancedMeasurementForStreams(
+      accessToken, 
+      propertyId, 
+      dataStreams.dataStreams || []
+    );
 
-    const enhancedMeasurementDetails = enhancedMeasurementResult.status === 'fulfilled' 
-      ? enhancedMeasurementResult.value 
-      : { enabled: false, events: [] };
+    // Get measurement protocol secrets for web streams
+    const measurementProtocolSecrets = await getMeasurementProtocolSecrets(
+      accessToken, 
+      propertyId, 
+      dataStreams.dataStreams || []
+    );
 
-    // Build comprehensive audit with 2025 GA4 best practices
+    // Build comprehensive audit
     const audit = {
       property: propertyData,
       dataStreams: dataStreams.dataStreams || [],
       keyEvents: keyEvents.keyEvents || [],
+      dataRetention,
+      attribution,
+      googleSignals,
+      googleAdsLinks: googleAdsLinks.googleAdsLinks || [],
+      bigQueryLinks: bigQueryLinks.bigQueryLinks || [],
+      connectedSiteTags: connectedSiteTags.connectedSiteTags || [],
       enhancedMeasurement: enhancedMeasurementDetails,
-      audit: {
-        propertySettings: {
-          timezone: {
-            status: 'configured',
-            value: `${propertyData.timeZone || 'Not set'} ${propertyData.timeZone ? '✓' : '⚠️'}`,
-            recommendation: propertyData.timeZone 
-              ? `Your timezone is set to ${propertyData.timeZone}. Ensure this matches your business location for accurate reporting.`
-              : 'Set your property timezone in Admin > Property > Property details. This affects how your data is displayed in reports.',
-            details: propertyData.timeZone 
-              ? `Reports will show data in ${propertyData.timeZone} timezone. Keep this consistent across marketing platforms.`
-              : 'GA4 defaults to Pacific Time if no timezone is set.'
-          },
-          currency: {
-            status: 'configured',
-            value: `${propertyData.currencyCode || 'USD (default)'} ${propertyData.currencyCode ? '✓' : 'ℹ️'}`,
-            recommendation: propertyData.currencyCode 
-              ? `Your reporting currency is ${propertyData.currencyCode}. All e-commerce data will be converted to this currency.`
-              : 'GA4 defaults to USD. If you accept multiple currencies, GA4 will convert them based on daily exchange rates.',
-            details: 'GA4 currency conversion: If you process transactions in multiple currencies, GA4 automatically converts them to your reporting currency using Google\'s daily exchange rates. You can accept payments in any currency - the conversion happens automatically in reporting.'
-          },
-          industryCategory: {
-            status: propertyData.industryCategory ? 'configured' : 'missing',
-            value: propertyData.industryCategory || 'Not set',
-            recommendation: propertyData.industryCategory 
-              ? 'Industry category is set for benchmarking and machine learning optimization.' 
-              : 'Set industry category in Admin > Property > Property details for better benchmarking insights and enhanced machine learning predictions.',
-            details: 'Industry category helps GA4 provide relevant benchmarks and improves automated insights quality.'
-          },
-          dataRetention: {
-            status: 'requires_check',
-            value: '2 months (default) or 14 months if manually changed',
-            recommendation: '⚠️ CRITICAL: Check your data retention period! Default is only 2 months but can be extended to 14 months (maximum). Set to 14 months unless legal requirements prevent it.',
-            details: 'Data retention affects Explorations and custom reports. Standard reports are not affected. You can change this setting at any time, but it only applies to future data.'
-          }
-        },
-        dataCollection: {
-          dataStreams: {
-            status: dataStreams.dataStreams?.length > 0 ? 'configured' : 'missing',
-            value: `${dataStreams.dataStreams?.length || 0} data stream(s) - ${getDataStreamSummary(dataStreams.dataStreams || [])}`,
-            recommendation: dataStreams.dataStreams?.length > 0 
-              ? 'Data streams are configured. Each platform (web, iOS, Android) should have its own stream.'
-              : 'Add data streams for your platforms in Admin > Data collection > Data streams.',
-            details: getDataStreamDetails(dataStreams.dataStreams || [])
-          },
-          enhancedMeasurement: {
-            status: enhancedMeasurementDetails.enabled ? 'configured' : 'not_configured',
-            value: enhancedMeasurementDetails.enabled 
-              ? `Enabled: ${enhancedMeasurementDetails.events.join(', ')}` 
-              : 'Enhanced measurement not detected or disabled',
-            recommendation: enhancedMeasurementDetails.enabled 
-              ? 'Enhanced measurement is tracking these events automatically: ' + enhancedMeasurementDetails.events.join(', ') + '. No additional code needed!'
-              : 'Enable Enhanced Measurement in your web data stream settings for automatic event tracking.',
-            details: getEnhancedMeasurementExplanation(enhancedMeasurementDetails.events)
-          },
-          crossDomainTracking: {
-            status: 'requires_manual_check',
-            value: 'Cannot be detected via API - manual verification required',
-            recommendation: 'Configure cross-domain tracking in Data Streams > Configure tag settings > Configure your domains if you have multiple domains (e.g., main site + shop subdomain).',
-            details: 'Cross-domain tracking preserves user sessions when users navigate between your different domains. Without it, users appear as new sessions on each domain.'
-          },
-          internalTrafficFilter: {
-            status: 'requires_manual_check',
-            value: 'Cannot be detected via API - manual verification required',
-            recommendation: 'Set up internal traffic filters in Data Streams > Configure tag settings > Define internal traffic to exclude office/employee traffic.',
-            details: 'Add your office IP addresses to ensure employee browsing doesn\'t skew your website analytics data.'
-          }
-        },
-        keyEvents: {
-          keyEvents: {
-            status: keyEvents.keyEvents?.length > 0 ? 'configured' : 'missing',
-            value: `${keyEvents.keyEvents?.length || 0} key event(s) configured`,
-            recommendation: keyEvents.keyEvents?.length > 0 
-              ? `Key events configured: ${keyEvents.keyEvents.map((ke: any) => ke.eventName).join(', ')}. These can be imported to Google Ads as conversions.`
-              : 'Set up key events for your important business goals in Admin > Events > Mark events as key events.',
-            details: '2025 Update: "Conversions" are now called "Key Events" in GA4. Key Events can be imported to Google Ads as conversions for bidding optimization.'
-          },
-          keyEventCounting: {
-            status: 'requires_manual_check',
-            value: 'Check individual key events for counting method',
-            recommendation: 'For each key event, choose "once per session" (lead generation) or "once per event" (e-commerce). Configure in Admin > Key events > Event settings.',
-            details: 'Counting method affects how conversions are reported. Lead forms typically use "once per session", purchases use "once per event".'
-          }
-        },
-        integrations: {
-          googleAds: {
-            status: 'requires_manual_check',
-            value: 'Check Google Ads linking in GA4 interface',
-            recommendation: 'Link Google Ads in Admin > Product linking > Google Ads to import key events as conversions and share audiences.',
-            details: 'Linking enables conversion import for Smart Bidding and audience sharing for remarketing campaigns.'
-          },
-          searchConsole: {
-            status: 'requires_manual_check',
-            value: 'Check Search Console linking in GA4 interface', 
-            recommendation: 'Link Search Console in Admin > Product linking > Search Console, then enable the collection in Reports > Library.',
-            details: 'Provides organic search query data, landing page performance, and technical SEO insights in GA4.'
-          },
-          bigQuery: {
-            status: 'requires_manual_check',
-            value: 'BigQuery export available for deeper analysis',
-            recommendation: 'Consider linking BigQuery for raw data export, custom attribution models, and advanced analysis. Free tier available!',
-            details: 'BigQuery export includes all raw event data, bypasses sampling, and enables custom analysis with SQL.'
-          }
-        }
-      },
-      userInfo: userInfo
+      measurementProtocolSecrets,
+      audit: buildComprehensiveAudit({
+        propertyData,
+        dataStreams: dataStreams.dataStreams || [],
+        keyEvents: keyEvents.keyEvents || [],
+        dataRetention,
+        attribution,
+        googleSignals,
+        googleAdsLinks: googleAdsLinks.googleAdsLinks || [],
+        bigQueryLinks: bigQueryLinks.bigQueryLinks || [],
+        connectedSiteTags: connectedSiteTags.connectedSiteTags || [],
+        enhancedMeasurement: enhancedMeasurementDetails,
+        measurementProtocolSecrets
+      }),
+      userInfo
     };
 
     return {
@@ -347,28 +301,227 @@ const handler: Handler = async (event, context) => {
   }
 };
 
-// Helper function to get enhanced measurement details
-async function getEnhancedMeasurementDetails(accessToken: string, propertyId: string) {
-  try {
-    // Note: Enhanced measurement settings API is not available in v1beta
-    // We'll return a placeholder that encourages manual verification
-    return {
-      enabled: true, // Assume enabled since it's default
-      events: [
-        'page_view (automatic page tracking)',
-        'scroll (90% page scroll)',
-        'click (outbound link clicks)', 
-        'view_search_results (site search)',
-        'video_start, video_progress, video_complete (YouTube videos)',
-        'file_download (PDF, DOC, XLS, etc.)'
-      ]
-    };
-  } catch (error) {
-    return { enabled: false, events: [] };
+// Helper function to get enhanced measurement settings for all web streams
+async function getEnhancedMeasurementForStreams(accessToken: string, propertyId: string, streams: any[]) {
+  const webStreams = streams.filter(stream => stream.type === 'WEB_DATA_STREAM');
+  const enhancedMeasurementData: any[] = [];
+  
+  for (const stream of webStreams) {
+    try {
+      const streamId = stream.name.split('/').pop();
+      const response = await fetch(
+        `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/dataStreams/${streamId}/enhancedMeasurementSettings`,
+        {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        }
+      );
+      
+      if (response.ok) {
+        const settings = await response.json();
+        enhancedMeasurementData.push({
+          streamId,
+          streamName: stream.displayName,
+          settings
+        });
+      }
+    } catch (error) {
+      console.error(`Error fetching enhanced measurement for stream ${stream.name}:`, error);
+    }
   }
+  
+  return enhancedMeasurementData;
 }
 
-// Helper function to summarize data streams
+// Helper function to get measurement protocol secrets
+async function getMeasurementProtocolSecrets(accessToken: string, propertyId: string, streams: any[]) {
+  const secretsData: any[] = [];
+  
+  for (const stream of streams) {
+    try {
+      const streamId = stream.name.split('/').pop();
+      const response = await fetch(
+        `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/dataStreams/${streamId}/measurementProtocolSecrets`,
+        {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        }
+      );
+      
+      if (response.ok) {
+        const secrets = await response.json();
+        if (secrets.measurementProtocolSecrets && secrets.measurementProtocolSecrets.length > 0) {
+          secretsData.push({
+            streamId,
+            streamName: stream.displayName,
+            secrets: secrets.measurementProtocolSecrets.map((secret: any) => ({
+              displayName: secret.displayName,
+              // Don't include the actual secret value for security
+            }))
+          });
+        }
+      }
+    } catch (error) {
+      console.error(`Error fetching measurement protocol secrets for stream ${stream.name}:`, error);
+    }
+  }
+  
+  return secretsData;
+}
+
+// Helper function to build comprehensive audit
+function buildComprehensiveAudit(data: any) {
+  const {
+    propertyData,
+    dataStreams,
+    keyEvents,
+    dataRetention,
+    attribution,
+    googleSignals,
+    googleAdsLinks,
+    bigQueryLinks,
+    connectedSiteTags,
+    enhancedMeasurement,
+    measurementProtocolSecrets
+  } = data;
+
+  return {
+    propertySettings: {
+      timezone: {
+        status: 'configured',
+        value: `${propertyData.timeZone || 'Not set'} ${propertyData.timeZone ? '✓' : '⚠️'}`,
+        recommendation: propertyData.timeZone 
+          ? `Your timezone is set to ${propertyData.timeZone}. Ensure this matches your business location for accurate reporting.`
+          : 'Set your property timezone in Admin > Property > Property details.',
+        details: propertyData.timeZone 
+          ? `Reports will show data in ${propertyData.timeZone} timezone. Keep this consistent across marketing platforms.`
+          : 'GA4 defaults to Pacific Time if no timezone is set.'
+      },
+      currency: {
+        status: 'configured',
+        value: `${propertyData.currencyCode || 'USD (default)'} ${propertyData.currencyCode ? '✓' : 'ℹ️'}`,
+        recommendation: propertyData.currencyCode 
+          ? `Your reporting currency is ${propertyData.currencyCode}. All e-commerce data will be converted to this currency.`
+          : 'GA4 defaults to USD. If you accept multiple currencies, GA4 will convert them using daily exchange rates.',
+        details: 'GA4 currency conversion: Transactions in multiple currencies are automatically converted to your reporting currency using Google\'s daily exchange rates.'
+      },
+      industryCategory: {
+        status: propertyData.industryCategory ? 'configured' : 'missing',
+        value: propertyData.industryCategory || 'Not set',
+        recommendation: propertyData.industryCategory 
+          ? 'Industry category is set for benchmarking and machine learning optimization.' 
+          : 'Set industry category in Admin > Property > Property details for better benchmarking insights.',
+        details: 'Industry category helps GA4 provide relevant benchmarks and improves automated insights quality.'
+      },
+      dataRetention: {
+        status: dataRetention.eventDataRetention ? 'configured' : 'requires_check',
+        value: dataRetention.eventDataRetention 
+          ? `Event data: ${dataRetention.eventDataRetention}, User data: ${dataRetention.userDataRetention || 'Not specified'}`
+          : '⚠️ CRITICAL: Check your data retention settings!',
+        recommendation: dataRetention.eventDataRetention === 'FIFTY_MONTHS'
+          ? '✅ Excellent! Data retention is set to maximum (50 months).'
+          : '⚠️ CRITICAL: Consider extending data retention to 14 months (or 50 months for GA360). Default is only 2 months!',
+        details: `Data retention affects Explorations and custom reports. Current setting: ${dataRetention.eventDataRetention || 'Unknown'}. You can change this in Admin > Data collection > Data retention.`
+      },
+      attribution: {
+        status: attribution.reportingAttributionModel ? 'configured' : 'requires_check',
+        value: attribution.reportingAttributionModel 
+          ? `Model: ${attribution.reportingAttributionModel}, Acquisition lookback: ${attribution.acquisitionConversionEventLookbackWindow || 'Default'}, Other lookback: ${attribution.otherConversionEventLookbackWindow || 'Default'}`
+          : 'Attribution settings not accessible',
+        recommendation: attribution.reportingAttributionModel === 'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN'
+          ? '✅ Using data-driven attribution model (recommended)'
+          : 'Consider using data-driven attribution for more accurate conversion credit',
+        details: attribution.reportingAttributionModel 
+          ? `Attribution model affects how conversion credit is assigned across touchpoints. Current: ${attribution.reportingAttributionModel}`
+          : 'Attribution settings control how key events are credited to different channels and campaigns'
+      },
+      googleSignals: {
+        status: googleSignals.state ? 'configured' : 'requires_check',
+        value: googleSignals.state 
+          ? `Status: ${googleSignals.state}${googleSignals.consentType ? `, Consent: ${googleSignals.consentType}` : ''}`
+          : 'Google Signals status not accessible',
+        recommendation: googleSignals.state === 'GOOGLE_SIGNALS_ENABLED'
+          ? '✅ Google Signals enabled for cross-device insights and demographics'
+          : 'Consider enabling Google Signals in Admin > Data collection for cross-device tracking and demographics (requires privacy review)',
+        details: 'Google Signals enables cross-device reporting, demographics, and interests data, but may cause data thresholding in some reports'
+      }
+    },
+    dataCollection: {
+      dataStreams: {
+        status: dataStreams.length > 0 ? 'configured' : 'missing',
+        value: `${dataStreams.length} data stream(s) - ${getDataStreamSummary(dataStreams)}`,
+        recommendation: dataStreams.length > 0 
+          ? 'Data streams are configured. Each platform (web, iOS, Android) should have its own stream.'
+          : 'Add data streams for your platforms in Admin > Data collection > Data streams.',
+        details: getDataStreamDetails(dataStreams)
+      },
+      enhancedMeasurement: {
+        status: enhancedMeasurement.length > 0 ? 'configured' : 'not_configured',
+        value: enhancedMeasurement.length > 0
+          ? `Configured on ${enhancedMeasurement.length} web stream(s)`
+          : 'Enhanced measurement not detected',
+        recommendation: enhancedMeasurement.length > 0
+          ? 'Enhanced measurement is active. Review individual event settings below.'
+          : 'Enable Enhanced Measurement in your web data stream settings for automatic event tracking.',
+        details: getEnhancedMeasurementDetails(enhancedMeasurement)
+      },
+      measurementProtocol: {
+        status: measurementProtocolSecrets.length > 0 ? 'configured' : 'not_configured',
+        value: measurementProtocolSecrets.length > 0
+          ? `${measurementProtocolSecrets.reduce((total, stream) => total + stream.secrets.length, 0)} secret(s) across ${measurementProtocolSecrets.length} stream(s)`
+          : 'No measurement protocol secrets configured',
+        recommendation: measurementProtocolSecrets.length > 0
+          ? '⚠️ Measurement Protocol is configured. Ensure it\'s properly implemented to avoid data quality issues.'
+          : 'Measurement Protocol allows server-side event sending. Only implement if needed and ensure proper data validation.',
+        details: measurementProtocolSecrets.length > 0
+          ? `Secrets found: ${measurementProtocolSecrets.map(s => `${s.streamName}: ${s.secrets.map(secret => secret.displayName).join(', ')}`).join(' | ')}`
+          : 'Measurement Protocol enables sending events from your server directly to GA4'
+      },
+      connectedSiteTags: {
+        status: connectedSiteTags.length > 0 ? 'configured' : 'not_configured',
+        value: connectedSiteTags.length > 0
+          ? `${connectedSiteTags.length} connected site tag(s)`
+          : 'No connected site tags',
+        recommendation: connectedSiteTags.length > 0
+          ? 'Connected site tags are forwarding traffic from other properties'
+          : 'Connected site tags forward traffic from Universal Analytics to GA4 during migration',
+        details: 'Connected site tags help with UA to GA4 migration by forwarding traffic between properties'
+      }
+    },
+    keyEvents: {
+      keyEvents: {
+        status: keyEvents.length > 0 ? 'configured' : 'missing',
+        value: `${keyEvents.length} key event(s) configured`,
+        recommendation: keyEvents.length > 0 
+          ? `Key events: ${keyEvents.map((ke: any) => ke.eventName).slice(0, 5).join(', ')}${keyEvents.length > 5 ? '...' : ''}. These can be imported to Google Ads as conversions.`
+          : 'Set up key events for your important business goals in Admin > Events > Mark events as key events.',
+        details: '2025 Update: "Conversions" are now called "Key Events" in GA4. Key Events can be imported to Google Ads as conversions for bidding optimization.'
+      }
+    },
+    integrations: {
+      googleAds: {
+        status: googleAdsLinks.length > 0 ? 'configured' : 'not_configured',
+        value: googleAdsLinks.length > 0
+          ? `${googleAdsLinks.length} Google Ads link(s) configured`
+          : 'No Google Ads links configured',
+        recommendation: googleAdsLinks.length > 0
+          ? '✅ Google Ads is linked for conversion tracking and audience sharing'
+          : 'Link Google Ads in Admin > Product linking > Google Ads to import key events as conversions and share audiences.',
+        details: 'Google Ads linking enables conversion import for Smart Bidding and audience sharing for remarketing campaigns'
+      },
+      bigQuery: {
+        status: bigQueryLinks.length > 0 ? 'configured' : 'not_configured',
+        value: bigQueryLinks.length > 0
+          ? `${bigQueryLinks.length} BigQuery link(s) configured`
+          : 'BigQuery export not configured',
+        recommendation: bigQueryLinks.length > 0
+          ? '✅ BigQuery export is configured for advanced analysis'
+          : 'Consider linking BigQuery for raw data export and advanced analysis. Free tier available for GA4!',
+        details: 'BigQuery export includes all raw event data, bypasses sampling, and enables custom analysis with SQL'
+      }
+    }
+  };
+}
+
+// Helper functions for data stream analysis
 function getDataStreamSummary(streams: any[]): string {
   const webStreams = streams.filter(s => s.type === 'WEB_DATA_STREAM').length;
   const appStreams = streams.filter(s => s.type !== 'WEB_DATA_STREAM').length;
@@ -383,7 +536,6 @@ function getDataStreamSummary(streams: any[]): string {
   return 'No streams configured';
 }
 
-// Helper function for data stream details
 function getDataStreamDetails(streams: any[]): string {
   if (streams.length === 0) {
     return 'No data streams found. Create a web data stream for your website in Admin > Data streams.';
@@ -400,22 +552,29 @@ function getDataStreamDetails(streams: any[]): string {
   return `Configured streams: ${details}`;
 }
 
-// Helper function to explain enhanced measurement events
-function getEnhancedMeasurementExplanation(events: string[]): string {
-  if (events.length === 0) {
+function getEnhancedMeasurementDetails(enhancedMeasurement: any[]): string {
+  if (enhancedMeasurement.length === 0) {
     return 'Enhanced Measurement provides automatic tracking for common website interactions without additional code.';
   }
   
-  const explanations = [
-    'page_view: Tracks every page load automatically',
-    'scroll: Fires when user scrolls 90% down the page',
-    'click: Tracks outbound link clicks (links to external domains)', 
-    'view_search_results: Tracks internal site searches',
-    'video_*: Tracks YouTube video interactions (start, progress, complete)',
-    'file_download: Tracks downloads of common file types (.pdf, .doc, .xls, etc.)'
-  ];
+  const allEvents = enhancedMeasurement.reduce((events, stream) => {
+    const settings = stream.settings;
+    const activeEvents = [];
+    
+    if (settings.streamEnabled) {
+      if (settings.scrollsEnabled) activeEvents.push('scroll (90% page scroll)');
+      if (settings.outboundClicksEnabled) activeEvents.push('click (outbound links)');
+      if (settings.siteSearchEnabled) activeEvents.push('view_search_results (site search)');
+      if (settings.videoEngagementEnabled) activeEvents.push('video_start/progress/complete (YouTube)');
+      if (settings.fileDownloadsEnabled) activeEvents.push('file_download (PDF, DOC, etc.)');
+      if (settings.formInteractionsEnabled) activeEvents.push('form_start/submit (form interactions)');
+      if (settings.pageChangesEnabled) activeEvents.push('page_view (SPA page changes)');
+    }
+    
+    return events.concat(activeEvents);
+  }, []);
   
-  return `Enhanced Measurement Events explained: ${explanations.join(' | ')}. These provide valuable insights without any development work!`;
+  return `Active events: ${[...new Set(allEvents)].join(', ')}. These provide valuable insights without any development work!`;
 }
 
 export { handler };
