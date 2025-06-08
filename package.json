@@ -1,12 +1,14 @@
 {
   "name": "ga4-assistant",
-  "version": "0.1.0",
+  "version": "1.2.0",
   "private": true,
+  "description": "Enhanced GA4 and GTM audit tool with custom dimensions, metrics, and Search Console integration",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@netlify/functions": "^4.1.2",
@@ -29,5 +31,25 @@
     "eslint-config-next": "15.3.3",
     "tailwindcss": "^4",
     "typescript": "^5"
-  }
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/ga4-assistant.git"
+  },
+  "keywords": [
+    "google-analytics",
+    "ga4",
+    "google-tag-manager",
+    "gtm",
+    "analytics-audit",
+    "custom-dimensions",
+    "search-console",
+    "next.js",
+    "netlify"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
 }
