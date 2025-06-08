@@ -574,7 +574,7 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
         details: 'Industry category helps GA4 provide relevant benchmarks and improves automated insights quality.'
       },
       dataRetention: {
-        status: dataRetention.eventDataRetention ? 'configured' : 'requires_check',
+        status: (dataRetention as Record<string, unknown>).eventDataRetention ? 'configured' : 'requires_check',
         value: (dataRetention as Record<string, unknown>).eventDataRetention 
           ? `Event data: ${(dataRetention as Record<string, unknown>).eventDataRetention}, User data: ${(dataRetention as Record<string, unknown>).userDataRetention || 'Not specified'}`
           : '⚠️ CRITICAL: Check your data retention settings!',
@@ -584,23 +584,23 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
         details: `Data retention affects Explorations and custom reports. Current setting: ${(dataRetention as Record<string, unknown>).eventDataRetention || 'Unknown'}. You can change this in Admin > Data collection > Data retention.`
       },
       attribution: {
-        status: attribution.reportingAttributionModel ? 'configured' : 'requires_check',
-        value: attribution.reportingAttributionModel 
-          ? `Model: ${attribution.reportingAttributionModel}, Acquisition lookback: ${attribution.acquisitionConversionEventLookbackWindow || 'Default'}, Other lookback: ${attribution.otherConversionEventLookbackWindow || 'Default'}`
+        status: (attribution as Record<string, unknown>).reportingAttributionModel ? 'configured' : 'requires_check',
+        value: (attribution as Record<string, unknown>).reportingAttributionModel 
+          ? `Model: ${(attribution as Record<string, unknown>).reportingAttributionModel}, Acquisition lookback: ${(attribution as Record<string, unknown>).acquisitionConversionEventLookbackWindow || 'Default'}, Other lookback: ${(attribution as Record<string, unknown>).otherConversionEventLookbackWindow || 'Default'}`
           : 'Attribution settings not accessible',
-        recommendation: attribution.reportingAttributionModel === 'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN'
+        recommendation: (attribution as Record<string, unknown>).reportingAttributionModel === 'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN'
           ? '✅ Using data-driven attribution model (recommended)'
           : 'Consider using data-driven attribution for more accurate conversion credit',
-        details: attribution.reportingAttributionModel 
-          ? `Attribution model affects how conversion credit is assigned across touchpoints. Current: ${attribution.reportingAttributionModel}`
+        details: (attribution as Record<string, unknown>).reportingAttributionModel 
+          ? `Attribution model affects how conversion credit is assigned across touchpoints. Current: ${(attribution as Record<string, unknown>).reportingAttributionModel}`
           : 'Attribution settings control how key events are credited to different channels and campaigns'
       },
       googleSignals: {
-        status: googleSignals.state ? 'configured' : 'requires_check',
-        value: googleSignals.state 
-          ? `Status: ${googleSignals.state}${googleSignals.consentType ? `, Consent: ${googleSignals.consentType}` : ''}`
+        status: (googleSignals as Record<string, unknown>).state ? 'configured' : 'requires_check',
+        value: (googleSignals as Record<string, unknown>).state 
+          ? `Status: ${(googleSignals as Record<string, unknown>).state}${(googleSignals as Record<string, unknown>).consentType ? `, Consent: ${(googleSignals as Record<string, unknown>).consentType}` : ''}`
           : 'Google Signals status not accessible',
-        recommendation: googleSignals.state === 'GOOGLE_SIGNALS_ENABLED'
+        recommendation: (googleSignals as Record<string, unknown>).state === 'GOOGLE_SIGNALS_ENABLED'
           ? '✅ Google Signals enabled for cross-device insights and demographics'
           : 'Consider enabling Google Signals in Admin > Data collection for cross-device tracking and demographics (requires privacy review)',
         details: 'Google Signals enables cross-device reporting, demographics, and interests data, but may cause data thresholding in some reports'
@@ -629,13 +629,13 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
       measurementProtocol: {
         status: measurementProtocolSecrets.length > 0 ? 'configured' : 'not_configured',
         value: measurementProtocolSecrets.length > 0
-          ? `${measurementProtocolSecrets.reduce((total, stream) => total + stream.secrets.length, 0)} secret(s) across ${measurementProtocolSecrets.length} stream(s)`
+          ? `${(measurementProtocolSecrets as Array<Record<string, unknown>>).reduce((total, stream) => total + ((stream.secrets as Array<unknown>)?.length || 0), 0)} secret(s) across ${measurementProtocolSecrets.length} stream(s)`
           : 'No measurement protocol secrets configured',
         recommendation: measurementProtocolSecrets.length > 0
           ? '⚠️ Measurement Protocol is configured. Ensure it\'s properly implemented to avoid data quality issues.'
           : 'Measurement Protocol allows server-side event sending. Only implement if needed and ensure proper data validation.',
         details: measurementProtocolSecrets.length > 0
-          ? `Secrets found: ${measurementProtocolSecrets.map(s => `${s.streamName}: ${s.secrets.map(secret => secret.displayName).join(', ')}`).join(' | ')}`
+          ? `Secrets found: ${(measurementProtocolSecrets as Array<Record<string, unknown>>).map(s => `${s.streamName}: ${((s.secrets as Array<Record<string, unknown>>)?.map(secret => secret.displayName) || []).join(', ')}`).join(' | ')}`
           : 'Measurement Protocol enables sending events from your server directly to GA4'
       },
       connectedSiteTags: {
@@ -671,7 +671,7 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
       eventCreateRules: {
         status: eventCreateRules.length > 0 ? 'configured' : 'none',
         value: eventCreateRules.length > 0
-          ? `${eventCreateRules.reduce((total, stream) => total + stream.rules.length, 0)} event create rule(s)`
+          ? `${(eventCreateRules as Array<Record<string, unknown>>).reduce((total, stream) => total + ((stream.rules as Array<unknown>)?.length || 0), 0)} event create rule(s)`
           : 'No event create rules configured',
         recommendation: eventCreateRules.length > 0
           ? '⚠️ WARNING: Event create rules detected. These are complex and often misconfigured - review carefully!'
@@ -712,17 +712,17 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
         details: 'BigQuery export includes all raw event data, bypasses sampling, and enables custom analysis with SQL'
       },
       searchConsole: {
-        status: searchConsoleDataStatus.isLinked ? (searchConsoleDataStatus.hasData ? 'configured' : 'linked_no_data') : 'not_configured',
-        value: searchConsoleDataStatus.isLinked 
-          ? `${searchConsoleLinks.length} Search Console link(s), Data available: ${searchConsoleDataStatus.hasData ? 'Yes' : 'No'}`
+        status: (searchConsoleDataStatus as Record<string, unknown>).isLinked ? ((searchConsoleDataStatus as Record<string, unknown>).hasData ? 'configured' : 'linked_no_data') : 'not_configured',
+        value: (searchConsoleDataStatus as Record<string, unknown>).isLinked 
+          ? `${searchConsoleLinks.length} Search Console link(s), Data available: ${(searchConsoleDataStatus as Record<string, unknown>).hasData ? 'Yes' : 'No'}`
           : 'Search Console not linked',
-        recommendation: searchConsoleDataStatus.isLinked && searchConsoleDataStatus.hasData
+        recommendation: (searchConsoleDataStatus as Record<string, unknown>).isLinked && (searchConsoleDataStatus as Record<string, unknown>).hasData
           ? '✅ Search Console is linked and providing data for organic search insights'
-          : searchConsoleDataStatus.isLinked 
+          : (searchConsoleDataStatus as Record<string, unknown>).isLinked 
             ? '⚠️ Search Console is linked but no data detected. Check link configuration and wait 48 hours for data.'
             : 'Link Search Console in Admin > Product linking > Search Console for organic search data.',
-        details: searchConsoleDataStatus.isLinked 
-          ? `Search Console integration provides organic search queries, clicks, impressions, and CTR data. Last data: ${searchConsoleDataStatus.lastDataDate || 'Checking...'}`
+        details: (searchConsoleDataStatus as Record<string, unknown>).isLinked 
+          ? `Search Console integration provides organic search queries, clicks, impressions, and CTR data. Last data: ${(searchConsoleDataStatus as Record<string, unknown>).lastDataDate || 'Checking...'}`
           : 'Search Console integration shows which Google search queries bring visitors to your site'
       }
     }
