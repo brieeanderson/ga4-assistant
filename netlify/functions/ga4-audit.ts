@@ -517,51 +517,71 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
     measurementProtocolSecrets,
     eventCreateRules,
     searchConsoleDataStatus
-  } = data;
+  } = data as {
+    propertyData: Record<string, unknown>;
+    dataStreams: Array<Record<string, unknown>>;
+    keyEvents: Array<Record<string, unknown>>;
+    dataRetention: Record<string, unknown>;
+    attribution: Record<string, unknown>;
+    googleSignals: Record<string, unknown>;
+    googleAdsLinks: Array<Record<string, unknown>>;
+    bigQueryLinks: Array<Record<string, unknown>>;
+    connectedSiteTags: Array<Record<string, unknown>>;
+    searchConsoleLinks: Array<Record<string, unknown>>;
+    customDimensions: Array<Record<string, unknown>>;
+    customMetrics: Array<Record<string, unknown>>;
+    enhancedMeasurement: Array<Record<string, unknown>>;
+    measurementProtocolSecrets: Array<Record<string, unknown>>;
+    eventCreateRules: Array<Record<string, unknown>>;
+    searchConsoleDataStatus: Record<string, unknown>;
+  };
 
   // Analyze enhanced measurement for missing dimensions
-  const enhancedMeasurementWarnings = analyzeEnhancedMeasurementDimensions(enhancedMeasurement, customDimensions);
+  const enhancedMeasurementWarnings = analyzeEnhancedMeasurementDimensions(
+    enhancedMeasurement as Array<Record<string, unknown>>, 
+    customDimensions as Array<Record<string, unknown>>
+  );
   
   // Analyze event create rules
-  const eventCreateRulesWarnings = analyzeEventCreateRules(eventCreateRules);
+  const eventCreateRulesWarnings = analyzeEventCreateRules(eventCreateRules as Array<Record<string, unknown>>);
 
   return {
     propertySettings: {
       timezone: {
         status: 'configured',
-        value: `${propertyData.timeZone || 'Not set'} ${propertyData.timeZone ? '✓' : '⚠️'}`,
-        recommendation: propertyData.timeZone 
-          ? `Your timezone is set to ${propertyData.timeZone}. Ensure this matches your business location for accurate reporting.`
+        value: `${(propertyData as Record<string, unknown>).timeZone || 'Not set'} ${(propertyData as Record<string, unknown>).timeZone ? '✓' : '⚠️'}`,
+        recommendation: (propertyData as Record<string, unknown>).timeZone 
+          ? `Your timezone is set to ${(propertyData as Record<string, unknown>).timeZone}. Ensure this matches your business location for accurate reporting.`
           : 'Set your property timezone in Admin > Property > Property details.',
-        details: propertyData.timeZone 
-          ? `Reports will show data in ${propertyData.timeZone} timezone. Keep this consistent across marketing platforms.`
+        details: (propertyData as Record<string, unknown>).timeZone 
+          ? `Reports will show data in ${(propertyData as Record<string, unknown>).timeZone} timezone. Keep this consistent across marketing platforms.`
           : 'GA4 defaults to Pacific Time if no timezone is set.'
       },
       currency: {
         status: 'configured',
-        value: `${propertyData.currencyCode || 'USD (default)'} ${propertyData.currencyCode ? '✓' : 'ℹ️'}`,
-        recommendation: propertyData.currencyCode 
-          ? `Your reporting currency is ${propertyData.currencyCode}. All e-commerce data will be converted to this currency.`
+        value: `${(propertyData as Record<string, unknown>).currencyCode || 'USD (default)'} ${(propertyData as Record<string, unknown>).currencyCode ? '✓' : 'ℹ️'}`,
+        recommendation: (propertyData as Record<string, unknown>).currencyCode 
+          ? `Your reporting currency is ${(propertyData as Record<string, unknown>).currencyCode}. All e-commerce data will be converted to this currency.`
           : 'GA4 defaults to USD. If you accept multiple currencies, GA4 will convert them using daily exchange rates.',
         details: 'GA4 currency conversion: Transactions in multiple currencies are automatically converted to your reporting currency using Google\'s daily exchange rates.'
       },
       industryCategory: {
-        status: propertyData.industryCategory ? 'configured' : 'missing',
-        value: propertyData.industryCategory || 'Not set',
-        recommendation: propertyData.industryCategory 
+        status: (propertyData as Record<string, unknown>).industryCategory ? 'configured' : 'missing',
+        value: (propertyData as Record<string, unknown>).industryCategory as string || 'Not set',
+        recommendation: (propertyData as Record<string, unknown>).industryCategory 
           ? 'Industry category is set for benchmarking and machine learning optimization.' 
           : 'Set industry category in Admin > Property > Property details for better benchmarking insights.',
         details: 'Industry category helps GA4 provide relevant benchmarks and improves automated insights quality.'
       },
       dataRetention: {
         status: dataRetention.eventDataRetention ? 'configured' : 'requires_check',
-        value: dataRetention.eventDataRetention 
-          ? `Event data: ${dataRetention.eventDataRetention}, User data: ${dataRetention.userDataRetention || 'Not specified'}`
+        value: (dataRetention as Record<string, unknown>).eventDataRetention 
+          ? `Event data: ${(dataRetention as Record<string, unknown>).eventDataRetention}, User data: ${(dataRetention as Record<string, unknown>).userDataRetention || 'Not specified'}`
           : '⚠️ CRITICAL: Check your data retention settings!',
         recommendation: dataRetention.eventDataRetention === 'FIFTY_MONTHS'
           ? '✅ Excellent! Data retention is set to maximum (50 months).'
           : '⚠️ CRITICAL: Consider extending data retention to 14 months (or 50 months for GA360). Default is only 2 months!',
-        details: `Data retention affects Explorations and custom reports. Current setting: ${dataRetention.eventDataRetention || 'Unknown'}. You can change this in Admin > Data collection > Data retention.`
+        details: `Data retention affects Explorations and custom reports. Current setting: ${(dataRetention as Record<string, unknown>).eventDataRetention || 'Unknown'}. You can change this in Admin > Data collection > Data retention.`
       },
       attribution: {
         status: attribution.reportingAttributionModel ? 'configured' : 'requires_check',
@@ -589,11 +609,11 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
     dataCollection: {
       dataStreams: {
         status: dataStreams.length > 0 ? 'configured' : 'missing',
-        value: `${dataStreams.length} data stream(s) - ${getDataStreamSummary(dataStreams)}`,
+        value: `${dataStreams.length} data stream(s) - ${getDataStreamSummary(dataStreams as Array<Record<string, unknown>>)}`,
         recommendation: dataStreams.length > 0 
           ? 'Data streams are configured. Each platform (web, iOS, Android) should have its own stream.'
           : 'Add data streams for your platforms in Admin > Data collection > Data streams.',
-        details: getDataStreamDetails(dataStreams)
+        details: getDataStreamDetails(dataStreams as Array<Record<string, unknown>>)
       },
       enhancedMeasurement: {
         status: enhancedMeasurement.length > 0 ? 'configured' : 'not_configured',
@@ -603,7 +623,7 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
         recommendation: enhancedMeasurement.length > 0
           ? 'Enhanced measurement is active. Review individual event settings below.'
           : 'Enable Enhanced Measurement in your web data stream settings for automatic event tracking.',
-        details: getEnhancedMeasurementDetails(enhancedMeasurement),
+        details: getEnhancedMeasurementDetails(enhancedMeasurement as Array<Record<string, unknown>>),
         warnings: enhancedMeasurementWarnings
       },
       measurementProtocol: {
@@ -634,18 +654,18 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
         status: customDimensions.length > 0 ? 'configured' : 'none',
         value: `${customDimensions.length} custom dimension(s) configured`,
         recommendation: customDimensions.length > 0
-          ? `Custom dimensions: ${customDimensions.map((cd: any) => `${cd.displayName} (${cd.scope})`).slice(0, 5).join(', ')}${customDimensions.length > 5 ? '...' : ''}. Review implementation carefully.`
+          ? `Custom dimensions: ${(customDimensions as Array<Record<string, unknown>>).map((cd: Record<string, unknown>) => `${cd.displayName} (${cd.scope})`).slice(0, 5).join(', ')}${customDimensions.length > 5 ? '...' : ''}. Review implementation carefully.`
           : 'No custom dimensions configured. Create them in Admin > Custom definitions for business-specific tracking.',
-        details: getCustomDimensionsDetails(customDimensions),
+        details: getCustomDimensionsDetails(customDimensions as Array<Record<string, unknown>>),
         quota: `Using ${customDimensions.length}/50 custom dimensions (standard property)`
       },
       customMetrics: {
         status: customMetrics.length > 0 ? 'configured' : 'none',
         value: `${customMetrics.length} custom metric(s) configured`,
         recommendation: customMetrics.length > 0
-          ? `Custom metrics: ${customMetrics.map((cm: any) => `${cm.displayName} (${cm.scope})`).slice(0, 5).join(', ')}${customMetrics.length > 5 ? '...' : ''}. Verify data accuracy.`
+          ? `Custom metrics: ${(customMetrics as Array<Record<string, unknown>>).map((cm: Record<string, unknown>) => `${cm.displayName} (${cm.scope})`).slice(0, 5).join(', ')}${customMetrics.length > 5 ? '...' : ''}. Verify data accuracy.`
           : 'No custom metrics configured. Create them for tracking business-specific numerical data.',
-        details: getCustomMetricsDetails(customMetrics),
+        details: getCustomMetricsDetails(customMetrics as Array<Record<string, unknown>>),
         quota: `Using ${customMetrics.length}/50 custom metrics (standard property)`
       },
       eventCreateRules: {
@@ -656,7 +676,7 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
         recommendation: eventCreateRules.length > 0
           ? '⚠️ WARNING: Event create rules detected. These are complex and often misconfigured - review carefully!'
           : 'Event create rules allow creating new events based on existing ones. Only use if you understand the data structure.',
-        details: getEventCreateRulesDetails(eventCreateRules),
+        details: getEventCreateRulesDetails(eventCreateRules as Array<Record<string, unknown>>),
         warnings: eventCreateRulesWarnings
       }
     },
@@ -665,7 +685,7 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
         status: keyEvents.length > 0 ? 'configured' : 'missing',
         value: `${keyEvents.length} key event(s) configured`,
         recommendation: keyEvents.length > 0 
-          ? `Key events: ${keyEvents.map((ke: any) => ke.eventName).slice(0, 5).join(', ')}${keyEvents.length > 5 ? '...' : ''}. These can be imported to Google Ads as conversions.`
+          ? `Key events: ${(keyEvents as Array<Record<string, unknown>>).map((ke: Record<string, unknown>) => ke.eventName).slice(0, 5).join(', ')}${keyEvents.length > 5 ? '...' : ''}. These can be imported to Google Ads as conversions.`
           : 'Set up key events for your important business goals in Admin > Events > Mark events as key events.',
         details: '2025 Update: "Conversions" are now called "Key Events" in GA4. Key Events can be imported to Google Ads as conversions for bidding optimization.'
       }
