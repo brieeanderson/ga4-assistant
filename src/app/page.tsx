@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Send, Globe, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, User, LogOut, ArrowRight } from 'lucide-react';
+import { Send, Globe, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, User, LogOut, ArrowRight, AlertTriangle, Info, TrendingUp } from 'lucide-react';
 import { useOAuth } from '@/hooks/useOAuth';
 
 interface GA4Property {
@@ -11,6 +11,21 @@ interface GA4Property {
   timeZone?: string;
   currencyCode?: string;
   accountName?: string;
+}
+
+interface CustomDimension {
+  displayName: string;
+  parameterName: string;
+  scope: string;
+  description?: string;
+}
+
+interface CustomMetric {
+  displayName: string;
+  parameterName: string;
+  scope: string;
+  unitOfMeasurement: string;
+  description?: string;
 }
 
 interface GA4Audit {
@@ -30,13 +45,25 @@ interface GA4Audit {
     eventName: string;
     createTime: string;
   }>;
+  customDimensions: CustomDimension[];
+  customMetrics: CustomMetric[];
+  eventCreateRules: Array<{
+    streamName: string;
+    rules: any[];
+  }>;
+  searchConsoleDataStatus: {
+    isLinked: boolean;
+    hasData: boolean;
+    lastDataDate?: string;
+  };
   enhancedMeasurement?: {
     enabled: boolean;
     events: string[];
   };
   audit: {
     propertySettings: { [key: string]: { status: string; value: string; recommendation: string; details?: string } };
-    dataCollection: { [key: string]: { status: string; value: string; recommendation: string; details?: string } };
+    dataCollection: { [key: string]: { status: string; value: string; recommendation: string; details?: string; warnings?: string[] } };
+    customDefinitions: { [key: string]: { status: string; value: string; recommendation: string; details?: string; quota?: string; warnings?: string[] } };
     keyEvents: { [key: string]: { status: string; value: string; recommendation: string; details?: string } };
     integrations: { [key: string]: { status: string; value: string; recommendation: string; details?: string } };
   };
@@ -296,7 +323,8 @@ const GA4GTMAssistant = () => {
             <ul className="text-sm text-gray-300 space-y-1">
               <li>✅ Google Analytics 4 (Read Access)</li>
               <li>✅ Google Tag Manager (Read Access)</li>
-              <li>✅ User Profile Information</li>
+              <li>✅ Custom Dimensions & Metrics API</li>
+              <li>✅ Search Console Integration Check</li>
             </ul>
           </div>
 
@@ -335,7 +363,7 @@ const GA4GTMAssistant = () => {
                 disabled={!selectedProperty || isAnalyzing}
                 className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50"
               >
-                {isAnalyzing ? 'Running Audit...' : 'Run Complete GA4 Audit'}
+                {isAnalyzing ? 'Running Enhanced Audit...' : 'Run Complete GA4 Audit'}
               </button>
             )}
           </div>
@@ -351,27 +379,27 @@ const GA4GTMAssistant = () => {
           </div>
           <h3 className="text-xl font-semibold text-white mb-2">Connect Your GA4 Account</h3>
           <p className="text-gray-300 mb-6">
-            Get a complete 25-point audit of your GA4 property including configuration, 
-            key events, data streams, and integration status.
+            Get a complete 30-point audit including custom dimensions, metrics, event create rules, 
+            and Search Console integration status.
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-left">
             <div className="space-y-3">
-              <h4 className="font-medium text-white">Property Analysis:</h4>
+              <h4 className="font-medium text-white">Enhanced Analysis:</h4>
               <ul className="text-sm text-gray-400 space-y-1">
-                <li>• Timezone & Currency Settings</li>
-                <li>• Data Retention Configuration</li>
-                <li>• Enhanced Measurement Status</li>
-                <li>• Industry Category Setup</li>
+                <li>• Custom Dimensions & Metrics</li>
+                <li>• Event Create Rules Detection</li>
+                <li>• Enhanced Measurement Warnings</li>
+                <li>• Search Console Data Status</li>
               </ul>
             </div>
             <div className="space-y-3">
               <h4 className="font-medium text-white">Advanced Features:</h4>
               <ul className="text-sm text-gray-400 space-y-1">
-                <li>• Key Events Configuration</li>
-                <li>• Data Streams Setup</li>
-                <li>• Custom Dimensions/Metrics</li>
-                <li>• Integration Status</li>
+                <li>• Missing Dimension Detection</li>
+                <li>• Configuration Quality Warnings</li>
+                <li>• API-Level Data Validation</li>
+                <li>• Integration Status Checks</li>
               </ul>
             </div>
           </div>
@@ -400,6 +428,8 @@ const GA4GTMAssistant = () => {
         case 'detected': return 'bg-green-900 text-green-300 border-green-700';
         case 'not-detected': return 'bg-red-900 text-red-300 border-red-700';
         case 'not_configured': return 'bg-red-900 text-red-300 border-red-700';
+        case 'linked_no_data': return 'bg-yellow-900 text-yellow-300 border-yellow-700';
+        case 'none': return 'bg-gray-800 text-gray-400 border-gray-600';
         case 'unknown': return 'bg-yellow-900 text-yellow-300 border-yellow-700';
         case 'requires_manual_check': return 'bg-blue-900 text-blue-300 border-blue-700';
         case 'requires_check': return 'bg-yellow-900 text-yellow-300 border-yellow-700';
@@ -411,6 +441,23 @@ const GA4GTMAssistant = () => {
       <span className={`px-2 py-1 rounded text-xs font-medium border ${getStatusColor(status)}`}>
         {status.replace('_', ' ').replace('-', ' ')}
       </span>
+    );
+  };
+
+  const WarningAlert = ({ warnings }: { warnings: string[] }) => {
+    if (!warnings || warnings.length === 0) return null;
+
+    return (
+      <div className="mt-3 p-3 bg-yellow-900/20 border border-yellow-700 rounded-lg">
+        <div className="flex items-start space-x-2">
+          <AlertTriangle className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+          <div className="space-y-1">
+            {warnings.map((warning, index) => (
+              <p key={index} className="text-sm text-yellow-200">{warning}</p>
+            ))}
+          </div>
+        </div>
+      </div>
     );
   };
 
@@ -427,7 +474,7 @@ const GA4GTMAssistant = () => {
               <h1 className="text-xl font-bold text-white">GA4 & GTM Assistant</h1>
             </div>
             <div className="text-sm text-gray-400">
-              Complete Website Analytics Audit
+              Enhanced Analytics Audit with Custom Dimensions
             </div>
           </div>
         </div>
@@ -466,9 +513,9 @@ const GA4GTMAssistant = () => {
           <div className="space-y-8">
             {/* Lead Magnet Header */}
             <div className="text-center bg-gradient-to-r from-red-900/20 to-orange-900/20 rounded-xl p-8 border border-red-800">
-              <h2 className="text-3xl font-bold text-white mb-4">Complete GA4 & GTM Website Audit</h2>
+              <h2 className="text-3xl font-bold text-white mb-4">Enhanced GA4 & GTM Website Audit</h2>
               <p className="text-lg text-gray-300 mb-6">
-                Choose between frontend analysis, site-wide crawling, or complete GA4 account audit with direct API access.
+                Deep analysis with custom dimensions, metrics, event create rules, and Search Console integration detection.
               </p>
               <div className="flex items-center justify-center space-x-4 text-sm text-gray-400">
                 <div className="flex items-center">
@@ -476,8 +523,8 @@ const GA4GTMAssistant = () => {
                   <span>Real-time Analysis</span>
                 </div>
                 <div className="flex items-center">
-                  <BarChart3 className="w-4 h-4 text-green-400 mr-1" />
-                  <span>Coverage Reports</span>
+                  <TrendingUp className="w-4 h-4 text-green-400 mr-1" />
+                  <span>Custom Definitions Audit</span>
                 </div>
                 <div className="flex items-center">
                   <CheckCircle className="w-4 h-4 text-green-400 mr-1" />
@@ -535,7 +582,7 @@ const GA4GTMAssistant = () => {
                     <BarChart3 className="w-8 h-8 mx-auto mb-2 text-green-400" />
                     <h4 className="font-semibold text-white">GA4 Account Audit</h4>
                     <p className="text-sm text-gray-400 mt-1">
-                      Complete 25-point audit with direct GA4 API access
+                      Complete 30-point audit with custom dimensions & metrics
                     </p>
                   </div>
                 </button>
@@ -656,7 +703,7 @@ const GA4GTMAssistant = () => {
                 {/* Property Overview */}
                 <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
                   <h3 className="text-lg font-semibold text-white mb-4">GA4 Property Overview</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
                     <div className="text-center">
                       <div className="text-xl font-bold text-red-400 truncate">{ga4Audit.property.displayName}</div>
                       <div className="text-sm text-gray-400">Property Name</div>
@@ -673,15 +720,121 @@ const GA4GTMAssistant = () => {
                       <div className="text-xl font-bold text-purple-400">{ga4Audit.keyEvents.length}</div>
                       <div className="text-sm text-gray-400">Key Events</div>
                     </div>
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-yellow-400">{ga4Audit.customDimensions.length + ga4Audit.customMetrics.length}</div>
+                      <div className="text-sm text-gray-400">Custom Defs</div>
+                    </div>
                   </div>
                   
                   <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-3 mt-4">
                     <p className="text-sm text-blue-300">
-                      <strong>Currency Conversion:</strong> GA4 automatically converts all transactions to your reporting currency ({ga4Audit.property.currencyCode || 'USD'}) 
-                      using daily exchange rates. You can accept payments in any currency - the conversion happens automatically in reports.
+                      <strong>Enhanced Audit:</strong> This comprehensive analysis includes custom dimensions, metrics, event create rules, 
+                      and Search Console integration status - providing insights beyond standard GA4 audits.
                     </p>
                   </div>
                 </div>
+
+                {/* Custom Definitions Analysis */}
+                <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">Custom Definitions Analysis</h3>
+                  <div className="space-y-4">
+                    {Object.entries(ga4Audit.audit.customDefinitions || {}).map(([key, setting]) => (
+                      <div key={key} className="p-4 bg-gray-800 rounded-lg">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center space-x-2">
+                            <h4 className="font-medium text-white capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</h4>
+                            <StatusBadge status={setting.status} />
+                          </div>
+                          {setting.quota && (
+                            <span className="text-xs text-gray-400 bg-gray-700 px-2 py-1 rounded">
+                              {setting.quota}
+                            </span>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-300 font-medium">{setting.value}</p>
+                          <p className="text-sm text-gray-400">{setting.recommendation}</p>
+                          {setting.details && (
+                            <details className="text-xs text-gray-500">
+                              <summary className="cursor-pointer hover:text-gray-400">More details</summary>
+                              <p className="mt-2 pl-4 border-l border-gray-600">{setting.details}</p>
+                            </details>
+                          )}
+                          <WarningAlert warnings={setting.warnings || []} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom Dimensions & Metrics Details */}
+                {(ga4Audit.customDimensions.length > 0 || ga4Audit.customMetrics.length > 0) && (
+                  <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
+                    <h3 className="text-lg font-semibold text-white mb-4">Custom Definitions Details</h3>
+                    
+                    {ga4Audit.customDimensions.length > 0 && (
+                      <div className="mb-6">
+                        <h4 className="font-medium text-white mb-3 flex items-center">
+                          <Info className="w-4 h-4 mr-2 text-blue-400" />
+                          Custom Dimensions ({ga4Audit.customDimensions.length})
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {ga4Audit.customDimensions.map((dimension, index) => (
+                            <div key={index} className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-medium text-white text-sm">{dimension.displayName}</span>
+                                <span className={`text-xs px-2 py-1 rounded ${
+                                  dimension.scope === 'EVENT' ? 'bg-green-900 text-green-300' :
+                                  dimension.scope === 'USER' ? 'bg-blue-900 text-blue-300' :
+                                  'bg-purple-900 text-purple-300'
+                                }`}>
+                                  {dimension.scope}
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-400">Parameter: {dimension.parameterName}</p>
+                              {dimension.description && (
+                                <p className="text-xs text-gray-500 mt-1">{dimension.description}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {ga4Audit.customMetrics.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-white mb-3 flex items-center">
+                          <TrendingUp className="w-4 h-4 mr-2 text-green-400" />
+                          Custom Metrics ({ga4Audit.customMetrics.length})
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {ga4Audit.customMetrics.map((metric, index) => (
+                            <div key={index} className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-medium text-white text-sm">{metric.displayName}</span>
+                                <div className="flex space-x-1">
+                                  <span className={`text-xs px-2 py-1 rounded ${
+                                    metric.scope === 'EVENT' ? 'bg-green-900 text-green-300' :
+                                    'bg-blue-900 text-blue-300'
+                                  }`}>
+                                    {metric.scope}
+                                  </span>
+                                  <span className="text-xs px-2 py-1 rounded bg-gray-700 text-gray-300">
+                                    {metric.unitOfMeasurement}
+                                  </span>
+                                </div>
+                              </div>
+                              <p className="text-xs text-gray-400">Parameter: {metric.parameterName}</p>
+                              {metric.description && (
+                                <p className="text-xs text-gray-500 mt-1">{metric.description}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Property Settings Audit */}
                 <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
@@ -710,46 +863,6 @@ const GA4GTMAssistant = () => {
                   </div>
                 </div>
 
-                {/* Enhanced Measurement Deep Dive */}
-                <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Enhanced Measurement Events</h3>
-                  
-                  {ga4Audit.enhancedMeasurement?.enabled ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-2 mb-4">
-                        <StatusBadge status="configured" />
-                        <span className="text-white font-medium">Enhanced Measurement Active</span>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {ga4Audit.enhancedMeasurement.events.map((event: string, index: number) => (
-                          <div key={index} className="bg-gray-800 rounded-lg p-4">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                              <span className="text-white font-medium">{event.split(' ')[0]}</span>
-                            </div>
-                            <p className="text-sm text-gray-400">{event.substring(event.indexOf(' ') + 1)}</p>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      <div className="bg-green-900/20 border border-green-700 rounded-lg p-4 mt-4">
-                        <h4 className="text-green-300 font-medium mb-2">What this means for you:</h4>
-                        <ul className="text-sm text-green-200 space-y-1">
-                          <li>• No additional code needed for these events</li>
-                          <li>• Automatic tracking of user engagement</li>
-                          <li>• File downloads, video plays, and scrolling tracked automatically</li>
-                          <li>• Site search queries captured when users search your site</li>
-                        </ul>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4">
-                      <p className="text-yellow-300">Enhanced Measurement not detected. Enable it in your GA4 data stream settings for automatic event tracking.</p>
-                    </div>
-                  )}
-                </div>
-
                 {/* Data Collection Settings */}
                 <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
                   <h3 className="text-lg font-semibold text-white mb-4">Data Collection Settings</h3>
@@ -769,6 +882,7 @@ const GA4GTMAssistant = () => {
                               <p className="mt-2 pl-4 border-l border-gray-600">{setting.details}</p>
                             </details>
                           )}
+                          <WarningAlert warnings={setting.warnings || []} />
                         </div>
                       </div>
                     ))}
@@ -840,6 +954,42 @@ const GA4GTMAssistant = () => {
                   </div>
                 </div>
 
+                {/* Search Console Integration Status */}
+                {ga4Audit.searchConsoleDataStatus && (
+                  <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
+                    <h3 className="text-lg font-semibold text-white mb-4">Search Console Integration Status</h3>
+                    <div className="bg-gray-800 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-medium text-white">Integration Status</h4>
+                        <StatusBadge status={ga4Audit.searchConsoleDataStatus.isLinked ? 
+                          (ga4Audit.searchConsoleDataStatus.hasData ? 'configured' : 'linked_no_data') : 
+                          'not_configured'} />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-300">
+                          <strong>Linked:</strong> {ga4Audit.searchConsoleDataStatus.isLinked ? 'Yes' : 'No'}
+                        </p>
+                        <p className="text-sm text-gray-300">
+                          <strong>Data Available:</strong> {ga4Audit.searchConsoleDataStatus.hasData ? 'Yes' : 'No'}
+                        </p>
+                        {ga4Audit.searchConsoleDataStatus.lastDataDate && (
+                          <p className="text-sm text-gray-300">
+                            <strong>Last Data:</strong> {ga4Audit.searchConsoleDataStatus.lastDataDate}
+                          </p>
+                        )}
+                        <p className="text-sm text-gray-400 mt-3">
+                          {ga4Audit.searchConsoleDataStatus.isLinked && ga4Audit.searchConsoleDataStatus.hasData ?
+                            '✅ Search Console is properly integrated and providing organic search data.' :
+                            ga4Audit.searchConsoleDataStatus.isLinked ?
+                            '⚠️ Search Console is linked but no data detected. Wait 48 hours or check configuration.' :
+                            'Link Search Console in Admin > Product linking for organic search insights.'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Action Items Summary */}
                 <div className="bg-gradient-to-r from-red-900/20 to-orange-900/20 rounded-xl p-6 border border-red-700">
                   <h3 className="text-lg font-semibold text-white mb-4">Priority Action Items</h3>
@@ -857,7 +1007,11 @@ const GA4GTMAssistant = () => {
                         </li>
                         <li className="flex items-start space-x-2">
                           <span className="text-red-400 mt-0.5">•</span>
-                          <span className="text-gray-300">Set up key events for business goals</span>
+                          <span className="text-gray-300">Review custom dimensions implementation</span>
+                        </li>
+                        <li className="flex items-start space-x-2">
+                          <span className="text-red-400 mt-0.5">•</span>
+                          <span className="text-gray-300">Check event create rules configuration</span>
                         </li>
                       </ul>
                     </div>
@@ -874,7 +1028,11 @@ const GA4GTMAssistant = () => {
                         </li>
                         <li className="flex items-start space-x-2">
                           <span className="text-yellow-400 mt-0.5">•</span>
-                          <span className="text-gray-300">Set up internal traffic filtering</span>
+                          <span className="text-gray-300">Add missing enhanced measurement dimensions</span>
+                        </li>
+                        <li className="flex items-start space-x-2">
+                          <span className="text-yellow-400 mt-0.5">•</span>
+                          <span className="text-gray-300">Set up key events for business goals</span>
                         </li>
                       </ul>
                     </div>
@@ -991,32 +1149,62 @@ const GA4GTMAssistant = () => {
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Key Events (Formerly Conversions)</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">Custom Dimensions Best Practices</h3>
                 <div className="p-4 bg-gray-800 rounded-lg">
                   <p className="text-gray-300 mb-2">
-                    As of 2025, GA4 has renamed "conversions" to "key events" for better clarity with Google Ads integration.
+                    Custom dimensions in GA4 capture business-specific categorical data for deeper analysis.
                   </p>
                   <ul className="text-sm text-gray-400 space-y-1">
-                    <li>• Key Events: Important actions tracked in GA4 (all traffic sources)</li>
-                    <li>• Conversions: Key Events specifically used for Google Ads bidding</li>
-                    <li>• Same functionality, clearer terminology</li>
+                    <li>• <strong>Event-scoped:</strong> For data specific to individual events (e.g., button_type, content_category)</li>
+                    <li>• <strong>User-scoped:</strong> For data that applies to all user sessions (e.g., user_type, subscription_level)</li>
+                    <li>• <strong>Item-scoped:</strong> For e-commerce item details (e.g., product_color, size)</li>
+                    <li>• Standard properties: 50 custom dimensions limit</li>
                   </ul>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Enhanced Measurement</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">Enhanced Measurement Warnings</h3>
                 <div className="p-4 bg-gray-800 rounded-lg">
                   <p className="text-gray-300 mb-2">
-                    Enhanced Measurement automatically tracks many interactions without additional code:
+                    When Enhanced Measurement features are enabled, register these custom dimensions:
                   </p>
-                  <ul className="text-sm text-gray-400 space-y-1">
-                    <li>• Page views and scroll tracking</li>
-                    <li>• Outbound link clicks</li>
-                    <li>• Site search queries</li>
-                    <li>• Video engagement (YouTube embedded videos)</li>
-                    <li>• File downloads (PDF, DOC, etc.)</li>
-                  </ul>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-400">
+                    <div>
+                      <strong className="text-white">Video Engagement:</strong>
+                      <ul className="mt-1 space-y-1">
+                        <li>• video_current_time</li>
+                        <li>• video_duration</li>
+                        <li>• video_percent</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <strong className="text-white">Form Interactions:</strong>
+                      <ul className="mt-1 space-y-1">
+                        <li>• form_id</li>
+                        <li>• form_name</li>
+                        <li>• form_destination</li>
+                        <li>• form_submit_text</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-3">Event Create Rules Warning</h3>
+                <div className="p-4 bg-yellow-900/20 border border-yellow-700 rounded-lg">
+                  <div className="flex items-start space-x-2">
+                    <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-yellow-300">Critical: Expert Configuration Required</h4>
+                      <p className="text-yellow-100 mt-1 text-sm">
+                        Event create rules are extremely complex and rarely configured correctly. They require deep 
+                        understanding of GA4's data structure and are often where auto-migrated Universal Analytics 
+                        events live, which can cause data quality issues.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1026,7 +1214,7 @@ const GA4GTMAssistant = () => {
                   <div className="p-4 bg-gray-800 rounded-lg">
                     <h4 className="font-medium text-white mb-2">Property Setup</h4>
                     <ul className="text-sm text-gray-400 space-y-1">
-                      <li>• Set data retention to 14 months</li>
+                      <li>• Set data retention to 14+ months</li>
                       <li>• Configure timezone and currency</li>
                       <li>• Set industry category for benchmarking</li>
                       <li>• Enable Google Signals (with privacy considerations)</li>
@@ -1037,8 +1225,8 @@ const GA4GTMAssistant = () => {
                     <ul className="text-sm text-gray-400 space-y-1">
                       <li>• Filter internal traffic by IP</li>
                       <li>• Set up cross-domain tracking</li>
-                      <li>• Define unwanted referrals</li>
-                      <li>• Redact PII from URLs</li>
+                      <li>• Link Search Console for organic data</li>
+                      <li>• Review custom definitions regularly</li>
                     </ul>
                   </div>
                 </div>
