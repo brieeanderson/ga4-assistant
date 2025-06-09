@@ -1,5 +1,19 @@
 import type { Metadata } from "next";
+import { Inter, Bebas_Neue } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap'
+});
+
+const bebasNeue = Bebas_Neue({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-bebas-neue',
+  display: 'swap'
+});
 
 export const metadata: Metadata = {
   title: "GA4 Analytics Audit - Enhanced Custom Dimensions & Metrics Analysis",
@@ -41,10 +55,8 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/favicon.ico" />
-        {/* Google Fonts: Bebas Neue and Inter */}
-        <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="antialiased bg-gray-950 text-white">
+      <body className={`${inter.variable} ${bebasNeue.variable} antialiased bg-gray-950 text-white`}>
         {children}
       </body>
     </html>
