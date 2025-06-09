@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Send, Globe, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, User, LogOut, ArrowRight, AlertTriangle, Info, TrendingUp, Shield, Database, Link2, Calendar, Settings, Target } from 'lucide-react';
+import { Send, Globe, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, LogOut, ArrowRight, AlertTriangle, Info, TrendingUp, Shield, Database, Link2, Calendar, Settings, Target } from 'lucide-react';
 import { useOAuth } from '@/hooks/useOAuth';
 
 interface GA4Property {
