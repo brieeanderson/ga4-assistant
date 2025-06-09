@@ -511,12 +511,10 @@ const GA4GTMAssistant = () => {
             {/* Hero Section */}
             <div className="text-center bg-black/80 backdrop-blur-xl rounded-3xl p-12 border border-orange-500/30 shadow-2xl">
               <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 lowercase leading-tight">
-                discover the hidden<br />
+                discover the hidden ga4 settings<br />
                 <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
-                  ga4 settings
+                  sabotaging your data quality!
                 </span><br />
-                that are sabotaging<br />
-                your data quality!
               </h2>
               <p className="text-xl text-gray-300 mb-8 max-w-4xl mx-auto">
                 your free audit will reveal if you're accidentally deleting data after 2 months, what your ✨ actual ✨ attribution window and model are, and where that video_progress event is coming from.
