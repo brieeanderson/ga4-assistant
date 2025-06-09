@@ -370,7 +370,7 @@ const GA4GTMAssistant = () => {
                 disabled={!selectedProperty || isAnalyzing}
                 className="flex-1 bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-3 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-bold uppercase tracking-wide disabled:opacity-50 shadow-lg shadow-orange-600/25 transform hover:scale-105"
               >
-                {isAnalyzing ? 'running beast audit...' : 'run complete ga4 audit'}
+                {isAnalyzing ? 'running configuration audit...' : 'run ga4 configuration audit'}
               </button>
             )}
           </div>
@@ -386,8 +386,8 @@ const GA4GTMAssistant = () => {
           </div>
           <h3 className="text-2xl font-bold text-white mb-3 lowercase">connect your ga4 account</h3>
           <p className="text-gray-300 mb-8 text-lg">
-            get a complete 30-point audit including custom dimensions, metrics, event create rules, 
-            enhanced measurement analysis, and search console integration status.
+            get a complete 30-point ga4 configuration audit that reveals data retention disasters, 
+            attribution model problems, and integration failures you didn't know existed.
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 text-left">
@@ -399,11 +399,11 @@ const GA4GTMAssistant = () => {
               <ul className="space-y-2 text-gray-400">
                 <li className="flex items-center">
                   <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
-                  custom dimensions & metrics (50 each)
+                  dimensions & metrics setup
                 </li>
                 <li className="flex items-center">
                   <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
-                  event create rules detection
+                  uncover custom events
                 </li>
                 <li className="flex items-center">
                   <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
@@ -445,12 +445,12 @@ const GA4GTMAssistant = () => {
             onClick={login}
             className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-10 py-4 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-bold uppercase tracking-wide text-lg shadow-lg shadow-orange-600/25 transform hover:scale-105"
           >
-            connect ga4 account
+            audit my ga4 setup
           </button>
           
           <div className="flex items-center justify-center space-x-2 mt-6 text-sm text-gray-400">
             <Shield className="w-4 h-4" />
-            <span>secure oauth - read-only access - no passwords stored</span>
+            <span>secure oauth - read-only access - we never store passwords</span>
           </div>
         </div>
       </div>
@@ -511,25 +511,25 @@ const GA4GTMAssistant = () => {
             {/* Hero Section */}
             <div className="text-center bg-black/80 backdrop-blur-xl rounded-3xl p-12 border border-orange-500/30 shadow-2xl">
               <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 lowercase leading-tight">
-                make your<br />
+                discover the hidden<br />
                 <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
-                  ga4 analytics
+                  ga4 settings
                 </span><br />
-                actionable!
+                that are sabotaging<br />
+                your data quality!
               </h2>
               <p className="text-xl text-gray-300 mb-8 max-w-4xl mx-auto">
-                it's time to make your numbers accessible and actionable with deep api-level analysis, 
-                custom dimensions audit, and search console integration detection.
+                your free audit will reveal if you're accidentally deleting data after 2 months, what your ✨ actual ✨ attribution window and model are, and where that video_progress event is coming from.
               </p>
               <p className="text-lg text-gray-400 mb-8">
-                the goal is to make it so easy that it would be <strong className="text-orange-400">HARD not to see</strong> where to start, stop, or scale your analytics.
+                <strong className="text-orange-400">no more guessing what's broken</strong> - get a detailed roadmap for better data.
               </p>
               <div className="flex items-center justify-center space-x-8 text-sm text-gray-400">
                 {[
-                  { icon: Database, label: 'api-level analysis' },
-                  { icon: TrendingUp, label: 'custom definitions audit' },
+                  { icon: Database, label: 'data retention check' },
+                  { icon: TrendingUp, label: 'attribution audit' },
                   { icon: Settings, label: 'configuration warnings' },
-                  { icon: CheckCircle, label: 'beast insights' }
+                  { icon: CheckCircle, label: 'integration verification' }
                 ].map((item, index) => (
                   <div key={index} className="flex items-center group">
                     <item.icon className="w-5 h-5 text-orange-400 mr-2 group-hover:scale-110 transition-transform duration-200" />
