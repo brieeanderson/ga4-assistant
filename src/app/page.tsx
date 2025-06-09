@@ -521,7 +521,7 @@ const GA4GTMAssistant = () => {
             {/* Hero Section */}
             <div className="text-center bg-gradient-to-br from-emerald-900/20 via-slate-900/40 to-blue-900/20 backdrop-blur-xl rounded-3xl p-12 border border-emerald-500/30 shadow-2xl">
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-                Enhanced GA4 & GTM Website Audit
+                Unlock Your GA4 Superpowers
               </h2>
               <p className="text-xl text-slate-300 mb-8 max-w-4xl mx-auto">
                 Deep API-level analysis with custom dimensions, metrics, event create rules, enhanced measurement settings, and Search Console integration detection.

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #171717;
+  --foreground: #fff;
   --font-bebas-neue: 'Bebas Neue', sans-serif;
   --font-inter: 'Inter', sans-serif;
   --accent-red: #ff2d20;
@@ -19,8 +19,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #171717;
+    --foreground: #fff;
   }
 }
 

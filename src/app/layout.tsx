@@ -57,6 +57,20 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/favicon.ico" />
       </head>
       <body className={`${inter.variable} ${bebasNeue.variable} antialiased bg-gray-950 text-white`}>
+        <header className="bg-black border-b border-gray-800 shadow-lg">
+          <div className="max-w-7xl mx-auto flex items-center px-4 py-3">
+            <a href="https://beastanalyticsco.com" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 group">
+              <img src="/beast-logo.svg" alt="BEAST Analytics Logo" className="h-10 w-auto" />
+              <div>
+                <span className="text-2xl font-bebas tracking-wide text-white">GA4Wise</span>
+                <br />
+                <span className="text-xs text-gray-400 group-hover:text-accent-red transition-colors">
+                  by <span className="underline">BEAST Analytics</span>
+                </span>
+              </div>
+            </a>
+          </div>
+        </header>
         {children}
       </body>
     </html>
