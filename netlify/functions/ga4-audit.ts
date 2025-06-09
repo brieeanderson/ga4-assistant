@@ -450,19 +450,21 @@ async function getEventCreateRulesForStreams(accessToken: string, propertyId: st
   return eventCreateRulesData;
 }
 
-// Helper function to check Search Console data availability
+// FIXED: Enhanced Search Console data availability check
 async function checkSearchConsoleDataAvailability(accessToken: string, propertyId: string, searchConsoleLinks: Array<Record<string, unknown>>) {
   const searchConsoleStatus = {
     isLinked: searchConsoleLinks.length > 0,
     hasData: false,
     lastDataDate: null as string | null,
-    linkDetails: searchConsoleLinks
+    linkDetails: searchConsoleLinks,
+    totalClicks: 0,
+    totalImpressions: 0
   };
 
-  // If Search Console is linked, try to check for actual data
+  // If Search Console is linked, try to check for actual data with better validation
   if (searchConsoleLinks.length > 0) {
     try {
-      // Try to get a small sample of Search Console data to verify it's working
+      // Try to get Search Console data to verify it's working
       const response = await fetch(
         `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
         {
@@ -473,9 +475,12 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
           },
           body: JSON.stringify({
             dimensions: [{ name: 'googleSearchConsoleQuery' }],
-            metrics: [{ name: 'googleSearchConsoleClicks' }],
-            dateRanges: [{ startDate: '7daysAgo', endDate: 'yesterday' }],
-            limit: 1
+            metrics: [
+              { name: 'googleSearchConsoleClicks' },
+              { name: 'googleSearchConsoleImpressions' }
+            ],
+            dateRanges: [{ startDate: '30daysAgo', endDate: 'yesterday' }],
+            limit: 10
           })
         }
       );
@@ -483,10 +488,23 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
       if (response.ok) {
         const data = await response.json();
         if (data.rows && data.rows.length > 0) {
-          searchConsoleStatus.hasData = true;
-          // Get the most recent data date from metadata if available
-          if (data.metadata && data.metadata.dataLossFromOtherRow === false) {
-            searchConsoleStatus.lastDataDate = 'Recent data available';
+          // Check if we have actual clicks/impressions > 0
+          let totalClicks = 0;
+          let totalImpressions = 0;
+          
+          data.rows.forEach((row: any) => {
+            if (row.metricValues && row.metricValues.length >= 2) {
+              totalClicks += parseInt(row.metricValues[0].value) || 0;
+              totalImpressions += parseInt(row.metricValues[1].value) || 0;
+            }
+          });
+          
+          searchConsoleStatus.totalClicks = totalClicks;
+          searchConsoleStatus.totalImpressions = totalImpressions;
+          searchConsoleStatus.hasData = totalClicks > 0 || totalImpressions > 0;
+          
+          if (searchConsoleStatus.hasData) {
+            searchConsoleStatus.lastDataDate = 'Recent data available (last 30 days)';
           }
         }
       }
@@ -498,7 +516,7 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
   return searchConsoleStatus;
 }
 
-// Helper function to build comprehensive audit with enhanced warnings
+// FIXED: Helper function to build comprehensive audit with enhanced logic
 function buildComprehensiveAudit(data: Record<string, unknown>) {
   const {
     propertyData,
@@ -545,65 +563,139 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
   // Analyze event create rules
   const eventCreateRulesWarnings = analyzeEventCreateRules(eventCreateRules as Array<Record<string, unknown>>);
 
+  // FIXED: Helper function to get readable data retention status
+  const getDataRetentionStatus = (eventDataRetention: string) => {
+    switch (eventDataRetention) {
+      case 'FOURTEEN_MONTHS':
+        return {
+          status: 'configured',
+          warning: false,
+          message: '✅ Excellent! Data retention is set to 14 months.'
+        };
+      case 'FIFTY_MONTHS':
+        return {
+          status: 'configured',
+          warning: false,
+          message: '✅ Perfect! Data retention is set to maximum (50 months).'
+        };
+      case 'TWO_MONTHS':
+        return {
+          status: 'critical',
+          warning: true,
+          message: '⚠️ CRITICAL: Data retention is only 2 months! Extend to 14 months for better analysis.'
+        };
+      default:
+        return {
+          status: 'requires_check',
+          warning: true,
+          message: '⚠️ Check your data retention settings!'
+        };
+    }
+  };
+
+  // FIXED: Helper function for attribution model readability
+  const getAttributionModelDisplay = (attribution: Record<string, unknown>) => {
+    const model = attribution.reportingAttributionModel as string;
+    
+    if (!model) {
+      return 'Attribution settings not accessible via API';
+    }
+    
+    const modelNames: Record<string, string> = {
+      'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN': 'Data-driven (recommended)',
+      'PAID_AND_ORGANIC_CHANNELS_LAST_CLICK': 'Last click',
+      'PAID_AND_ORGANIC_CHANNELS_FIRST_CLICK': 'First click',
+      'PAID_AND_ORGANIC_CHANNELS_LINEAR': 'Linear',
+      'PAID_AND_ORGANIC_CHANNELS_TIME_DECAY': 'Time decay',
+      'PAID_AND_ORGANIC_CHANNELS_POSITION_BASED': 'Position-based'
+    };
+    
+    return modelNames[model] || model;
+  };
+
+  // FIXED: Helper function for Google Signals status
+  const getGoogleSignalsStatus = (googleSignals: Record<string, unknown>) => {
+    const state = googleSignals.state as string;
+    
+    if (!state) {
+      return {
+        value: 'Google Signals status not accessible via API',
+        status: 'requires_check',
+        warning: false
+      };
+    }
+    
+    const isEnabled = state === 'GOOGLE_SIGNALS_ENABLED';
+    
+    return {
+      value: isEnabled ? 'Enabled for cross-device insights and demographics' : `Status: ${state}`,
+      status: isEnabled ? 'configured' : 'not_configured',
+      warning: isEnabled // Show privacy warning if enabled
+    };
+  };
+
+  const dataRetentionStatus = getDataRetentionStatus(dataRetention.eventDataRetention as string);
+  const attributionDisplay = getAttributionModelDisplay(attribution);
+  const googleSignalsStatus = getGoogleSignalsStatus(googleSignals);
+
   return {
     propertySettings: {
       timezone: {
-        status: 'configured',
-        value: `${(propertyData as Record<string, unknown>).timeZone || 'Not set'} ${(propertyData as Record<string, unknown>).timeZone ? '✓' : '⚠️'}`,
-        recommendation: (propertyData as Record<string, unknown>).timeZone 
-          ? `Your timezone is set to ${(propertyData as Record<string, unknown>).timeZone}. Ensure this matches your business location for accurate reporting.`
+        status: propertyData.timeZone ? 'configured' : 'missing',
+        value: `${propertyData.timeZone || 'Not set'} ${propertyData.timeZone ? '✓' : '⚠️'}`,
+        recommendation: propertyData.timeZone 
+          ? `Your timezone is set to ${propertyData.timeZone}. Ensure this matches your business location for accurate reporting.`
           : 'Set your property timezone in Admin > Property > Property details.',
-        details: (propertyData as Record<string, unknown>).timeZone 
-          ? `Reports will show data in ${(propertyData as Record<string, unknown>).timeZone} timezone. Keep this consistent across marketing platforms.`
+        details: propertyData.timeZone 
+          ? `Reports will show data in ${propertyData.timeZone} timezone. Keep this consistent across marketing platforms.`
           : 'GA4 defaults to Pacific Time if no timezone is set.'
       },
       currency: {
-        status: 'configured',
-        value: `${(propertyData as Record<string, unknown>).currencyCode || 'USD (default)'} ${(propertyData as Record<string, unknown>).currencyCode ? '✓' : 'ℹ️'}`,
-        recommendation: (propertyData as Record<string, unknown>).currencyCode 
-          ? `Your reporting currency is ${(propertyData as Record<string, unknown>).currencyCode}. All e-commerce data will be converted to this currency.`
+        status: propertyData.currencyCode ? 'configured' : 'default',
+        value: `${propertyData.currencyCode || 'USD (default)'} ${propertyData.currencyCode ? '✓' : 'ℹ️'}`,
+        recommendation: propertyData.currencyCode 
+          ? `Your reporting currency is ${propertyData.currencyCode}. All e-commerce data will be converted to this currency.`
           : 'GA4 defaults to USD. If you accept multiple currencies, GA4 will convert them using daily exchange rates.',
         details: 'GA4 currency conversion: Transactions in multiple currencies are automatically converted to your reporting currency using Google\'s daily exchange rates.'
       },
       industryCategory: {
-        status: (propertyData as Record<string, unknown>).industryCategory ? 'configured' : 'missing',
-        value: (propertyData as Record<string, unknown>).industryCategory as string || 'Not set',
-        recommendation: (propertyData as Record<string, unknown>).industryCategory 
+        status: propertyData.industryCategory ? 'configured' : 'missing',
+        value: propertyData.industryCategory as string || 'Not set',
+        recommendation: propertyData.industryCategory 
           ? 'Industry category is set for benchmarking and machine learning optimization.' 
           : 'Set industry category in Admin > Property > Property details for better benchmarking insights.',
         details: 'Industry category helps GA4 provide relevant benchmarks and improves automated insights quality.'
       },
       dataRetention: {
-        status: (dataRetention as Record<string, unknown>).eventDataRetention ? 'configured' : 'requires_check',
-        value: (dataRetention as Record<string, unknown>).eventDataRetention 
-          ? `Event data: ${(dataRetention as Record<string, unknown>).eventDataRetention}, User data: ${(dataRetention as Record<string, unknown>).userDataRetention || 'Not specified'}`
+        status: dataRetentionStatus.status,
+        value: dataRetention.eventDataRetention 
+          ? `Event data: ${dataRetention.eventDataRetention}, User data: ${dataRetention.userDataRetention || 'Not specified'}`
           : '⚠️ CRITICAL: Check your data retention settings!',
-        recommendation: dataRetention.eventDataRetention === 'FIFTY_MONTHS'
-          ? '✅ Excellent! Data retention is set to maximum (50 months).'
-          : '⚠️ CRITICAL: Consider extending data retention to 14 months (or 50 months for GA360). Default is only 2 months!',
-        details: `Data retention affects Explorations and custom reports. Current setting: ${(dataRetention as Record<string, unknown>).eventDataRetention || 'Unknown'}. You can change this in Admin > Data collection > Data retention.`
+        recommendation: dataRetentionStatus.message,
+        details: `Data retention affects Explorations and custom reports. Current setting: ${dataRetention.eventDataRetention || 'Unknown'}. You can change this in Admin > Data collection > Data retention.`
       },
       attribution: {
-        status: (attribution as Record<string, unknown>).reportingAttributionModel ? 'configured' : 'requires_check',
-        value: (attribution as Record<string, unknown>).reportingAttributionModel 
-          ? `Model: ${(attribution as Record<string, unknown>).reportingAttributionModel}, Acquisition lookback: ${(attribution as Record<string, unknown>).acquisitionConversionEventLookbackWindow || 'Default'}, Other lookback: ${(attribution as Record<string, unknown>).otherConversionEventLookbackWindow || 'Default'}`
-          : 'Attribution settings not accessible',
-        recommendation: (attribution as Record<string, unknown>).reportingAttributionModel === 'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN'
+        status: attribution.reportingAttributionModel ? 'configured' : 'requires_check',
+        value: attribution.reportingAttributionModel 
+          ? `${attributionDisplay} | Acquisition lookback: ${attribution.acquisitionConversionEventLookbackWindow || 'Default'} | Other lookback: ${attribution.otherConversionEventLookbackWindow || 'Default'}`
+          : 'Attribution settings not accessible via API',
+        recommendation: attribution.reportingAttributionModel === 'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN'
           ? '✅ Using data-driven attribution model (recommended)'
           : 'Consider using data-driven attribution for more accurate conversion credit',
-        details: (attribution as Record<string, unknown>).reportingAttributionModel 
-          ? `Attribution model affects how conversion credit is assigned across touchpoints. Current: ${(attribution as Record<string, unknown>).reportingAttributionModel}`
+        details: attribution.reportingAttributionModel 
+          ? `Attribution model affects how conversion credit is assigned across touchpoints. Current: ${attributionDisplay}`
           : 'Attribution settings control how key events are credited to different channels and campaigns'
       },
       googleSignals: {
-        status: (googleSignals as Record<string, unknown>).state ? 'configured' : 'requires_check',
-        value: (googleSignals as Record<string, unknown>).state 
-          ? `Status: ${(googleSignals as Record<string, unknown>).state}${(googleSignals as Record<string, unknown>).consentType ? `, Consent: ${(googleSignals as Record<string, unknown>).consentType}` : ''}`
-          : 'Google Signals status not accessible',
-        recommendation: (googleSignals as Record<string, unknown>).state === 'GOOGLE_SIGNALS_ENABLED'
+        status: googleSignalsStatus.status,
+        value: googleSignalsStatus.value,
+        recommendation: googleSignalsStatus.status === 'configured'
           ? '✅ Google Signals enabled for cross-device insights and demographics'
           : 'Consider enabling Google Signals in Admin > Data collection for cross-device tracking and demographics (requires privacy review)',
-        details: 'Google Signals enables cross-device reporting, demographics, and interests data, but may cause data thresholding in some reports'
+        details: 'Google Signals enables cross-device reporting, demographics, and interests data, but may cause data thresholding in some reports',
+        warnings: googleSignalsStatus.warning ? [
+          '⚠️ PRIVACY NOTICE: Google Signals is enabled. Ensure your privacy policy clearly states that you collect demographics and interests data via Google Signals for advertising purposes.'
+        ] : []
       }
     },
     dataCollection: {
@@ -712,9 +804,11 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
         details: 'BigQuery export includes all raw event data, bypasses sampling, and enables custom analysis with SQL'
       },
       searchConsole: {
-        status: (searchConsoleDataStatus as Record<string, unknown>).isLinked ? ((searchConsoleDataStatus as Record<string, unknown>).hasData ? 'configured' : 'linked_no_data') : 'not_configured',
+        status: (searchConsoleDataStatus as Record<string, unknown>).isLinked ? 
+          ((searchConsoleDataStatus as Record<string, unknown>).hasData ? 'configured' : 'linked_no_data') : 
+          'not_configured',
         value: (searchConsoleDataStatus as Record<string, unknown>).isLinked 
-          ? `${searchConsoleLinks.length} Search Console link(s), Data available: ${(searchConsoleDataStatus as Record<string, unknown>).hasData ? 'Yes' : 'No'}`
+          ? `${searchConsoleLinks.length} Search Console link(s) | Data: ${(searchConsoleDataStatus as Record<string, unknown>).hasData ? 'Yes' : 'No'} | Clicks: ${(searchConsoleDataStatus as Record<string, unknown>).totalClicks || 0} | Impressions: ${(searchConsoleDataStatus as Record<string, unknown>).totalImpressions || 0}`
           : 'Search Console not linked',
         recommendation: (searchConsoleDataStatus as Record<string, unknown>).isLinked && (searchConsoleDataStatus as Record<string, unknown>).hasData
           ? '✅ Search Console is linked and providing data for organic search insights'
@@ -722,7 +816,7 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
             ? '⚠️ Search Console is linked but no data detected. Check link configuration and wait 48 hours for data.'
             : 'Link Search Console in Admin > Product linking > Search Console for organic search data.',
         details: (searchConsoleDataStatus as Record<string, unknown>).isLinked 
-          ? `Search Console integration provides organic search queries, clicks, impressions, and CTR data. Last data: ${(searchConsoleDataStatus as Record<string, unknown>).lastDataDate || 'Checking...'}`
+          ? `Search Console integration provides organic search queries, clicks, impressions, and CTR data. ${(searchConsoleDataStatus as Record<string, unknown>).lastDataDate || 'Checking data availability...'}`
           : 'Search Console integration shows which Google search queries bring visitors to your site'
       }
     }
