@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Send, Globe, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, LogOut, AlertTriangle, Info, TrendingUp, Shield, Database, Link2, Calendar, Settings, Target, Sparkles, Star, ArrowUp } from 'lucide-react';
+import { Send, Globe, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, LogOut, AlertTriangle, Info, TrendingUp, Shield, Database, Settings, Sparkles, Star, ArrowUp } from 'lucide-react';
 import { useOAuth } from '@/hooks/useOAuth';
 
 interface GA4Property {
@@ -684,9 +684,6 @@ const GA4GTMAssistant = () => {
                   </div>
                 )}
 
-                {/* Rest of audit sections with similar styling improvements... */}
-                {/* For brevity, I'll continue with the main sections but you can apply similar styling to all sections */}
-
               </div>
             )}
           </div>
@@ -804,7 +801,98 @@ const GA4GTMAssistant = () => {
                 </div>
               </div>
 
-              {/* Additional documentation sections with improved styling... */}
+              <div>
+                <h3 className="text-xl font-bold text-white mb-4">Custom Dimensions Best Practices</h3>
+                <div className="p-6 bg-gradient-to-r from-slate-800/50 to-gray-800/50 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+                  <p className="text-slate-300 mb-4">
+                    Custom dimensions in GA4 capture business-specific categorical data for deeper analysis.
+                  </p>
+                  <ul className="text-sm text-slate-400 space-y-2">
+                    <li className="flex items-start">
+                      <ArrowUp className="w-4 h-4 mr-2 text-emerald-400 mt-0.5 flex-shrink-0" />
+                      <span><strong>Event-scoped:</strong> For data specific to individual events (e.g., button_type, content_category)</span>
+                    </li>
+                    <li className="flex items-start">
+                      <ArrowUp className="w-4 h-4 mr-2 text-emerald-400 mt-0.5 flex-shrink-0" />
+                      <span><strong>User-scoped:</strong> For data that applies to all user sessions (e.g., user_type, subscription_level)</span>
+                    </li>
+                    <li className="flex items-start">
+                      <ArrowUp className="w-4 h-4 mr-2 text-emerald-400 mt-0.5 flex-shrink-0" />
+                      <span><strong>Item-scoped:</strong> For e-commerce item details (e.g., product_color, size)</span>
+                    </li>
+                    <li className="flex items-start">
+                      <ArrowUp className="w-4 h-4 mr-2 text-emerald-400 mt-0.5 flex-shrink-0" />
+                      <span>Standard properties: 50 custom dimensions limit</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-bold text-white mb-4">Enhanced Measurement Warnings</h3>
+                <div className="p-6 bg-gradient-to-r from-slate-800/50 to-gray-800/50 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+                  <p className="text-slate-300 mb-4">
+                    When Enhanced Measurement features are enabled, register these custom dimensions:
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-400">
+                    <div>
+                      <strong className="text-white">Video Engagement:</strong>
+                      <ul className="mt-2 space-y-1">
+                        <li className="flex items-center">
+                          <ArrowUp className="w-3 h-3 mr-2 text-emerald-400" />
+                          video_current_time
+                        </li>
+                        <li className="flex items-center">
+                          <ArrowUp className="w-3 h-3 mr-2 text-emerald-400" />
+                          video_duration
+                        </li>
+                        <li className="flex items-center">
+                          <ArrowUp className="w-3 h-3 mr-2 text-emerald-400" />
+                          video_percent
+                        </li>
+                      </ul>
+                    </div>
+                    <div>
+                      <strong className="text-white">Form Interactions:</strong>
+                      <ul className="mt-2 space-y-1">
+                        <li className="flex items-center">
+                          <ArrowUp className="w-3 h-3 mr-2 text-emerald-400" />
+                          form_id
+                        </li>
+                        <li className="flex items-center">
+                          <ArrowUp className="w-3 h-3 mr-2 text-emerald-400" />
+                          form_name
+                        </li>
+                        <li className="flex items-center">
+                          <ArrowUp className="w-3 h-3 mr-2 text-emerald-400" />
+                          form_destination
+                        </li>
+                        <li className="flex items-center">
+                          <ArrowUp className="w-3 h-3 mr-2 text-emerald-400" />
+                          form_submit_text
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-bold text-white mb-4">Event Create Rules Warning</h3>
+                <div className="p-6 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-xl backdrop-blur-sm">
+                  <div className="flex items-start space-x-3">
+                    <AlertTriangle className="w-6 h-6 text-amber-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-amber-300 mb-2">Critical: Expert Configuration Required</h4>
+                      <p className="text-amber-100 text-sm">
+                        Event create rules are extremely complex and rarely configured correctly. They require deep 
+                        understanding of GA4's data structure and are often where auto-migrated Universal Analytics 
+                        events live, which can cause data quality issues.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
