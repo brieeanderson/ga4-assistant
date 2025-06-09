@@ -210,6 +210,8 @@ const GA4GTMAssistant = () => {
     }
   }, [isAuthenticated, fetchGA4Properties]);
 
+  const [action, setAction] = useState('');
+  
   const runGA4Audit = async () => {
     if (!selectedProperty || !accessToken) return;
     
