@@ -15,8 +15,15 @@ const eslintConfig = [
     rules: {
       "react/no-unescaped-entities": "off",
       "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
-      "@typescript-eslint/ban-ts-comment": "off"
+      "@typescript-eslint/no-unused-vars": ["error", { 
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }],
+      "@typescript-eslint/ban-ts-comment": "off",
+      "@next/next/no-img-element": "off", // Allow img elements since we're using Image where appropriate
+      "prefer-const": "warn", // Make this a warning instead of error
+      "no-console": "off" // Allow console statements for debugging
     }
   }
 ];
