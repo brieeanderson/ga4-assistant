@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Bebas_Neue } from "next/font/google";
+import Image from "next/image";
 import "./globals.css";
 
 const inter = Inter({
@@ -60,7 +61,14 @@ export default function RootLayout({
         <header className="bg-black border-b border-gray-800 shadow-lg">
           <div className="max-w-7xl mx-auto flex items-center px-4 py-3">
             <a href="https://beastanalyticsco.com" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 group">
-              <img src="/beast-logo.svg" alt="BEAST Analytics Logo" className="h-10 w-auto" />
+              <Image 
+                src="/beast-logo.svg" 
+                alt="BEAST Analytics Logo" 
+                width={40}
+                height={40}
+                className="h-10 w-auto"
+                priority
+              />
               <div>
                 <span className="text-2xl font-bebas tracking-wide text-white">GA4Wise</span>
                 <br />
