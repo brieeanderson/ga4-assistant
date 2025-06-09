@@ -517,10 +517,10 @@ const GA4GTMAssistant = () => {
                 </span><br />
               </h2>
               <p className="text-xl text-gray-300 mb-8 max-w-4xl mx-auto">
-                your free audit will reveal if you're accidentally deleting data after 2 months, what your ✨ actual ✨ attribution window and model are, and where that video_progress event is coming from.
+                Your free GA4 setup audit will reveal if you're accidentally deleting data after 2 months, what your ✨ actual ✨ attribution model is, and where that video_progress event is coming from.
               </p>
               <p className="text-lg text-gray-400 mb-8">
-                <strong className="text-orange-400">no more guessing what's broken</strong> - get a detailed roadmap for better data.
+                <strong className="text-orange-400">No more guessing what's broken</strong> - Get a detailed roadmap for better data.
               </p>
               <div className="flex items-center justify-center space-x-8 text-sm text-gray-400">
                 {[
