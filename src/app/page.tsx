@@ -162,9 +162,7 @@ const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('audit');
   const [message, setMessage] = useState('');
   const [website, setWebsite] = useState('');
-  const [action, setAction] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisType, setAnalysisType] = useState<'single' | 'sitewide' | 'ga4account'>('sitewide');
   const [ga4Properties, setGA4Properties] = useState<GA4Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [ga4Audit, setGA4Audit] = useState<GA4Audit | null>(null);
@@ -208,7 +206,6 @@ const GA4GTMAssistant = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('connected') === 'true') {
-      setAnalysisType('ga4account');
       fetchGA4Properties();
     }
   }, [isAuthenticated, fetchGA4Properties]);
@@ -278,8 +275,8 @@ const GA4GTMAssistant = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           url: website,
-          crawlMode: analysisType,
-          maxPages: analysisType === 'sitewide' ? 100 : 1
+          crawlMode: 'ga4account',
+          maxPages: 1
         }),
       });
       
@@ -575,170 +572,6 @@ const GA4GTMAssistant = () => {
                 </div>
               </div>
             </div>
-
-            {/* Analysis Type Selection */}
-            <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
-              <h3 className="text-xl font-semibold text-white mb-4">Choose Analysis Type</h3>
-              
-              <div className="flex space-x-4 mb-6">
-                <button
-                  onClick={() => setAnalysisType('single')}
-                  className={`flex-1 p-4 rounded-lg border-2 transition-all ${
-                    analysisType === 'single'
-                      ? 'border-red-500 bg-red-900/20'
-                      : 'border-gray-600 hover:border-gray-500'
-                  }`}
-                >
-                  <div className="text-center">
-                    <Globe className="w-8 h-8 mx-auto mb-2 text-red-400" />
-                    <h4 className="font-semibold text-white">Single Page Analysis</h4>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Deep dive into one page with detailed GA4 configuration audit
-                    </p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setAnalysisType('sitewide')}
-                  className={`flex-1 p-4 rounded-lg border-2 transition-all ${
-                    analysisType === 'sitewide'
-                      ? 'border-orange-500 bg-orange-900/20'
-                      : 'border-gray-600 hover:border-gray-500'
-                  }`}
-                >
-                  <div className="text-center">
-                    <Search className="w-8 h-8 mx-auto mb-2 text-orange-400" />
-                    <h4 className="font-semibold text-white">Site-Wide Crawl</h4>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Analyze entire website for tag coverage and missing pages
-                    </p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setAnalysisType('ga4account')}
-                  className={`flex-1 p-4 rounded-lg border-2 transition-all ${
-                    analysisType === 'ga4account'
-                      ? 'border-green-500 bg-green-900/20'
-                      : 'border-gray-600 hover:border-gray-500'
-                  }`}
-                >
-                  <div className="text-center">
-                    <BarChart3 className="w-8 h-8 mx-auto mb-2 text-green-400" />
-                    <h4 className="font-semibold text-white">GA4 Account Audit</h4>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Complete 30-point audit with API-level custom definitions analysis
-                    </p>
-                  </div>
-                </button>
-              </div>
-
-              {/* Conditional Content */}
-              {analysisType === 'ga4account' ? (
-                <GA4Connection />
-              ) : (
-                <>
-                  <div className="flex space-x-4">
-                    <input
-                      type="url"
-                      value={website}
-                      onChange={(e) => setWebsite(e.target.value)}
-                      placeholder="Enter your website URL (e.g., https://example.com)"
-                      className="flex-1 border border-gray-600 bg-gray-800 text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    />
-                    <button
-                      onClick={analyzeWebsite}
-                      disabled={isAnalyzing}
-                      className={`px-8 py-3 rounded-lg font-medium text-white transition-colors disabled:opacity-50 ${
-                        analysisType === 'single' 
-                          ? 'bg-red-600 hover:bg-red-700' 
-                          : 'bg-orange-600 hover:bg-orange-700'
-                      }`}
-                    >
-                      {isAnalyzing ? 'Analyzing...' : `Start ${analysisType === 'single' ? 'Analysis' : 'Crawl'}`}
-                    </button>
-                  </div>
-                  <p className="text-sm text-gray-400 mt-2">
-                    {analysisType === 'single' 
-                      ? 'Deep analysis of GA4 configuration, events, and integrations for one page'
-                      : 'Comprehensive crawl of your entire website to check tracking coverage'
-                    }
-                  </p>
-                </>
-              )}
-            </div>
-
-            {/* Website Analysis Results */}
-            {websiteAnalysis && (
-              <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Website Analysis Results</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-red-400">{websiteAnalysis.gtmContainers.length}</div>
-                    <div className="text-sm text-gray-400">GTM Containers</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-400">{websiteAnalysis.ga4Properties.length}</div>
-                    <div className="text-sm text-gray-400">GA4 Properties</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-400">{websiteAnalysis.recommendations.length}</div>
-                    <div className="text-sm text-gray-400">Recommendations</div>
-                  </div>
-                </div>
-                
-                {websiteAnalysis.recommendations.length > 0 && (
-                  <div className="bg-gray-800 rounded-lg p-4">
-                    <h4 className="font-medium text-white mb-2">Key Recommendations:</h4>
-                    <ul className="space-y-1">
-                      {websiteAnalysis.recommendations.slice(0, 5).map((rec, index) => (
-                        <li key={index} className="text-sm text-gray-300 flex items-start">
-                          <ArrowRight className="w-3 h-3 mr-2 mt-0.5 text-red-400 flex-shrink-0" />
-                          {rec}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Crawl Results */}
-            {crawlResults && (
-              <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Site-Wide Crawl Results</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-400">{crawlResults.crawlSummary.pagesAnalyzed}</div>
-                    <div className="text-sm text-gray-400">Pages Analyzed</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-400">{crawlResults.crawlSummary.pagesWithGA4}</div>
-                    <div className="text-sm text-gray-400">With GA4</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-400">{crawlResults.crawlSummary.pagesWithGTM}</div>
-                    <div className="text-sm text-gray-400">With GTM</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-400">{crawlResults.crawlSummary.tagCoverage}%</div>
-                    <div className="text-sm text-gray-400">Tag Coverage</div>
-                  </div>
-                </div>
-                
-                {crawlResults.insights.length > 0 && (
-                  <div className="bg-gray-800 rounded-lg p-4">
-                    <h4 className="font-medium text-white mb-2">Key Insights:</h4>
-                    <ul className="space-y-1">
-                      {crawlResults.insights.map((insight, index) => (
-                        <li key={index} className="text-sm text-gray-300 flex items-start">
-                          <ArrowRight className="w-3 h-3 mr-2 mt-0.5 text-orange-400 flex-shrink-0" />
-                          {insight}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Enhanced GA4 Audit Results */}
             {ga4Audit && (
@@ -1232,199 +1065,199 @@ const GA4GTMAssistant = () => {
             )}
           </div>
         )}
+      </div>
 
-        {/* Chat Tab */}
-        {activeTab === 'chat' && (
-          <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">GA4 & GTM AI Assistant</h2>
-            <div className="flex flex-col space-y-4">
-              <div className="flex-1 max-h-96 overflow-y-auto">
-                {messages.map((msg, index) => (
-                  <div key={index} className={`mb-4 ${msg.type === 'user' ? 'text-right' : 'text-left'}`}>
-                    <div className={`inline-block p-3 rounded-lg max-w-xs ${
-                      msg.type === 'user' 
-                        ? 'bg-red-600 text-white' 
-                        : 'bg-gray-800 text-gray-300'
-                    }`}>
-                      <p className="text-sm">{msg.content}</p>
-                      {msg.code && (
-                        <div className="mt-2 p-2 bg-gray-950 rounded text-green-400 text-xs font-mono overflow-x-auto">
-                          <pre>{msg.code}</pre>
-                        </div>
-                      )}
-                    </div>
+      {/* Chat Tab */}
+      {activeTab === 'chat' && (
+        <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
+          <h2 className="text-xl font-semibold text-white mb-4">GA4 & GTM AI Assistant</h2>
+          <div className="flex flex-col space-y-4">
+            <div className="flex-1 max-h-96 overflow-y-auto">
+              {messages.map((msg, index) => (
+                <div key={index} className={`mb-4 ${msg.type === 'user' ? 'text-right' : 'text-left'}`}>
+                  <div className={`inline-block p-3 rounded-lg max-w-xs ${
+                    msg.type === 'user' 
+                      ? 'bg-red-600 text-white' 
+                      : 'bg-gray-800 text-gray-300'
+                  }`}>
+                    <p className="text-sm">{msg.content}</p>
+                    {msg.code && (
+                      <div className="mt-2 p-2 bg-gray-950 rounded text-green-400 text-xs font-mono overflow-x-auto">
+                        <pre>{msg.code}</pre>
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Ask about GA4 or GTM..."
-                  className="flex-1 border border-gray-600 bg-gray-800 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                />
-                <button
-                  onClick={handleSendMessage}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Ask about GA4 or GTM..."
+                className="flex-1 border border-gray-600 bg-gray-800 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              />
+              <button
+                onClick={handleSendMessage}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <Send className="w-4 h-4" />
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Implement Tab */}
-        {activeTab === 'implement' && (
-          <div className="space-y-8">
+      {/* Implement Tab */}
+      {activeTab === 'implement' && (
+        <div className="space-y-8">
+          <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
+            <h2 className="text-xl font-semibold text-white mb-4">GA4 Event Code Generator</h2>
+            <div className="space-y-4">
+              <input
+                type="text"
+                value={action}
+                onChange={(e) => setAction(e.target.value)}
+                placeholder="e.g., Download PDF pricing guide"
+                className="w-full border border-gray-600 bg-gray-800 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              />
+              <button
+                onClick={generateTrackingCode}
+                className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition-colors"
+              >
+                Generate GA4 Code
+              </button>
+            </div>
+          </div>
+
+          {messages.filter(msg => msg.code).length > 0 && (
             <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
-              <h2 className="text-xl font-semibold text-white mb-4">GA4 Event Code Generator</h2>
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  value={action}
-                  onChange={(e) => setAction(e.target.value)}
-                  placeholder="e.g., Download PDF pricing guide"
-                  className="w-full border border-gray-600 bg-gray-800 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                />
-                <button
-                  onClick={generateTrackingCode}
-                  className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition-colors"
-                >
-                  Generate GA4 Code
-                </button>
+              <h3 className="text-lg font-semibold text-white mb-4">Generated Code</h3>
+              {messages.filter(msg => msg.code).slice(-1).map((msg, index) => (
+                <div key={index}>
+                  <p className="text-sm text-gray-300 mb-3">{msg.content}</p>
+                  <div className="p-4 bg-gray-950 rounded-lg text-green-400 text-sm font-mono overflow-x-auto">
+                    <pre>{msg.code}</pre>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Docs Tab */}
+      {activeTab === 'docs' && (
+        <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
+          <h2 className="text-xl font-semibold text-white mb-6">GA4 & GTM Documentation</h2>
+          
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-3">Getting Started</h3>
+              <div className="space-y-2">
+                <div className="p-3 bg-red-900/20 border border-red-700 rounded-lg">
+                  <h4 className="font-medium text-white">1. Set Up Google Analytics 4</h4>
+                  <p className="text-sm text-gray-400">Create a new GA4 property in your Google Analytics account</p>
+                </div>
+                <div className="p-3 bg-red-900/20 border border-red-700 rounded-lg">
+                  <h4 className="font-medium text-white">2. Install Google Tag Manager</h4>
+                  <p className="text-sm text-gray-400">GTM makes it easier to manage all your tracking codes</p>
+                </div>
+                <div className="p-3 bg-red-900/20 border border-red-700 rounded-lg">
+                  <h4 className="font-medium text-white">3. Connect GA4 to GTM</h4>
+                  <p className="text-sm text-gray-400">Create a GA4 Configuration tag in GTM</p>
+                </div>
               </div>
             </div>
 
-            {messages.filter(msg => msg.code).length > 0 && (
-              <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Generated Code</h3>
-                {messages.filter(msg => msg.code).slice(-1).map((msg, index) => (
-                  <div key={index}>
-                    <p className="text-sm text-gray-300 mb-3">{msg.content}</p>
-                    <div className="p-4 bg-gray-950 rounded-lg text-green-400 text-sm font-mono overflow-x-auto">
-                      <pre>{msg.code}</pre>
-                    </div>
-                  </div>
-                ))}
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-3">Custom Dimensions Best Practices</h3>
+              <div className="p-4 bg-gray-800 rounded-lg">
+                <p className="text-gray-300 mb-2">
+                  Custom dimensions in GA4 capture business-specific categorical data for deeper analysis.
+                </p>
+                <ul className="text-sm text-gray-400 space-y-1">
+                  <li>• <strong>Event-scoped:</strong> For data specific to individual events (e.g., button_type, content_category)</li>
+                  <li>• <strong>User-scoped:</strong> For data that applies to all user sessions (e.g., user_type, subscription_level)</li>
+                  <li>• <strong>Item-scoped:</strong> For e-commerce item details (e.g., product_color, size)</li>
+                  <li>• Standard properties: 50 custom dimensions limit</li>
+                </ul>
               </div>
-            )}
-          </div>
-        )}
+            </div>
 
-        {/* Docs Tab */}
-        {activeTab === 'docs' && (
-          <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
-            <h2 className="text-xl font-semibold text-white mb-6">GA4 & GTM Documentation</h2>
-            
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Getting Started</h3>
-                <div className="space-y-2">
-                  <div className="p-3 bg-red-900/20 border border-red-700 rounded-lg">
-                    <h4 className="font-medium text-white">1. Set Up Google Analytics 4</h4>
-                    <p className="text-sm text-gray-400">Create a new GA4 property in your Google Analytics account</p>
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-3">Enhanced Measurement Warnings</h3>
+              <div className="p-4 bg-gray-800 rounded-lg">
+                <p className="text-gray-300 mb-2">
+                  When Enhanced Measurement features are enabled, register these custom dimensions:
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-400">
+                  <div>
+                    <strong className="text-white">Video Engagement:</strong>
+                    <ul className="mt-1 space-y-1">
+                      <li>• video_current_time</li>
+                      <li>• video_duration</li>
+                      <li>• video_percent</li>
+                    </ul>
                   </div>
-                  <div className="p-3 bg-red-900/20 border border-red-700 rounded-lg">
-                    <h4 className="font-medium text-white">2. Install Google Tag Manager</h4>
-                    <p className="text-sm text-gray-400">GTM makes it easier to manage all your tracking codes</p>
-                  </div>
-                  <div className="p-3 bg-red-900/20 border border-red-700 rounded-lg">
-                    <h4 className="font-medium text-white">3. Connect GA4 to GTM</h4>
-                    <p className="text-sm text-gray-400">Create a GA4 Configuration tag in GTM</p>
+                  <div>
+                    <strong className="text-white">Form Interactions:</strong>
+                    <ul className="mt-1 space-y-1">
+                      <li>• form_id</li>
+                      <li>• form_name</li>
+                      <li>• form_destination</li>
+                      <li>• form_submit_text</li>
+                    </ul>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Custom Dimensions Best Practices</h3>
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-3">Event Create Rules Warning</h3>
+              <div className="p-4 bg-yellow-900/20 border border-yellow-700 rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-medium text-yellow-300">Critical: Expert Configuration Required</h4>
+                    <p className="text-yellow-100 mt-1 text-sm">
+                      Event create rules are extremely complex and rarely configured correctly. They require deep 
+                      understanding of GA4's data structure and are often where auto-migrated Universal Analytics 
+                      events live, which can cause data quality issues.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-3">2025 Best Practices</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-gray-800 rounded-lg">
-                  <p className="text-gray-300 mb-2">
-                    Custom dimensions in GA4 capture business-specific categorical data for deeper analysis.
-                  </p>
+                  <h4 className="font-medium text-white mb-2">Property Setup</h4>
                   <ul className="text-sm text-gray-400 space-y-1">
-                    <li>• <strong>Event-scoped:</strong> For data specific to individual events (e.g., button_type, content_category)</li>
-                    <li>• <strong>User-scoped:</strong> For data that applies to all user sessions (e.g., user_type, subscription_level)</li>
-                    <li>• <strong>Item-scoped:</strong> For e-commerce item details (e.g., product_color, size)</li>
-                    <li>• Standard properties: 50 custom dimensions limit</li>
+                    <li>• Set data retention to 14+ months</li>
+                    <li>• Configure timezone and currency</li>
+                    <li>• Set industry category for benchmarking</li>
+                    <li>• Enable Google Signals (with privacy considerations)</li>
+                  </ul>
+                </div>
+                <div className="p-4 bg-gray-800 rounded-lg">
+                  <h4 className="font-medium text-white mb-2">Data Quality</h4>
+                  <ul className="text-sm text-gray-400 space-y-1">
+                    <li>• Filter internal traffic by IP</li>
+                    <li>• Set up cross-domain tracking</li>
+                    <li>• Link Search Console for organic data</li>
+                    <li>• Review custom definitions regularly</li>
                   </ul>
                 </div>
               </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Enhanced Measurement Warnings</h3>
-                <div className="p-4 bg-gray-800 rounded-lg">
-                  <p className="text-gray-300 mb-2">
-                    When Enhanced Measurement features are enabled, register these custom dimensions:
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-400">
-                    <div>
-                      <strong className="text-white">Video Engagement:</strong>
-                      <ul className="mt-1 space-y-1">
-                        <li>• video_current_time</li>
-                        <li>• video_duration</li>
-                        <li>• video_percent</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <strong className="text-white">Form Interactions:</strong>
-                      <ul className="mt-1 space-y-1">
-                        <li>• form_id</li>
-                        <li>• form_name</li>
-                        <li>• form_destination</li>
-                        <li>• form_submit_text</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Event Create Rules Warning</h3>
-                <div className="p-4 bg-yellow-900/20 border border-yellow-700 rounded-lg">
-                  <div className="flex items-start space-x-2">
-                    <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-medium text-yellow-300">Critical: Expert Configuration Required</h4>
-                      <p className="text-yellow-100 mt-1 text-sm">
-                        Event create rules are extremely complex and rarely configured correctly. They require deep 
-                        understanding of GA4's data structure and are often where auto-migrated Universal Analytics 
-                        events live, which can cause data quality issues.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3">2025 Best Practices</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-800 rounded-lg">
-                    <h4 className="font-medium text-white mb-2">Property Setup</h4>
-                    <ul className="text-sm text-gray-400 space-y-1">
-                      <li>• Set data retention to 14+ months</li>
-                      <li>• Configure timezone and currency</li>
-                      <li>• Set industry category for benchmarking</li>
-                      <li>• Enable Google Signals (with privacy considerations)</li>
-                    </ul>
-                  </div>
-                  <div className="p-4 bg-gray-800 rounded-lg">
-                    <h4 className="font-medium text-white mb-2">Data Quality</h4>
-                    <ul className="text-sm text-gray-400 space-y-1">
-                      <li>• Filter internal traffic by IP</li>
-                      <li>• Set up cross-domain tracking</li>
-                      <li>• Link Search Console for organic data</li>
-                      <li>• Review custom definitions regularly</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
