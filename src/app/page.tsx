@@ -774,7 +774,7 @@ dataLayer.push({
                   </div>
 
                 {/* Enhanced Measurement Analysis */}
-                {ga4Audit.enhancedMeasurement.length > 0 && (
+                {ga4Audit && ga4Audit.enhancedMeasurement.length > 0 && (
                   <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
                     <h4 className="text-xl font-bold text-white mb-6 flex items-center">
                       <Zap className="w-6 h-6 mr-3 text-orange-400" />
