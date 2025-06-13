@@ -689,8 +689,6 @@ const GA4GTMAssistant = () => {
     }
   ];
 
-  const score = getComplianceScore();
-
   const GA4Connection = () => {
     if (oauthLoading) {
       return (
