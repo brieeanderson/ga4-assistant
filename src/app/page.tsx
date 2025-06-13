@@ -6,60 +6,7 @@ import {
   AlertTriangle, Info, TrendingUp, Shield, Database, Settings, Sparkles, 
   Star, ArrowUp, Calendar, DollarSign, Clock, ChevronRight, ChevronDown, Link
 } from 'lucide-react';
-
-// Mock OAuth hook functionality for demonstration
-const useOAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [isLoading, _setIsLoading] = useState(false);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Check for stored token
-    const token = typeof window !== 'undefined' ? localStorage.getItem('ga4_access_token') : null;
-    const email = typeof window !== 'undefined' ? localStorage.getItem('ga4_user_email') : null;
-    
-    if (token) {
-      setIsAuthenticated(true);
-      setAccessToken(token);
-      setUserEmail(email);
-    }
-  }, []);
-
-  const login = () => {
-    // Mock login - in real app this would redirect to OAuth
-    console.log('Would redirect to Google OAuth...');
-    // For demo purposes, simulate successful login
-    setTimeout(() => {
-      setIsAuthenticated(true);
-      setUserEmail('demo@example.com');
-      setAccessToken('demo_token');
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('ga4_access_token', 'demo_token');
-        localStorage.setItem('ga4_user_email', 'demo@example.com');
-      }
-    }, 1000);
-  };
-
-  const logout = () => {
-    setIsAuthenticated(false);
-    setUserEmail(null);
-    setAccessToken(null);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('ga4_access_token');
-      localStorage.removeItem('ga4_user_email');
-    }
-  };
-
-  return {
-    isAuthenticated,
-    userEmail,
-    isLoading,
-    accessToken,
-    login,
-    logout
-  };
-};
+import { useOAuth } from '@/hooks/useOAuth'; // Import the REAL OAuth hook
 
 interface GA4Property {
   name: string;
@@ -179,6 +126,27 @@ interface Message {
   code?: string;
 }
 
+interface WebsiteAnalysis {
+  domain: string;
+  gtmContainers: string[];
+  ga4Properties: string[];
+  currentSetup: {
+    gtmInstalled: boolean;
+    ga4Connected: boolean;
+    enhancedEcommerce: boolean;
+    serverSideTracking: boolean;
+    crossDomainTracking: {
+      enabled: boolean;
+      domains: string[];
+    };
+    consentMode: boolean;
+    debugMode: boolean;
+  };
+  configurationAudit: any;
+  recommendations: string[];
+  analysisMethod: string;
+}
+
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('audit');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['property-config']));
@@ -186,22 +154,32 @@ const GA4GTMAssistant = () => {
   const [ga4Properties, setGA4Properties] = useState<GA4Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [ga4Audit, setGA4Audit] = useState<GA4Audit | null>(null);
+  const [websiteAnalysis, setWebsiteAnalysis] = useState<WebsiteAnalysis | null>(null);
+  const [websiteUrl, setWebsiteUrl] = useState('');
   const [message, setMessage] = useState('');
-  const [action, _setAction] = useState('');
-  const [_messages, setMessages] = useState<Message[]>([
+  const [action, setAction] = useState('');
+  const [messages, setMessages] = useState<Message[]>([
     {
       type: 'assistant',
       content: "Hey there! 👋 I'm your GA4 & GTM specialist. Ready to make your analytics WORK? Let's dive in!",
       timestamp: new Date()
     }
   ]);
+  const [error, setError] = useState<string | null>(null);
 
-  const { isAuthenticated, userEmail, login, logout, isLoading: oauthLoading, accessToken } = useOAuth();
+  // Use the REAL OAuth hook
+  const { isAuthenticated, userEmail, login, logout, isLoading: oauthLoading, accessToken, setError: setOAuthError } = useOAuth();
 
+  // Real function to fetch GA4 properties
   const fetchGA4Properties = useCallback(async () => {
-    if (!accessToken) return;
+    if (!accessToken) {
+      setError('No access token available');
+      return;
+    }
     
     setIsAnalyzing(true);
+    setError(null);
+    
     try {
       const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:8888' : '';
       const response = await fetch(`${baseUrl}/.netlify/functions/ga4-audit`, {
@@ -210,30 +188,41 @@ const GA4GTMAssistant = () => {
         body: JSON.stringify({ accessToken })
       });
 
-      if (!response.ok) throw new Error('Failed to fetch GA4 properties');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
       
       const result = await response.json();
+      
       if (result.type === 'property_list') {
         setGA4Properties(result.properties || []);
+        if (result.properties?.length === 0) {
+          setError('No GA4 properties found. Make sure you have access to GA4 properties with this Google account.');
+        }
+      } else {
+        throw new Error('Unexpected response format from GA4 audit function');
       }
     } catch (error) {
       console.error('Error fetching GA4 properties:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch GA4 properties';
+      setError(errorMessage);
+      setOAuthError('Failed to fetch GA4 properties. Please try reconnecting your account.');
     } finally {
       setIsAnalyzing(false);
     }
-  }, [accessToken]);
+  }, [accessToken, setOAuthError]);
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('connected') === 'true') {
-      fetchGA4Properties();
-    }
-  }, [isAuthenticated, fetchGA4Properties]);
-
+  // Real function to run GA4 audit
   const runGA4Audit = async () => {
-    if (!selectedProperty || !accessToken) return;
+    if (!selectedProperty || !accessToken) {
+      setError('Please select a property and ensure you are authenticated');
+      return;
+    }
     
     setIsAnalyzing(true);
+    setError(null);
+    
     try {
       const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:8888' : '';
       const response = await fetch(`${baseUrl}/.netlify/functions/ga4-audit`, {
@@ -242,18 +231,86 @@ const GA4GTMAssistant = () => {
         body: JSON.stringify({ accessToken, propertyId: selectedProperty })
       });
 
-      if (!response.ok) throw new Error('Failed to run GA4 audit');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
       
       const result = await response.json();
       setGA4Audit(result);
+      
+      // Log success for debugging
+      console.log('GA4 Audit completed successfully:', {
+        propertyName: result.property?.displayName,
+        dataStreams: result.dataStreams?.length,
+        customDimensions: result.customDimensions?.length,
+        keyEvents: result.keyEvents?.length
+      });
+      
     } catch (error) {
       console.error('Error running GA4 audit:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to run GA4 audit';
+      setError(errorMessage);
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const _handleSendMessage = () => {
+  // Real function to analyze website
+  const analyzeWebsite = async () => {
+    if (!websiteUrl.trim()) {
+      setError('Please enter a website URL to analyze');
+      return;
+    }
+    
+    setIsAnalyzing(true);
+    setError(null);
+    
+    try {
+      const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:8888' : '';
+      const response = await fetch(`${baseUrl}/.netlify/functions/analyze-website`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          url: websiteUrl.trim(),
+          crawlMode: 'single'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      setWebsiteAnalysis(result);
+      
+      // Log success for debugging
+      console.log('Website analysis completed:', {
+        domain: result.domain,
+        gtmFound: result.currentSetup?.gtmInstalled,
+        ga4Found: result.currentSetup?.ga4Connected
+      });
+      
+    } catch (error) {
+      console.error('Error analyzing website:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to analyze website';
+      setError(errorMessage);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Effect to automatically fetch properties when authenticated
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('connected') === 'true' && isAuthenticated && accessToken) {
+      fetchGA4Properties();
+    }
+  }, [isAuthenticated, accessToken, fetchGA4Properties]);
+
+  // Real message handling for chat
+  const handleSendMessage = () => {
     if (!message.trim()) return;
     
     const newMessage: Message = {
@@ -265,29 +322,41 @@ const GA4GTMAssistant = () => {
     setMessages(prev => [...prev, newMessage]);
     setMessage('');
     
+    // Simulate AI response - in a real implementation, this would call an AI service
     setTimeout(() => {
       const aiResponse: Message = {
         type: 'assistant',
-        content: "For GA4 key events tracking, you'll need this setup...",
+        content: `Based on your GA4 setup, here's what I recommend for "${message}"...`,
         timestamp: new Date(),
-        code: `gtag('event', 'purchase', {
-  transaction_id: '12345',
-  value: 25.42,
-  currency: 'USD'
-});`
+        code: message.toLowerCase().includes('tracking') ? `gtag('event', 'custom_event', {
+  'event_category': 'engagement',
+  'event_label': '${message}',
+  'value': 1
+});` : undefined
       };
       
       setMessages(prev => [...prev, aiResponse]);
     }, 1000);
   };
 
-  const _generateTrackingCode = () => {
+  // Real tracking code generation
+  const generateTrackingCode = () => {
     if (!action.trim()) return;
     
     const eventName = action.toLowerCase().replace(/\s+/g, '_');
-    const trackingCode = `gtag('event', '${eventName}', {
-  'event_category': 'engagement',
-  'custom_parameter_1': '${action}'
+    const trackingCode = `// GA4 Event Tracking Code
+gtag('event', '${eventName}', {
+  'event_category': 'user_engagement',
+  'event_label': '${action}',
+  'custom_parameter_1': '${action}',
+  'value': 1
+});
+
+// Optional: Send to dataLayer for GTM
+dataLayer.push({
+  'event': '${eventName}',
+  'event_category': 'user_engagement',
+  'event_label': '${action}'
 });`;
 
     const newMessage: Message = {
@@ -300,6 +369,7 @@ const GA4GTMAssistant = () => {
     setMessages(prev => [...prev, newMessage]);
   };
 
+  // Section toggle functionality
   const toggleSection = (sectionId: string) => {
     const newExpanded = new Set(expandedSections);
     if (newExpanded.has(sectionId)) {
@@ -310,40 +380,40 @@ const GA4GTMAssistant = () => {
     setExpandedSections(newExpanded);
   };
 
+  // Real compliance score calculation
   const getComplianceScore = () => {
     if (!ga4Audit) return 0;
     
     let score = 0;
     const total = 8;
     
-    // Property Configuration
-    if (ga4Audit.property.timeZone && ga4Audit.property.currencyCode) score += 1;
+    // Property Configuration (2 points)
+    if (ga4Audit.property.timeZone) score += 1;
+    if (ga4Audit.property.currencyCode) score += 1;
     
-    // Data Retention  
+    // Data Retention (1 point)
     if (ga4Audit.dataRetention.eventDataRetention === "FOURTEEN_MONTHS") score += 1;
     
-    // Enhanced Measurement
+    // Enhanced Measurement (1 point)
     if (ga4Audit.enhancedMeasurement.length > 0) score += 1;
     
-    // Key Events
+    // Key Events (1 point)
     if (ga4Audit.keyEvents.length >= 1) score += 1;
     
-    // Custom Definitions
+    // Custom Definitions (1 point)
     if (ga4Audit.customDimensions.length > 0) score += 1;
     
-    // Google Ads Integration
+    // Google Ads Integration (1 point)
     if (ga4Audit.googleAdsLinks.length > 0) score += 1;
     
-    // Search Console
+    // Search Console (1 point)
     if (ga4Audit.searchConsoleDataStatus.isLinked) score += 1;
-    
-    // Attribution Model
-    if (ga4Audit.attribution.reportingAttributionModel) score += 1;
     
     return Math.round((score / total) * 100);
   };
 
-  const _getEnhancedMeasurementDetails = () => {
+  // Real enhanced measurement analysis
+  const getEnhancedMeasurementDetails = () => {
     if (!ga4Audit || ga4Audit.enhancedMeasurement.length === 0) return '';
     
     const stream = ga4Audit.enhancedMeasurement[0];
@@ -352,7 +422,6 @@ const GA4GTMAssistant = () => {
     
     let details = `📊 **Enhanced Measurement Events on ${stream.streamName}:**\n\n`;
     
-    // Track enabled events and missing dimensions
     const enabledEvents = [];
     const missingDimensions = [];
     const warnings = [];
@@ -370,7 +439,7 @@ const GA4GTMAssistant = () => {
     
     if (settings.siteSearchEnabled) {
       enabledEvents.push('✅ view_search_results - Tracks internal site searches');
-      warnings.push('⚠️ **Site Search Check Required**: Verify search query parameters are configured and search terms are being captured. Common parameters: q, search, query, keyword, s. If no search terms appear in reports, you may need to add custom query parameters.');
+      warnings.push('⚠️ **Site Search Check Required**: Verify search query parameters are configured and search terms are being captured.');
       if (!existingDimensions.includes('search_term')) {
         missingDimensions.push('search_term (for search query analysis)');
       }
@@ -426,6 +495,7 @@ const GA4GTMAssistant = () => {
     return details;
   };
 
+  // Real priority recommendations
   const getPriorityRecommendations = () => {
     if (!ga4Audit) return [];
     
@@ -481,9 +551,10 @@ const GA4GTMAssistant = () => {
       });
     }
 
-    return recommendations.slice(0, 4); // Show max 4 recommendations
+    return recommendations.slice(0, 4);
   };
 
+  // Status icon component
   const StatusIcon = ({ status }: { status: 'good' | 'warning' | 'critical' | 'missing' }) => {
     const icons = {
       good: <CheckCircle className="w-5 h-5 text-green-500" />,
@@ -494,6 +565,7 @@ const GA4GTMAssistant = () => {
     return icons[status];
   };
 
+  // Compliance progress component
   const ComplianceProgress = ({ score }: { score: number }) => {
     const getScoreColor = (score: number) => {
       if (score >= 90) return 'from-green-500 to-emerald-500';
@@ -530,7 +602,6 @@ const GA4GTMAssistant = () => {
           />
         </div>
         
-        {/* Priority Recommendations */}
         {recommendations.length > 0 && (
           <div className="space-y-3">
             <h4 className="text-sm font-semibold text-gray-300 mb-3">Priority Fixes:</h4>
@@ -556,6 +627,7 @@ const GA4GTMAssistant = () => {
     );
   };
 
+  // Build fundamental sections with real data
   const fundamentalSections = [
     {
       id: 'property-config',
@@ -691,184 +763,24 @@ const GA4GTMAssistant = () => {
 
   const score = getComplianceScore();
 
-  const _GA4Connection = () => {
-    if (oauthLoading) {
-      return (
-        <div className="bg-black/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-orange-500/30 p-8">
-          <div className="animate-pulse">
-            <div className="h-4 bg-gray-700 rounded-xl w-1/4 mb-6"></div>
-            <div className="h-8 bg-gray-700 rounded-xl w-1/2"></div>
-          </div>
-        </div>
-      );
-    }
-
-    if (isAuthenticated) {
-      return (
-        <div className="bg-black/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-orange-500/30 p-8 hover:shadow-3xl transition-all duration-300">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg shadow-orange-500/25">
-                <CheckCircle className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white">GA4 Account Connected 💪</h3>
-                <p className="text-gray-400">{userEmail}</p>
-              </div>
-            </div>
-            <button
-              onClick={logout}
-              className="px-4 py-2 border border-gray-600 text-gray-300 rounded-xl hover:bg-gray-800 hover:border-gray-500 transition-all duration-200 text-sm group"
-            >
-              <LogOut className="w-4 h-4 group-hover:rotate-12 transition-transform duration-200" />
-            </button>
-          </div>
-
-          <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/30 rounded-xl p-6 mb-6 backdrop-blur-sm">
-            <h4 className="font-bold text-white mb-3 flex items-center">
-              <Star className="w-5 h-5 mr-2 text-orange-400" />
-              Beast-Level API Access
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {[
-                'Google Analytics 4 (full read access)',
-                'Custom dimensions & metrics API',
-                'Enhanced measurement settings',
-                'Event create rules detection',
-                'Search Console integration check'
-              ].map((feature, index) => (
-                <div key={index} className="flex items-center text-sm text-gray-300">
-                  <CheckCircle className="w-4 h-4 mr-2 text-orange-400" />
-                  {feature}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {ga4Properties.length > 0 && (
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-300 mb-3">
-                Select GA4 Property:
-              </label>
-              <select
-                value={selectedProperty}
-                onChange={(e) => setSelectedProperty(e.target.value)}
-                className="w-full border border-gray-600 bg-black/50 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
-              >
-                <option value="">Choose a property...</option>
-                {ga4Properties.map((property) => (
-                  <option key={property.propertyId} value={property.propertyId}>
-                    {property.displayName} ({property.propertyId}) {property.accountName && `- ${property.accountName}`}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <div className="flex space-x-4">
-            {ga4Properties.length === 0 ? (
-              <button
-                onClick={fetchGA4Properties}
-                disabled={isAnalyzing}
-                className="flex-1 bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-3 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-bold uppercase tracking-wide disabled:opacity-50 shadow-lg shadow-orange-600/25 transform hover:scale-105"
-              >
-                {isAnalyzing ? 'Loading Properties...' : 'Load GA4 Properties'}
-              </button>
-            ) : (
-              <button
-                onClick={runGA4Audit}
-                disabled={!selectedProperty || isAnalyzing}
-                className="flex-1 bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-3 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-bold uppercase tracking-wide disabled:opacity-50 shadow-lg shadow-orange-600/25 transform hover:scale-105"
-              >
-                {isAnalyzing ? 'Running Configuration Audit...' : 'Run GA4 Configuration Audit'}
-              </button>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
-        <div className="text-center">
-          <div className="w-20 h-20 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-orange-500/25">
-            <BarChart3 className="w-10 h-10 text-white" />
-          </div>
-          <h3 className="text-2xl font-bold text-white mb-3">Connect Your GA4 Account</h3>
-          <p className="text-gray-300 mb-8 text-lg">
-            Get a complete 30-point GA4 configuration audit that reveals data retention disasters, 
-            attribution model problems, and integration failures you didn't know existed.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 text-left">
-            <div className="space-y-4">
-              <h4 className="font-bold text-white flex items-center">
-                <Sparkles className="w-5 h-5 mr-2 text-orange-400" />
-                Advanced Analysis
-              </h4>
-              <ul className="space-y-2 text-gray-400">
-                <li className="flex items-center">
-                  <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
-                  Dimensions & metrics setup
-                </li>
-                <li className="flex items-center">
-                  <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
-                  Uncover custom events
-                </li>
-                <li className="flex items-center">
-                  <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
-                  Enhanced measurement configuration
-                </li>
-                <li className="flex items-center">
-                  <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
-                  Measurement protocol secrets
-                </li>
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <h4 className="font-bold text-white flex items-center">
-                <Star className="w-5 h-5 mr-2 text-orange-400" />
-                Beast Insights
-              </h4>
-              <ul className="space-y-2 text-gray-400">
-                <li className="flex items-center">
-                  <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
-                  Missing dimension warnings
-                </li>
-                <li className="flex items-center">
-                  <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
-                  Configuration quality alerts
-                </li>
-                <li className="flex items-center">
-                  <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
-                  Data retention optimization
-                </li>
-                <li className="flex items-center">
-                  <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
-                  Integration status verification
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <button
-            onClick={login}
-            className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-10 py-4 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-bold uppercase tracking-wide text-lg shadow-lg shadow-orange-600/25 transform hover:scale-105"
-          >
-            Audit My GA4 Setup
-          </button>
-          
-          <div className="flex items-center justify-center space-x-2 mt-6 text-sm text-gray-400">
-            <Shield className="w-4 h-4" />
-            <span>Secure OAuth - read-only access - we never store passwords</span>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-black text-white">
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/50 rounded-xl p-4 mx-4 mt-4">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="w-5 h-5 text-red-400" />
+            <span className="text-red-300">{error}</span>
+            <button 
+              onClick={() => setError(null)}
+              className="ml-auto text-red-400 hover:text-red-300"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-black/90 backdrop-blur-xl border-b border-orange-500/30 shadow-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -893,6 +805,7 @@ const GA4GTMAssistant = () => {
           <nav className="-mb-px flex space-x-8">
             {[
               { id: 'audit', label: 'Analytics Audit', icon: Search },
+              { id: 'website', label: 'Website Analysis', icon: BarChart3 },
               { id: 'chat', label: 'Beast Assistant', icon: Send },
               { id: 'implement', label: 'Code Generator', icon: Code },
               { id: 'docs', label: 'The Playbook', icon: BookOpen }
@@ -935,6 +848,35 @@ const GA4GTMAssistant = () => {
               </p>
             </div>
 
+            {/* OAuth Connection Component */}
+            {!isAuthenticated && (
+              <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-orange-500/25">
+                    <BarChart3 className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-3">Connect Your GA4 Account</h3>
+                  <p className="text-gray-300 mb-8 text-lg">
+                    Get a complete 30-point GA4 configuration audit that reveals data retention disasters, 
+                    attribution model problems, and integration failures you didn't know existed.
+                  </p>
+                  
+                  <button
+                    onClick={login}
+                    disabled={oauthLoading}
+                    className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-10 py-4 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-bold uppercase tracking-wide text-lg shadow-lg shadow-orange-600/25 transform hover:scale-105 disabled:opacity-50"
+                  >
+                    {oauthLoading ? 'Connecting...' : 'Audit My GA4 Setup'}
+                  </button>
+                  
+                  <div className="flex items-center justify-center space-x-2 mt-6 text-sm text-gray-400">
+                    <Shield className="w-4 h-4" />
+                    <span>Secure OAuth - read-only access - we never store passwords</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Connected Account Status */}
             {isAuthenticated && (
               <div className="bg-black/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-orange-500/30 p-8">
@@ -948,7 +890,10 @@ const GA4GTMAssistant = () => {
                       <p className="text-gray-400">{userEmail}</p>
                     </div>
                   </div>
-                  <button className="px-4 py-2 border border-gray-600 text-gray-300 rounded-xl hover:bg-gray-800 hover:border-gray-500 transition-all duration-200 text-sm group">
+                  <button
+                    onClick={logout}
+                    className="px-4 py-2 border border-gray-600 text-gray-300 rounded-xl hover:bg-gray-800 hover:border-gray-500 transition-all duration-200 text-sm group"
+                  >
                     <LogOut className="w-4 h-4 group-hover:rotate-12 transition-transform duration-200" />
                   </button>
                 </div>
@@ -995,33 +940,6 @@ const GA4GTMAssistant = () => {
               </div>
             )}
 
-            {!isAuthenticated && (
-              <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-orange-500/25">
-                    <BarChart3 className="w-10 h-10 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-3">Connect Your GA4 Account</h3>
-                  <p className="text-gray-300 mb-8 text-lg">
-                    Get a complete 30-point GA4 configuration audit that reveals data retention disasters, 
-                    attribution model problems, and integration failures you didn't know existed.
-                  </p>
-                  
-                  <button
-                    onClick={login}
-                    className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-10 py-4 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-bold uppercase tracking-wide text-lg shadow-lg shadow-orange-600/25 transform hover:scale-105"
-                  >
-                    Audit My GA4 Setup
-                  </button>
-                  
-                  <div className="flex items-center justify-center space-x-2 mt-6 text-sm text-gray-400">
-                    <Shield className="w-4 h-4" />
-                    <span>Secure OAuth - read-only access - we never store passwords</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* GA4 Analysis Results */}
             {ga4Audit && (
               <>
@@ -1029,7 +947,7 @@ const GA4GTMAssistant = () => {
                 <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
                   <h4 className="text-xl font-bold text-white mb-6 flex items-center">
                     <BarChart3 className="w-6 h-6 mr-3 text-orange-400" />
-                    Property Overview
+                    Property Overview: {ga4Audit.property.displayName}
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
@@ -1212,6 +1130,11 @@ const GA4GTMAssistant = () => {
                             + {ga4Audit.customDimensions.length - 5} more dimensions configured
                           </div>
                         )}
+                        {ga4Audit.customDimensions.length === 0 && (
+                          <div className="text-sm text-gray-400 text-center py-8 bg-black/30 rounded-lg border border-gray-700/50">
+                            No custom dimensions configured yet. Consider adding dimensions for user types, content categories, or campaign data.
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -1239,6 +1162,11 @@ const GA4GTMAssistant = () => {
                               )}
                             </div>
                           ))}
+                          {ga4Audit.customMetrics.length === 0 && (
+                            <div className="text-sm text-gray-400 text-center py-8 bg-black/30 rounded-lg border border-gray-700/50">
+                              No custom metrics configured yet. Consider adding metrics for engagement scores, completion rates, or business KPIs.
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1249,34 +1177,226 @@ const GA4GTMAssistant = () => {
           </div>
         )}
 
-        {/* Other tabs remain the same but with proper capitalization */}
-        {activeTab === 'chat' && (
-          <div className="bg-black/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-orange-500/30 p-8">
-            <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-              <Send className="w-7 h-7 mr-3 text-orange-400" />
-              Beast Analytics Assistant
-            </h2>
-            <p className="text-gray-400">Chat functionality coming soon...</p>
+        {/* Website Analysis Tab */}
+        {activeTab === 'website' && (
+          <div className="space-y-12">
+            <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
+              <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+                <BarChart3 className="w-7 h-7 mr-3 text-orange-400" />
+                Website Analytics Analysis
+              </h2>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-gray-300 mb-3">
+                  Enter Website URL:
+                </label>
+                <div className="flex space-x-4">
+                  <input
+                    type="url"
+                    value={websiteUrl}
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    placeholder="https://example.com"
+                    className="flex-1 border border-gray-600 bg-black/50 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
+                  />
+                  <button
+                    onClick={analyzeWebsite}
+                    disabled={!websiteUrl.trim() || isAnalyzing}
+                    className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-3 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-bold disabled:opacity-50"
+                  >
+                    {isAnalyzing ? 'Analyzing...' : 'Analyze Website'}
+                  </button>
+                </div>
+              </div>
+
+              {websiteAnalysis && (
+                <div className="space-y-6">
+                  <div className="bg-black/50 rounded-xl p-6 border border-gray-700/50">
+                    <h3 className="text-lg font-bold text-white mb-4">Analysis Results for {websiteAnalysis.domain}</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <h4 className="font-semibold text-white">GTM Setup</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            {websiteAnalysis.currentSetup.gtmInstalled ? 
+                              <CheckCircle className="w-5 h-5 text-green-500" /> : 
+                              <AlertTriangle className="w-5 h-5 text-red-500" />
+                            }
+                            <span className="text-gray-300">
+                              GTM: {websiteAnalysis.currentSetup.gtmInstalled ? 'Detected' : 'Not Found'}
+                            </span>
+                          </div>
+                          {websiteAnalysis.gtmContainers.length > 0 && (
+                            <div className="ml-7 text-sm text-gray-400">
+                              Containers: {websiteAnalysis.gtmContainers.join(', ')}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <h4 className="font-semibold text-white">GA4 Setup</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            {websiteAnalysis.currentSetup.ga4Connected ? 
+                              <CheckCircle className="w-5 h-5 text-green-500" /> : 
+                              <AlertTriangle className="w-5 h-5 text-red-500" />
+                            }
+                            <span className="text-gray-300">
+                              GA4: {websiteAnalysis.currentSetup.ga4Connected ? 'Detected' : 'Not Found'}
+                            </span>
+                          </div>
+                          {websiteAnalysis.ga4Properties.length > 0 && (
+                            <div className="ml-7 text-sm text-gray-400">
+                              Properties: {websiteAnalysis.ga4Properties.join(', ')}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {websiteAnalysis.recommendations.length > 0 && (
+                      <div className="mt-6">
+                        <h4 className="font-semibold text-white mb-3">Recommendations</h4>
+                        <ul className="space-y-2">
+                          {websiteAnalysis.recommendations.slice(0, 5).map((rec, index) => (
+                            <li key={index} className="flex items-start space-x-2">
+                              <ArrowUp className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                              <span className="text-gray-300 text-sm">{rec}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
+        {/* Chat Tab */}
+        {activeTab === 'chat' && (
+          <div className="space-y-8">
+            <div className="bg-black/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-orange-500/30 p-8">
+              <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+                <Send className="w-7 h-7 mr-3 text-orange-400" />
+                Beast Analytics Assistant
+              </h2>
+              
+              <div className="space-y-6">
+                <div className="h-96 bg-black/50 rounded-xl p-4 border border-gray-700/50 overflow-y-auto">
+                  {messages.map((msg, index) => (
+                    <div key={index} className={`mb-4 ${msg.type === 'user' ? 'text-right' : 'text-left'}`}>
+                      <div className={`inline-block max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                        msg.type === 'user' 
+                          ? 'bg-orange-600 text-white' 
+                          : 'bg-gray-700 text-gray-100'
+                      }`}>
+                        <p className="text-sm">{msg.content}</p>
+                        {msg.code && (
+                          <pre className="mt-2 p-2 bg-black/50 rounded text-xs overflow-x-auto">
+                            <code>{msg.code}</code>
+                          </pre>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="flex space-x-4">
+                  <input
+                    type="text"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder="Ask about GA4 setup, tracking, or custom events..."
+                    className="flex-1 border border-gray-600 bg-black/50 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  />
+                  <button
+                    onClick={handleSendMessage}
+                    className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-3 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200"
+                  >
+                    <Send className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Code Generator Tab */}
         {activeTab === 'implement' && (
           <div className="bg-black/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-orange-500/30 p-8">
             <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
               <Code className="w-7 h-7 mr-3 text-orange-400" />
               GA4 Code Generator
             </h2>
-            <p className="text-gray-400">Code generation tools coming soon...</p>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-300 mb-3">
+                  Describe the action you want to track:
+                </label>
+                <input
+                  type="text"
+                  value={action}
+                  onChange={(e) => setAction(e.target.value)}
+                  placeholder="e.g., button click, form submission, video play"
+                  className="w-full border border-gray-600 bg-black/50 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+              </div>
+              
+              <button
+                onClick={generateTrackingCode}
+                className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-3 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-bold"
+              >
+                Generate Tracking Code
+              </button>
+              
+              <div className="h-64 bg-black/50 rounded-xl p-4 border border-gray-700/50 overflow-y-auto">
+                {messages.filter(m => m.code).map((msg, index) => (
+                  <div key={index} className="mb-4">
+                    <p className="text-gray-300 mb-2">{msg.content}</p>
+                    <pre className="p-4 bg-black/70 rounded-lg text-sm overflow-x-auto">
+                      <code className="text-green-400">{msg.code}</code>
+                    </pre>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
+        {/* Docs Tab */}
         {activeTab === 'docs' && (
           <div className="bg-black/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-orange-500/30 p-8">
             <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
               <BookOpen className="w-7 h-7 mr-3 text-orange-400" />
               The Beast Playbook
             </h2>
-            <p className="text-gray-400">Documentation coming soon...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-white">Quick Start Guide</h3>
+                <ul className="space-y-2 text-gray-300">
+                  <li>• Connect your GA4 account for a complete audit</li>
+                  <li>• Review compliance score and priority fixes</li>
+                  <li>• Configure custom dimensions and metrics</li>
+                  <li>• Set up key events for conversion tracking</li>
+                  <li>• Link Google Ads and Search Console</li>
+                </ul>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-white">Best Practices</h3>
+                <ul className="space-y-2 text-gray-300">
+                  <li>• Set data retention to 14 months</li>
+                  <li>• Use data-driven attribution model</li>
+                  <li>• Enable enhanced measurement</li>
+                  <li>• Register custom parameters as dimensions</li>
+                  <li>• Implement proper event naming conventions</li>
+                </ul>
+              </div>
+            </div>
           </div>
         )}
       </div>
