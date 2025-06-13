@@ -484,39 +484,6 @@ const GA4GTMAssistant = () => {
     return recommendations.slice(0, 4); // Show max 4 recommendations
   };
 
-  const getComplianceScore = () => {
-    if (!ga4Audit) return 0;
-    
-    let score = 0;
-    let total = 8;
-    
-    // Property Configuration
-    if (ga4Audit.property.timeZone && ga4Audit.property.currencyCode) score += 1;
-    
-    // Data Retention  
-    if (ga4Audit.dataRetention.eventDataRetention === "FOURTEEN_MONTHS") score += 1;
-    
-    // Enhanced Measurement
-    if (ga4Audit.enhancedMeasurement.length > 0) score += 1;
-    
-    // Key Events
-    if (ga4Audit.keyEvents.length >= 1) score += 1;
-    
-    // Custom Definitions
-    if (ga4Audit.customDimensions.length > 0) score += 1;
-    
-    // Google Ads Integration
-    if (ga4Audit.googleAdsLinks.length > 0) score += 1;
-    
-    // Search Console
-    if (ga4Audit.searchConsoleDataStatus.isLinked) score += 1;
-    
-    // Attribution Model
-    if (ga4Audit.attribution.reportingAttributionModel) score += 1;
-    
-    return Math.round((score / total) * 100);
-  };
-
   const StatusIcon = ({ status }: { status: 'good' | 'warning' | 'critical' | 'missing' }) => {
     const icons = {
       good: <CheckCircle className="w-5 h-5 text-green-500" />,
