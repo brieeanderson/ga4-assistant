@@ -4,14 +4,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Send, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, LogOut, 
   AlertTriangle, Info, TrendingUp, Shield, Database, Settings, Sparkles, 
-  Star, ArrowUp, Calendar, DollarSign, Clock, Users, ChevronRight, ChevronDown, Link
+  Star, ArrowUp, Calendar, DollarSign, Clock, ChevronRight, ChevronDown, Link
 } from 'lucide-react';
 
 // Mock OAuth hook functionality for demonstration
 const useOAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, _setIsLoading] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
 
   useEffect(() => {
@@ -187,8 +187,8 @@ const GA4GTMAssistant = () => {
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [ga4Audit, setGA4Audit] = useState<GA4Audit | null>(null);
   const [message, setMessage] = useState('');
-  const [action, setAction] = useState('');
-  const [messages, setMessages] = useState<Message[]>([
+  const [action, _setAction] = useState('');
+  const [_messages, setMessages] = useState<Message[]>([
     {
       type: 'assistant',
       content: "Hey there! 👋 I'm your GA4 & GTM specialist. Ready to make your analytics WORK? Let's dive in!",
@@ -253,7 +253,7 @@ const GA4GTMAssistant = () => {
     }
   };
 
-  const handleSendMessage = () => {
+  const _handleSendMessage = () => {
     if (!message.trim()) return;
     
     const newMessage: Message = {
@@ -281,7 +281,7 @@ const GA4GTMAssistant = () => {
     }, 1000);
   };
 
-  const generateTrackingCode = () => {
+  const _generateTrackingCode = () => {
     if (!action.trim()) return;
     
     const eventName = action.toLowerCase().replace(/\s+/g, '_');
@@ -310,11 +310,11 @@ const GA4GTMAssistant = () => {
     setExpandedSections(newExpanded);
   };
 
-  const score = getComplianceScore();
-
   const getComplianceScore = () => {
+    if (!ga4Audit) return 0;
+    
     let score = 0;
-    let total = 8;
+    const total = 8;
     
     // Property Configuration
     if (ga4Audit.property.timeZone && ga4Audit.property.currencyCode) score += 1;
@@ -343,7 +343,7 @@ const GA4GTMAssistant = () => {
     return Math.round((score / total) * 100);
   };
 
-  const getEnhancedMeasurementDetails = () => {
+  const _getEnhancedMeasurementDetails = () => {
     if (!ga4Audit || ga4Audit.enhancedMeasurement.length === 0) return '';
     
     const stream = ga4Audit.enhancedMeasurement[0];
@@ -562,8 +562,8 @@ const GA4GTMAssistant = () => {
       title: 'Property Configuration',
       icon: Settings,
       description: 'Core property settings that affect all your data',
-      criticalIssues: !ga4Audit.property.timeZone || ga4Audit.dataRetention.eventDataRetention !== 'FOURTEEN_MONTHS',
-      items: [
+      criticalIssues: ga4Audit ? (!ga4Audit.property.timeZone || ga4Audit.dataRetention.eventDataRetention !== 'FOURTEEN_MONTHS') : false,
+      items: ga4Audit ? [
         {
           name: 'Timezone Configuration',
           status: ga4Audit.property.timeZone ? 'good' : 'critical',
@@ -596,7 +596,7 @@ const GA4GTMAssistant = () => {
             'URGENT: Change to 14 months in Admin > Data Settings > Data Retention immediately to stop data loss',
           details: 'Data retention affects Explorations, custom reports, and historical analysis. The 2-month default is inadequate for most businesses and causes permanent data loss.'
         }
-      ]
+      ] : []
     },
     {
       id: 'custom-definitions',
@@ -604,7 +604,7 @@ const GA4GTMAssistant = () => {
       icon: Database,
       description: 'Your business-specific tracking setup',
       criticalIssues: false,
-      items: [
+      items: ga4Audit ? [
         {
           name: 'Custom Dimensions Setup',
           status: ga4Audit.customDimensions.length > 0 ? 'good' : 'missing', 
@@ -627,15 +627,15 @@ const GA4GTMAssistant = () => {
             `Current metrics: ${ga4Audit.customMetrics.map(m => m.displayName).join(', ')}` :
             'Custom metrics help measure business-specific performance indicators'
         }
-      ]
+      ] : []
     },
     {
       id: 'key-events',
       title: 'Key Events (Conversions)',
       icon: TrendingUp,
       description: 'Your business goals and conversion tracking',
-      criticalIssues: ga4Audit.keyEvents.length === 0,
-      items: [
+      criticalIssues: ga4Audit ? ga4Audit.keyEvents.length === 0 : false,
+      items: ga4Audit ? [
         {
           name: 'Key Events Configuration',
           status: ga4Audit.keyEvents.length > 0 ? 'good' : 'critical',
@@ -650,7 +650,7 @@ const GA4GTMAssistant = () => {
             `Current key events: ${ga4Audit.keyEvents.map(e => e.eventName).join(', ')}` :
             'Key events are essential for measuring ROI and optimizing marketing spend'
         }
-      ]
+      ] : []
     },
     {
       id: 'integrations',
@@ -658,7 +658,7 @@ const GA4GTMAssistant = () => {
       icon: Link,
       description: 'Connections with other Google marketing tools',
       criticalIssues: false,
-      items: [
+      items: ga4Audit ? [
         {
           name: 'Google Ads Connection',
           status: ga4Audit.googleAdsLinks.length > 0 ? 'good' : 'warning',
@@ -685,11 +685,13 @@ const GA4GTMAssistant = () => {
             'Connect Search Console to understand organic search performance and optimize content',
           details: 'Search Console integration shows search queries, positions, clicks, and impressions for organic traffic'
         }
-      ]
+      ] : []
     }
   ];
 
-  const GA4Connection = () => {
+  const score = getComplianceScore();
+
+  const _GA4Connection = () => {
     if (oauthLoading) {
       return (
         <div className="bg-black/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-orange-500/30 p-8">
@@ -950,349 +952,300 @@ const GA4GTMAssistant = () => {
                     <LogOut className="w-4 h-4 group-hover:rotate-12 transition-transform duration-200" />
                   </button>
                 </div>
+
+                {ga4Properties.length > 0 && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-bold text-gray-300 mb-3">
+                      Select GA4 Property:
+                    </label>
+                    <select
+                      value={selectedProperty}
+                      onChange={(e) => setSelectedProperty(e.target.value)}
+                      className="w-full border border-gray-600 bg-black/50 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
+                    >
+                      <option value="">Choose a property...</option>
+                      {ga4Properties.map((property) => (
+                        <option key={property.propertyId} value={property.propertyId}>
+                          {property.displayName} ({property.propertyId}) {property.accountName && `- ${property.accountName}`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div className="flex space-x-4">
+                  {ga4Properties.length === 0 ? (
+                    <button
+                      onClick={fetchGA4Properties}
+                      disabled={isAnalyzing}
+                      className="flex-1 bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-3 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-bold uppercase tracking-wide disabled:opacity-50 shadow-lg shadow-orange-600/25 transform hover:scale-105"
+                    >
+                      {isAnalyzing ? 'Loading Properties...' : 'Load GA4 Properties'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={runGA4Audit}
+                      disabled={!selectedProperty || isAnalyzing}
+                      className="flex-1 bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-3 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-bold uppercase tracking-wide disabled:opacity-50 shadow-lg shadow-orange-600/25 transform hover:scale-105"
+                    >
+                      {isAnalyzing ? 'Running Configuration Audit...' : 'Run GA4 Configuration Audit'}
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* GA4 Fundamentals Analysis - NOW FIRST */}
-            <div className="space-y-6">
-              <h3 className="text-3xl font-bold text-white mb-6 flex items-center">
-                <Settings className="w-8 h-8 mr-3 text-orange-400" />
-                GA4 Fundamentals Analysis
-              </h3>
-
-              {/* Property Overview Header */}
+            {!isAuthenticated && (
               <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
-                <h4 className="text-xl font-bold text-white mb-6 flex items-center">
-                  <BarChart3 className="w-6 h-6 mr-3 text-orange-400" />
-                  Property Overview
-                </h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
-                    <Calendar className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-                    <div className="text-lg font-bold text-white">{ga4Audit.property.timeZone || 'Not Set'}</div>
-                    <div className="text-xs text-gray-400">Timezone</div>
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-orange-500/25">
+                    <BarChart3 className="w-10 h-10 text-white" />
                   </div>
-                  <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
-                    <DollarSign className="w-6 h-6 text-green-400 mx-auto mb-2" />
-                    <div className="text-lg font-bold text-white">{ga4Audit.property.currencyCode || 'USD'}</div>
-                    <div className="text-xs text-gray-400">Currency</div>
-                  </div>
-                  <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
-                    <Shield className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-                    <div className="text-lg font-bold text-white">{ga4Audit.property.industryCategory || 'Not Set'}</div>
-                    <div className="text-xs text-gray-400">Industry</div>
-                  </div>
-                  <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
-                    <Database className="w-6 h-6 text-orange-400 mx-auto mb-2" />
-                    <div className="text-lg font-bold text-white">{ga4Audit.dataStreams.length}</div>
-                    <div className="text-xs text-gray-400">Data Streams</div>
-                  </div>
-                </div>
-                
-                {/* Data Streams List */}
-                <div className="mt-6">
-                  <h5 className="text-sm font-semibold text-gray-300 mb-3">Active Data Streams:</h5>
-                  <div className="space-y-2">
-                    {ga4Audit.dataStreams.map((stream, index) => (
-                      <div key={index} className="bg-black/30 rounded-lg p-3 border border-gray-700/50 flex items-center justify-between">
-                        <div>
-                          <span className="text-white font-medium">{stream.displayName}</span>
-                          {stream.webStreamData && (
-                            <span className="text-gray-400 text-sm ml-2">({stream.webStreamData.defaultUri})</span>
-                          )}
-                        </div>
-                        <span className="text-xs bg-gray-600 text-gray-300 px-2 py-1 rounded">
-                          {stream.type.replace('_DATA_STREAM', '')}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Fundamentals Compliance Overview - MOVED HERE */}
-              <div className="mt-8">
-                <ComplianceProgress score={score} />
-              </div>
-              
-              {/* Fundamentals Sections */}
-              {fundamentalSections.map((section) => (
-                <div key={section.id} className="bg-black/50 rounded-xl border border-gray-700/50 overflow-hidden">
+                  <h3 className="text-2xl font-bold text-white mb-3">Connect Your GA4 Account</h3>
+                  <p className="text-gray-300 mb-8 text-lg">
+                    Get a complete 30-point GA4 configuration audit that reveals data retention disasters, 
+                    attribution model problems, and integration failures you didn't know existed.
+                  </p>
+                  
                   <button
-                    onClick={() => toggleSection(section.id)}
-                    className="w-full p-6 text-left hover:bg-black/70 transition-colors duration-200"
+                    onClick={login}
+                    className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-10 py-4 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-bold uppercase tracking-wide text-lg shadow-lg shadow-orange-600/25 transform hover:scale-105"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="relative">
-                          <section.icon className="w-6 h-6 text-orange-400" />
-                          {section.criticalIssues && (
-                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="text-lg font-bold text-white">{section.title}</h4>
-                          <p className="text-sm text-gray-400">{section.description}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <div className="flex space-x-1">
-                          {section.items.map((item, index) => (
-                            <StatusIcon key={index} status={item.status} />
-                          ))}
-                        </div>
-                        {expandedSections.has(section.id) ? 
-                          <ChevronDown className="w-5 h-5 text-gray-400" /> : 
-                          <ChevronRight className="w-5 h-5 text-gray-400" />
-                        }
-                      </div>
-                    </div>
+                    Audit My GA4 Setup
                   </button>
                   
-                  {expandedSections.has(section.id) && (
-                    <div className="px-6 pb-6 space-y-4">
-                      {section.items.map((item, index) => (
-                        <div key={index} className="bg-black/30 rounded-lg p-6 border border-gray-600/50">
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center space-x-3">
-                              <StatusIcon status={item.status} />
-                              <h5 className="font-semibold text-white text-lg">{item.name}</h5>
-                            </div>
-                            <span className="text-sm font-medium text-gray-300 bg-gray-700/50 px-3 py-1 rounded-full">
-                              {item.value}
-                            </span>
-                          </div>
-                          <div className="space-y-4 ml-8">
-                            <div className="flex items-start space-x-3">
-                              <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                              <div>
-                                <p className="text-sm font-medium text-blue-300 mb-1">Data Quality Impact:</p>
-                                <p className="text-sm text-gray-300">{item.impact}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-start space-x-3">
-                              <TrendingUp className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                              <div>
-                                <p className="text-sm font-medium text-green-300 mb-1">Recommendation:</p>
-                                <p className="text-sm text-gray-400">{item.recommendation}</p>
-                              </div>
-                            </div>
-                            {item.details && (
-                              <div className="bg-black/50 rounded-lg p-4 border border-gray-700/30">
-                                <p className="text-xs text-gray-500 leading-relaxed">{item.details}</p>
-                              </div>
+                  <div className="flex items-center justify-center space-x-2 mt-6 text-sm text-gray-400">
+                    <Shield className="w-4 h-4" />
+                    <span>Secure OAuth - read-only access - we never store passwords</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* GA4 Analysis Results */}
+            {ga4Audit && (
+              <>
+                {/* Property Overview Header */}
+                <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
+                  <h4 className="text-xl font-bold text-white mb-6 flex items-center">
+                    <BarChart3 className="w-6 h-6 mr-3 text-orange-400" />
+                    Property Overview
+                  </h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
+                      <Calendar className="w-6 h-6 text-blue-400 mx-auto mb-2" />
+                      <div className="text-lg font-bold text-white">{ga4Audit.property.timeZone || 'Not Set'}</div>
+                      <div className="text-xs text-gray-400">Timezone</div>
+                    </div>
+                    <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
+                      <DollarSign className="w-6 h-6 text-green-400 mx-auto mb-2" />
+                      <div className="text-lg font-bold text-white">{ga4Audit.property.currencyCode || 'USD'}</div>
+                      <div className="text-xs text-gray-400">Currency</div>
+                    </div>
+                    <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
+                      <Shield className="w-6 h-6 text-purple-400 mx-auto mb-2" />
+                      <div className="text-lg font-bold text-white">{ga4Audit.property.industryCategory || 'Not Set'}</div>
+                      <div className="text-xs text-gray-400">Industry</div>
+                    </div>
+                    <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
+                      <Database className="w-6 h-6 text-orange-400 mx-auto mb-2" />
+                      <div className="text-lg font-bold text-white">{ga4Audit.dataStreams.length}</div>
+                      <div className="text-xs text-gray-400">Data Streams</div>
+                    </div>
+                  </div>
+                  
+                  {/* Data Streams List */}
+                  <div className="mt-6">
+                    <h5 className="text-sm font-semibold text-gray-300 mb-3">Active Data Streams:</h5>
+                    <div className="space-y-2">
+                      {ga4Audit.dataStreams.map((stream, index) => (
+                        <div key={index} className="bg-black/30 rounded-lg p-3 border border-gray-700/50 flex items-center justify-between">
+                          <div>
+                            <span className="text-white font-medium">{stream.displayName}</span>
+                            {stream.webStreamData && (
+                              <span className="text-gray-400 text-sm ml-2">({stream.webStreamData.defaultUri})</span>
                             )}
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Current Setup Details - REMOVED KEY EVENTS FROM HERE */}
-            <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
-              <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
-                <Database className="w-7 h-7 mr-3 text-orange-400" />
-                Your Current Custom Definitions
-              </h3>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Custom Dimensions */}
-                <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-white flex items-center">
-                    <Database className="w-5 h-5 mr-2 text-blue-400" />
-                    Custom Dimensions ({ga4Audit.customDimensions.length}/50)
-                  </h4>
-                  <div className="space-y-3">
-                    {ga4Audit.customDimensions.slice(0, 5).map((dim, index) => (
-                      <div key={index} className="bg-black/50 rounded-lg p-4 border border-gray-600/50">
-                        <div className="flex items-center justify-between mb-2">
-                          <h5 className="font-medium text-white">{dim.displayName}</h5>
-                          <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded">
-                            {dim.scope}
+                          <span className="text-xs bg-gray-600 text-gray-300 px-2 py-1 rounded">
+                            {stream.type.replace('_DATA_STREAM', '')}
                           </span>
                         </div>
-                        <div className="text-sm text-gray-400 mb-1">
-                          Parameter: <code className="bg-gray-800 px-1 rounded text-orange-300">{dim.parameterName}</code>
-                        </div>
-                        {dim.description && (
-                          <div className="text-xs text-gray-500">{dim.description}</div>
-                        )}
-                      </div>
-                    ))}
-                    {ga4Audit.customDimensions.length > 5 && (
-                      <div className="text-sm text-gray-400 text-center py-2">
-                        + {ga4Audit.customDimensions.length - 5} more dimensions configured
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Custom Metrics ONLY */}
-                <div className="space-y-6">
-                  {/* Custom Metrics */}
-                  <div>
-                    <h4 className="text-lg font-semibold text-white flex items-center mb-4">
-                      <BarChart3 className="w-5 h-5 mr-2 text-purple-400" />
-                      Custom Metrics ({ga4Audit.customMetrics.length}/50)
-                    </h4>
-                    <div className="space-y-3">
-                      {ga4Audit.customMetrics.map((metric, index) => (
-                        <div key={index} className="bg-black/50 rounded-lg p-4 border border-gray-600/50">
-                          <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-medium text-white">{metric.displayName}</h5>
-                            <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded">
-                              {metric.scope}
-                            </span>
-                          </div>
-                          <div className="text-sm text-gray-400 mb-1">
-                            Parameter: <code className="bg-gray-800 px-1 rounded text-orange-300">{metric.parameterName}</code>
-                          </div>
-                          {metric.description && (
-                            <div className="text-xs text-gray-500">{metric.description}</div>
-                          )}
-                        </div>
                       ))}
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Critical Issues Alert */}
-            {score < 70 && (
-              <div className="bg-gradient-to-r from-red-500/20 to-pink-500/20 border border-red-500/50 rounded-xl p-8">
-                <div className="flex items-start space-x-4">
-                  <AlertTriangle className="w-8 h-8 text-red-400 mt-1 flex-shrink-0" />
-                  <div>
-                    <h3 className="text-2xl font-bold text-red-400 mb-4">Critical GA4 Setup Issues Detected</h3>
-                    <p className="text-gray-300 mb-6 text-lg">
-                      Your GA4 setup has fundamental configuration problems that are affecting data quality and business insights. 
-                      These priority fixes will immediately improve your analytics reliability.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {ga4Audit.dataRetention.eventDataRetention !== 'FOURTEEN_MONTHS' && (
-                        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-                          <div className="flex items-center mb-2">
-                            <Clock className="w-5 h-5 text-red-400 mr-2" />
-                            <h4 className="font-bold text-red-300">Data Retention Crisis</h4>
-                          </div>
-                          <p className="text-sm text-red-200">
-                            You're deleting historical data after 2 months! Change to 14 months immediately to preserve business insights.
-                          </p>
-                        </div>
-                      )}
-                      {!ga4Audit.property.timeZone && (
-                        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-                          <div className="flex items-center mb-2">
-                            <Calendar className="w-5 h-5 text-red-400 mr-2" />
-                            <h4 className="font-bold text-red-300">Timezone Mismatch</h4>
-                          </div>
-                          <p className="text-sm text-red-200">
-                            Reports show Pacific Time instead of your business timezone, making daily analysis inaccurate.
-                          </p>
-                        </div>
-                      )}
-                      {ga4Audit.keyEvents.length === 0 && (
-                        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-                          <div className="flex items-center mb-2">
-                            <TrendingUp className="w-5 h-5 text-red-400 mr-2" />
-                            <h4 className="font-bold text-red-300">No Conversion Tracking</h4>
-                          </div>
-                          <p className="text-sm text-red-200">
-                            Without key events, you can't measure business success or optimize marketing campaigns.
-                          </p>
-                        </div>
-                      )}
+                {/* Fundamentals Compliance Overview */}
+                <ComplianceProgress score={score} />
+
+                {/* Critical Issues Alert */}
+                {score < 70 && (
+                  <div className="bg-gradient-to-r from-red-500/20 to-pink-500/20 border border-red-500/50 rounded-xl p-8">
+                    <div className="flex items-start space-x-4">
+                      <AlertTriangle className="w-8 h-8 text-red-400 mt-1 flex-shrink-0" />
+                      <div>
+                        <h3 className="text-2xl font-bold text-red-400 mb-4">Critical GA4 Setup Issues Detected</h3>
+                        <p className="text-gray-300 mb-6 text-lg">
+                          Your GA4 setup has fundamental configuration problems that are affecting data quality and business insights. 
+                          These priority fixes will immediately improve your analytics reliability.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
+                )}
 
-            {/* Fundamentals Sections */}
-            <div className="space-y-6">
-              <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
-                <Settings className="w-7 h-7 mr-3 text-orange-400" />
-                GA4 Fundamentals Analysis
-              </h3>
-              
-              {fundamentalSections.map((section) => (
-                <div key={section.id} className="bg-black/50 rounded-xl border border-gray-700/50 overflow-hidden">
-                  <button
-                    onClick={() => toggleSection(section.id)}
-                    className="w-full p-6 text-left hover:bg-black/70 transition-colors duration-200"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="relative">
-                          <section.icon className="w-6 h-6 text-orange-400" />
-                          {section.criticalIssues && (
-                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                          )}
+                {/* Fundamentals Sections */}
+                <div className="space-y-6">
+                  <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+                    <Settings className="w-7 h-7 mr-3 text-orange-400" />
+                    GA4 Fundamentals Analysis
+                  </h3>
+                  
+                  {fundamentalSections.map((section) => (
+                    <div key={section.id} className="bg-black/50 rounded-xl border border-gray-700/50 overflow-hidden">
+                      <button
+                        onClick={() => toggleSection(section.id)}
+                        className="w-full p-6 text-left hover:bg-black/70 transition-colors duration-200"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4">
+                            <div className="relative">
+                              <section.icon className="w-6 h-6 text-orange-400" />
+                              {section.criticalIssues && (
+                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                              )}
+                            </div>
+                            <div>
+                              <h4 className="text-lg font-bold text-white">{section.title}</h4>
+                              <p className="text-sm text-gray-400">{section.description}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <div className="flex space-x-1">
+                              {section.items.map((item, index) => (
+                                <StatusIcon key={index} status={item.status as 'good' | 'warning' | 'critical' | 'missing'} />
+                              ))}
+                            </div>
+                            {expandedSections.has(section.id) ? 
+                              <ChevronDown className="w-5 h-5 text-gray-400" /> : 
+                              <ChevronRight className="w-5 h-5 text-gray-400" />
+                            }
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="text-lg font-bold text-white">{section.title}</h4>
-                          <p className="text-sm text-gray-400">{section.description}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <div className="flex space-x-1">
+                      </button>
+                      
+                      {expandedSections.has(section.id) && (
+                        <div className="px-6 pb-6 space-y-4">
                           {section.items.map((item, index) => (
-                            <StatusIcon key={index} status={item.status} />
+                            <div key={index} className="bg-black/30 rounded-lg p-6 border border-gray-600/50">
+                              <div className="flex items-start justify-between mb-4">
+                                <div className="flex items-center space-x-3">
+                                  <StatusIcon status={item.status as 'good' | 'warning' | 'critical' | 'missing'} />
+                                  <h5 className="font-semibold text-white text-lg">{item.name}</h5>
+                                </div>
+                                <span className="text-sm font-medium text-gray-300 bg-gray-700/50 px-3 py-1 rounded-full">
+                                  {item.value}
+                                </span>
+                              </div>
+                              <div className="space-y-4 ml-8">
+                                <div className="flex items-start space-x-3">
+                                  <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                                  <div>
+                                    <p className="text-sm font-medium text-blue-300 mb-1">Data Quality Impact:</p>
+                                    <p className="text-sm text-gray-300">{item.impact}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-start space-x-3">
+                                  <TrendingUp className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                                  <div>
+                                    <p className="text-sm font-medium text-green-300 mb-1">Recommendation:</p>
+                                    <p className="text-sm text-gray-400">{item.recommendation}</p>
+                                  </div>
+                                </div>
+                                {item.details && (
+                                  <div className="bg-black/50 rounded-lg p-4 border border-gray-700/30">
+                                    <p className="text-xs text-gray-500 leading-relaxed">{item.details}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           ))}
                         </div>
-                        {expandedSections.has(section.id) ? 
-                          <ChevronDown className="w-5 h-5 text-gray-400" /> : 
-                          <ChevronRight className="w-5 h-5 text-gray-400" />
-                        }
-                      </div>
+                      )}
                     </div>
-                  </button>
+                  ))}
+                </div>
+
+                {/* Current Setup Details */}
+                <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
+                  <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+                    <Database className="w-7 h-7 mr-3 text-orange-400" />
+                    Your Current Custom Definitions
+                  </h3>
                   
-                  {expandedSections.has(section.id) && (
-                    <div className="px-6 pb-6 space-y-4">
-                      {section.items.map((item, index) => (
-                        <div key={index} className="bg-black/30 rounded-lg p-6 border border-gray-600/50">
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center space-x-3">
-                              <StatusIcon status={item.status} />
-                              <h5 className="font-semibold text-white text-lg">{item.name}</h5>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Custom Dimensions */}
+                    <div className="space-y-4">
+                      <h4 className="text-lg font-semibold text-white flex items-center">
+                        <Database className="w-5 h-5 mr-2 text-blue-400" />
+                        Custom Dimensions ({ga4Audit.customDimensions.length}/50)
+                      </h4>
+                      <div className="space-y-3">
+                        {ga4Audit.customDimensions.slice(0, 5).map((dim, index) => (
+                          <div key={index} className="bg-black/50 rounded-lg p-4 border border-gray-600/50">
+                            <div className="flex items-center justify-between mb-2">
+                              <h5 className="font-medium text-white">{dim.displayName}</h5>
+                              <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded">
+                                {dim.scope}
+                              </span>
                             </div>
-                            <span className="text-sm font-medium text-gray-300 bg-gray-700/50 px-3 py-1 rounded-full">
-                              {item.value}
-                            </span>
-                          </div>
-                          <div className="space-y-4 ml-8">
-                            <div className="flex items-start space-x-3">
-                              <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                              <div>
-                                <p className="text-sm font-medium text-blue-300 mb-1">Data Quality Impact:</p>
-                                <p className="text-sm text-gray-300">{item.impact}</p>
-                              </div>
+                            <div className="text-sm text-gray-400 mb-1">
+                              Parameter: <code className="bg-gray-800 px-1 rounded text-orange-300">{dim.parameterName}</code>
                             </div>
-                            <div className="flex items-start space-x-3">
-                              <TrendingUp className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                              <div>
-                                <p className="text-sm font-medium text-green-300 mb-1">Recommendation:</p>
-                                <p className="text-sm text-gray-400">{item.recommendation}</p>
-                              </div>
-                            </div>
-                            {item.details && (
-                              <div className="bg-black/50 rounded-lg p-4 border border-gray-700/30">
-                                <p className="text-xs text-gray-500 leading-relaxed">{item.details}</p>
-                              </div>
+                            {dim.description && (
+                              <div className="text-xs text-gray-500">{dim.description}</div>
                             )}
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                        {ga4Audit.customDimensions.length > 5 && (
+                          <div className="text-sm text-gray-400 text-center py-2">
+                            + {ga4Audit.customDimensions.length - 5} more dimensions configured
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+
+                    {/* Custom Metrics */}
+                    <div className="space-y-6">
+                      <div>
+                        <h4 className="text-lg font-semibold text-white flex items-center mb-4">
+                          <BarChart3 className="w-5 h-5 mr-2 text-purple-400" />
+                          Custom Metrics ({ga4Audit.customMetrics.length}/50)
+                        </h4>
+                        <div className="space-y-3">
+                          {ga4Audit.customMetrics.map((metric, index) => (
+                            <div key={index} className="bg-black/50 rounded-lg p-4 border border-gray-600/50">
+                              <div className="flex items-center justify-between mb-2">
+                                <h5 className="font-medium text-white">{metric.displayName}</h5>
+                                <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded">
+                                  {metric.scope}
+                                </span>
+                              </div>
+                              <div className="text-sm text-gray-400 mb-1">
+                                Parameter: <code className="bg-gray-800 px-1 rounded text-orange-300">{metric.parameterName}</code>
+                              </div>
+                              {metric.description && (
+                                <div className="text-xs text-gray-500">{metric.description}</div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </div>
         )}
 
