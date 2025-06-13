@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Send, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, LogOut, 
   AlertTriangle, Info, TrendingUp, Shield, Database, Settings, Sparkles, 
-  Star, ArrowUp, Calendar, DollarSign, Clock, ChevronRight, ChevronDown, Link
+  ArrowUp, Calendar, DollarSign, Clock, ChevronRight, ChevronDown, Link
 } from 'lucide-react';
 import { useOAuth } from '@/hooks/useOAuth'; // Import the REAL OAuth hook
 
@@ -412,8 +412,8 @@ dataLayer.push({
     return Math.round((score / total) * 100);
   };
 
-  // Real enhanced measurement analysis
-  const getEnhancedMeasurementDetails = () => {
+  // Real enhanced measurement analysis (currently unused but available for detailed analysis)
+  const _getEnhancedMeasurementDetails = () => {
     if (!ga4Audit || ga4Audit.enhancedMeasurement.length === 0) return '';
     
     const stream = ga4Audit.enhancedMeasurement[0];
