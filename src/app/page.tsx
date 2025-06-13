@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Send, Code, Zap, CheckCircle, BookOpen, BarChart3, Search, LogOut, 
@@ -5,71 +7,298 @@ import {
   Star, ArrowUp, Calendar, DollarSign, Clock, Users, ChevronRight, ChevronDown, Link
 } from 'lucide-react';
 
-// Mock GA4 audit data for demonstration
-const mockGA4Audit = {
-  property: {
-    displayName: "Example E-commerce Store",
-    timeZone: "America/New_York", 
-    currencyCode: "USD",
-    industryCategory: "RETAIL"
-  },
-  dataRetention: {
-    eventDataRetention: "TWO_MONTHS", // This will trigger critical warning
-    userDataRetention: "TWO_MONTHS"
-  },
-  customDimensions: [
-    { displayName: "User Type", parameterName: "user_type", scope: "USER", description: "Distinguishes between new and returning customers" },
-    { displayName: "Content Category", parameterName: "content_category", scope: "EVENT", description: "Tracks blog post and product categories" },
-    { displayName: "Video Current Time", parameterName: "video_current_time", scope: "EVENT", description: "Tracks video engagement timing" },
-    { displayName: "Product Color", parameterName: "product_color", scope: "ITEM", description: "E-commerce item attribute" },
-    { displayName: "Subscription Tier", parameterName: "subscription_tier", scope: "USER", description: "User subscription level" }
-  ],
-  customMetrics: [
-    { displayName: "Engagement Score", parameterName: "engagement_score", scope: "EVENT", unitOfMeasurement: "STANDARD", description: "Custom engagement calculation" },
-    { displayName: "Content Value", parameterName: "content_value", scope: "EVENT", unitOfMeasurement: "CURRENCY", description: "Estimated content monetary value" }
-  ],
-  keyEvents: [
-    { eventName: "purchase", createTime: "2024-01-15", countingMethod: "ONCE_PER_SESSION" },
-    { eventName: "sign_up", createTime: "2024-01-10", countingMethod: "ONCE_PER_EVENT" },
-    { eventName: "download_guide", createTime: "2024-02-01", countingMethod: "ONCE_PER_EVENT" }
-  ],
-  enhancedMeasurement: [{
-    streamName: "Web Data Stream",
-    settings: {
-      streamEnabled: true,
-      scrollsEnabled: true,
-      outboundClicksEnabled: true,
-      siteSearchEnabled: false,
-      videoEngagementEnabled: true,
-      fileDownloadsEnabled: true,
-      formInteractionsEnabled: false
+// Mock OAuth hook functionality for demonstration
+const useOAuth = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check for stored token
+    const token = typeof window !== 'undefined' ? localStorage.getItem('ga4_access_token') : null;
+    const email = typeof window !== 'undefined' ? localStorage.getItem('ga4_user_email') : null;
+    
+    if (token) {
+      setIsAuthenticated(true);
+      setAccessToken(token);
+      setUserEmail(email);
     }
-  }],
-  googleAdsLinks: [{ name: "Main Ads Account", createTime: "2024-01-01" }],
-  searchConsoleDataStatus: { 
-    isLinked: true, 
-    hasData: true, 
-    totalClicks: 1250, 
-    totalImpressions: 25000 
-  },
-  bigQueryLinks: [],
-  attribution: { 
-    reportingAttributionModel: "PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN",
-    acquisitionConversionEventLookbackWindow: "30_DAYS",
-    otherConversionEventLookbackWindow: "90_DAYS"
-  },
-  googleSignals: { state: "GOOGLE_SIGNALS_ENABLED" },
-  dataStreams: [
-    { displayName: "Web Data Stream", type: "WEB_DATA_STREAM", webStreamData: { defaultUri: "https://example.com" } }
-  ]
+  }, []);
+
+  const login = () => {
+    // Mock login - in real app this would redirect to OAuth
+    console.log('Would redirect to Google OAuth...');
+    // For demo purposes, simulate successful login
+    setTimeout(() => {
+      setIsAuthenticated(true);
+      setUserEmail('demo@example.com');
+      setAccessToken('demo_token');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ga4_access_token', 'demo_token');
+        localStorage.setItem('ga4_user_email', 'demo@example.com');
+      }
+    }, 1000);
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    setUserEmail(null);
+    setAccessToken(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('ga4_access_token');
+      localStorage.removeItem('ga4_user_email');
+    }
+  };
+
+  return {
+    isAuthenticated,
+    userEmail,
+    isLoading,
+    accessToken,
+    login,
+    logout
+  };
 };
+
+interface GA4Property {
+  name: string;
+  propertyId: string;
+  displayName: string;
+  timeZone?: string;
+  currencyCode?: string;
+  accountName?: string;
+  accountId?: string;
+}
+
+interface CustomDimension {
+  displayName: string;
+  parameterName: string;
+  scope: string;
+  description?: string;
+}
+
+interface CustomMetric {
+  displayName: string;
+  parameterName: string;
+  scope: string;
+  unitOfMeasurement: string;
+  description?: string;
+}
+
+interface EnhancedMeasurementData {
+  streamId: string;
+  streamName: string;
+  settings: {
+    streamEnabled: boolean;
+    scrollsEnabled?: boolean;
+    outboundClicksEnabled?: boolean;
+    siteSearchEnabled?: boolean;
+    videoEngagementEnabled?: boolean;
+    fileDownloadsEnabled?: boolean;
+    formInteractionsEnabled?: boolean;
+    pageChangesEnabled?: boolean;
+  };
+}
+
+interface GA4Audit {
+  property: {
+    displayName: string;
+    name: string;
+    timeZone?: string;
+    currencyCode?: string;
+    industryCategory?: string;
+  };
+  dataStreams: Array<{
+    displayName: string;
+    type: string;
+    name: string;
+    webStreamData?: {
+      defaultUri: string;
+    };
+  }>;
+  keyEvents: Array<{
+    eventName: string;
+    createTime: string;
+    countingMethod?: string;
+  }>;
+  customDimensions: CustomDimension[];
+  customMetrics: CustomMetric[];
+  enhancedMeasurement: EnhancedMeasurementData[];
+  measurementProtocolSecrets: Array<{
+    streamName: string;
+    secrets: Array<{ displayName: string }>;
+  }>;
+  eventCreateRules: Array<{
+    streamName: string;
+    rules: Array<{ displayName: string }>;
+  }>;
+  searchConsoleDataStatus: {
+    isLinked: boolean;
+    hasData: boolean;
+    lastDataDate?: string;
+    totalClicks: number;
+    totalImpressions: number;
+    linkDetails: Array<any>;
+  };
+  googleAdsLinks: Array<any>;
+  bigQueryLinks: Array<any>;
+  googleSignals: { state?: string };
+  dataRetention: { eventDataRetention?: string; userDataRetention?: string };
+  attribution: { 
+    reportingAttributionModel?: string;
+    acquisitionConversionEventLookbackWindow?: string;
+    otherConversionEventLookbackWindow?: string;
+  };
+  audit: {
+    propertySettings: { [key: string]: AuditItem };
+    dataCollection: { [key: string]: AuditItem };
+    customDefinitions: { [key: string]: AuditItem };
+    keyEvents: { [key: string]: AuditItem };
+    integrations: { [key: string]: AuditItem };
+  };
+  userInfo?: {
+    email: string;
+    name: string;
+  };
+}
+
+interface AuditItem {
+  status: string;
+  value: string;
+  recommendation: string;
+  details?: string;
+  quota?: string;
+  warnings?: string[];
+}
+
+interface Message {
+  type: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  code?: string;
+}
 
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('audit');
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['fundamentals-overview']));
-  const [isAuthenticated] = useState(true); // Mock authenticated state
-  const [userEmail] = useState('user@example.com');
-  const [ga4Audit] = useState(mockGA4Audit);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['property-config']));
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [ga4Properties, setGA4Properties] = useState<GA4Property[]>([]);
+  const [selectedProperty, setSelectedProperty] = useState<string>('');
+  const [ga4Audit, setGA4Audit] = useState<GA4Audit | null>(null);
+  const [message, setMessage] = useState('');
+  const [action, setAction] = useState('');
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      type: 'assistant',
+      content: "Hey there! 👋 I'm your GA4 & GTM specialist. Ready to make your analytics WORK? Let's dive in!",
+      timestamp: new Date()
+    }
+  ]);
+
+  const { isAuthenticated, userEmail, login, logout, isLoading: oauthLoading, accessToken } = useOAuth();
+
+  const fetchGA4Properties = useCallback(async () => {
+    if (!accessToken) return;
+    
+    setIsAnalyzing(true);
+    try {
+      const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:8888' : '';
+      const response = await fetch(`${baseUrl}/.netlify/functions/ga4-audit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken })
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch GA4 properties');
+      
+      const result = await response.json();
+      if (result.type === 'property_list') {
+        setGA4Properties(result.properties || []);
+      }
+    } catch (error) {
+      console.error('Error fetching GA4 properties:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [accessToken]);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('connected') === 'true') {
+      fetchGA4Properties();
+    }
+  }, [isAuthenticated, fetchGA4Properties]);
+
+  const runGA4Audit = async () => {
+    if (!selectedProperty || !accessToken) return;
+    
+    setIsAnalyzing(true);
+    try {
+      const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:8888' : '';
+      const response = await fetch(`${baseUrl}/.netlify/functions/ga4-audit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken, propertyId: selectedProperty })
+      });
+
+      if (!response.ok) throw new Error('Failed to run GA4 audit');
+      
+      const result = await response.json();
+      setGA4Audit(result);
+    } catch (error) {
+      console.error('Error running GA4 audit:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleSendMessage = () => {
+    if (!message.trim()) return;
+    
+    const newMessage: Message = {
+      type: 'user',
+      content: message,
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, newMessage]);
+    setMessage('');
+    
+    setTimeout(() => {
+      const aiResponse: Message = {
+        type: 'assistant',
+        content: "For GA4 key events tracking, you'll need this setup...",
+        timestamp: new Date(),
+        code: `gtag('event', 'purchase', {
+  transaction_id: '12345',
+  value: 25.42,
+  currency: 'USD'
+});`
+      };
+      
+      setMessages(prev => [...prev, aiResponse]);
+    }, 1000);
+  };
+
+  const generateTrackingCode = () => {
+    if (!action.trim()) return;
+    
+    const eventName = action.toLowerCase().replace(/\s+/g, '_');
+    const trackingCode = `gtag('event', '${eventName}', {
+  'event_category': 'engagement',
+  'custom_parameter_1': '${action}'
+});`;
+
+    const newMessage: Message = {
+      type: 'assistant',
+      content: `Here's your GA4 tracking code for "${action}":`,
+      code: trackingCode,
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, newMessage]);
+  };
 
   const toggleSection = (sectionId: string) => {
     const newExpanded = new Set(expandedSections);
@@ -80,6 +309,8 @@ const GA4GTMAssistant = () => {
     }
     setExpandedSections(newExpanded);
   };
+
+  const score = getComplianceScore();
 
   const getComplianceScore = () => {
     let score = 0;
@@ -113,7 +344,7 @@ const GA4GTMAssistant = () => {
   };
 
   const getEnhancedMeasurementDetails = () => {
-    if (ga4Audit.enhancedMeasurement.length === 0) return '';
+    if (!ga4Audit || ga4Audit.enhancedMeasurement.length === 0) return '';
     
     const stream = ga4Audit.enhancedMeasurement[0];
     const settings = stream.settings;
@@ -195,6 +426,97 @@ const GA4GTMAssistant = () => {
     return details;
   };
 
+  const getPriorityRecommendations = () => {
+    if (!ga4Audit) return [];
+    
+    const recommendations = [];
+    
+    // Critical issues first
+    if (ga4Audit.dataRetention.eventDataRetention !== 'FOURTEEN_MONTHS') {
+      recommendations.push({
+        priority: 'critical',
+        text: 'Change data retention from 2 months to 14 months immediately',
+        icon: Clock
+      });
+    }
+    
+    if (!ga4Audit.property.timeZone) {
+      recommendations.push({
+        priority: 'critical', 
+        text: 'Set property timezone for accurate daily reporting',
+        icon: Calendar
+      });
+    }
+    
+    if (ga4Audit.keyEvents.length === 0) {
+      recommendations.push({
+        priority: 'critical',
+        text: 'Configure key events for conversion tracking',
+        icon: TrendingUp
+      });
+    }
+    
+    // Important improvements
+    if (ga4Audit.googleAdsLinks.length === 0) {
+      recommendations.push({
+        priority: 'important',
+        text: 'Link Google Ads for conversion import and Smart Bidding',
+        icon: Link
+      });
+    }
+    
+    if (ga4Audit.customDimensions.length < 3) {
+      recommendations.push({
+        priority: 'important',
+        text: 'Add custom dimensions for business-specific tracking',
+        icon: Database
+      });
+    }
+    
+    if (!ga4Audit.searchConsoleDataStatus.isLinked) {
+      recommendations.push({
+        priority: 'important',
+        text: 'Connect Search Console for organic search insights',
+        icon: Search
+      });
+    }
+
+    return recommendations.slice(0, 4); // Show max 4 recommendations
+  };
+
+  const getComplianceScore = () => {
+    if (!ga4Audit) return 0;
+    
+    let score = 0;
+    let total = 8;
+    
+    // Property Configuration
+    if (ga4Audit.property.timeZone && ga4Audit.property.currencyCode) score += 1;
+    
+    // Data Retention  
+    if (ga4Audit.dataRetention.eventDataRetention === "FOURTEEN_MONTHS") score += 1;
+    
+    // Enhanced Measurement
+    if (ga4Audit.enhancedMeasurement.length > 0) score += 1;
+    
+    // Key Events
+    if (ga4Audit.keyEvents.length >= 1) score += 1;
+    
+    // Custom Definitions
+    if (ga4Audit.customDimensions.length > 0) score += 1;
+    
+    // Google Ads Integration
+    if (ga4Audit.googleAdsLinks.length > 0) score += 1;
+    
+    // Search Console
+    if (ga4Audit.searchConsoleDataStatus.isLinked) score += 1;
+    
+    // Attribution Model
+    if (ga4Audit.attribution.reportingAttributionModel) score += 1;
+    
+    return Math.round((score / total) * 100);
+  };
+
   const StatusIcon = ({ status }: { status: 'good' | 'warning' | 'critical' | 'missing' }) => {
     const icons = {
       good: <CheckCircle className="w-5 h-5 text-green-500" />,
@@ -216,62 +538,6 @@ const GA4GTMAssistant = () => {
       if (score >= 90) return 'Excellent Setup';
       if (score >= 70) return 'Good Foundation'; 
       return 'Needs Critical Fixes';
-    };
-
-    const getPriorityRecommendations = () => {
-      const recommendations = [];
-      
-      // Critical issues first
-      if (ga4Audit.dataRetention.eventDataRetention !== 'FOURTEEN_MONTHS') {
-        recommendations.push({
-          priority: 'critical',
-          text: 'Change data retention from 2 months to 14 months immediately',
-          icon: Clock
-        });
-      }
-      
-      if (!ga4Audit.property.timeZone) {
-        recommendations.push({
-          priority: 'critical', 
-          text: 'Set property timezone for accurate daily reporting',
-          icon: Calendar
-        });
-      }
-      
-      if (ga4Audit.keyEvents.length === 0) {
-        recommendations.push({
-          priority: 'critical',
-          text: 'Configure key events for conversion tracking',
-          icon: TrendingUp
-        });
-      }
-      
-      // Important improvements
-      if (ga4Audit.googleAdsLinks.length === 0) {
-        recommendations.push({
-          priority: 'important',
-          text: 'Link Google Ads for conversion import and Smart Bidding',
-          icon: Link
-        });
-      }
-      
-      if (ga4Audit.customDimensions.length < 3) {
-        recommendations.push({
-          priority: 'important',
-          text: 'Add custom dimensions for business-specific tracking',
-          icon: Database
-        });
-      }
-      
-      if (!ga4Audit.searchConsoleDataStatus.isLinked) {
-        recommendations.push({
-          priority: 'important',
-          text: 'Connect Search Console for organic search insights',
-          icon: Search
-        });
-      }
-
-      return recommendations.slice(0, 4); // Show max 4 recommendations
     };
 
     const recommendations = getPriorityRecommendations();
@@ -457,6 +723,182 @@ const GA4GTMAssistant = () => {
   ];
 
   const score = getComplianceScore();
+
+  const GA4Connection = () => {
+    if (oauthLoading) {
+      return (
+        <div className="bg-black/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-orange-500/30 p-8">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-700 rounded-xl w-1/4 mb-6"></div>
+            <div className="h-8 bg-gray-700 rounded-xl w-1/2"></div>
+          </div>
+        </div>
+      );
+    }
+
+    if (isAuthenticated) {
+      return (
+        <div className="bg-black/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-orange-500/30 p-8 hover:shadow-3xl transition-all duration-300">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg shadow-orange-500/25">
+                <CheckCircle className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">GA4 Account Connected 💪</h3>
+                <p className="text-gray-400">{userEmail}</p>
+              </div>
+            </div>
+            <button
+              onClick={logout}
+              className="px-4 py-2 border border-gray-600 text-gray-300 rounded-xl hover:bg-gray-800 hover:border-gray-500 transition-all duration-200 text-sm group"
+            >
+              <LogOut className="w-4 h-4 group-hover:rotate-12 transition-transform duration-200" />
+            </button>
+          </div>
+
+          <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/30 rounded-xl p-6 mb-6 backdrop-blur-sm">
+            <h4 className="font-bold text-white mb-3 flex items-center">
+              <Star className="w-5 h-5 mr-2 text-orange-400" />
+              Beast-Level API Access
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {[
+                'Google Analytics 4 (full read access)',
+                'Custom dimensions & metrics API',
+                'Enhanced measurement settings',
+                'Event create rules detection',
+                'Search Console integration check'
+              ].map((feature, index) => (
+                <div key={index} className="flex items-center text-sm text-gray-300">
+                  <CheckCircle className="w-4 h-4 mr-2 text-orange-400" />
+                  {feature}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {ga4Properties.length > 0 && (
+            <div className="mb-6">
+              <label className="block text-sm font-bold text-gray-300 mb-3">
+                Select GA4 Property:
+              </label>
+              <select
+                value={selectedProperty}
+                onChange={(e) => setSelectedProperty(e.target.value)}
+                className="w-full border border-gray-600 bg-black/50 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
+              >
+                <option value="">Choose a property...</option>
+                {ga4Properties.map((property) => (
+                  <option key={property.propertyId} value={property.propertyId}>
+                    {property.displayName} ({property.propertyId}) {property.accountName && `- ${property.accountName}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="flex space-x-4">
+            {ga4Properties.length === 0 ? (
+              <button
+                onClick={fetchGA4Properties}
+                disabled={isAnalyzing}
+                className="flex-1 bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-3 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-bold uppercase tracking-wide disabled:opacity-50 shadow-lg shadow-orange-600/25 transform hover:scale-105"
+              >
+                {isAnalyzing ? 'Loading Properties...' : 'Load GA4 Properties'}
+              </button>
+            ) : (
+              <button
+                onClick={runGA4Audit}
+                disabled={!selectedProperty || isAnalyzing}
+                className="flex-1 bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-3 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-bold uppercase tracking-wide disabled:opacity-50 shadow-lg shadow-orange-600/25 transform hover:scale-105"
+              >
+                {isAnalyzing ? 'Running Configuration Audit...' : 'Run GA4 Configuration Audit'}
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
+        <div className="text-center">
+          <div className="w-20 h-20 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-orange-500/25">
+            <BarChart3 className="w-10 h-10 text-white" />
+          </div>
+          <h3 className="text-2xl font-bold text-white mb-3">Connect Your GA4 Account</h3>
+          <p className="text-gray-300 mb-8 text-lg">
+            Get a complete 30-point GA4 configuration audit that reveals data retention disasters, 
+            attribution model problems, and integration failures you didn't know existed.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 text-left">
+            <div className="space-y-4">
+              <h4 className="font-bold text-white flex items-center">
+                <Sparkles className="w-5 h-5 mr-2 text-orange-400" />
+                Advanced Analysis
+              </h4>
+              <ul className="space-y-2 text-gray-400">
+                <li className="flex items-center">
+                  <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
+                  Dimensions & metrics setup
+                </li>
+                <li className="flex items-center">
+                  <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
+                  Uncover custom events
+                </li>
+                <li className="flex items-center">
+                  <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
+                  Enhanced measurement configuration
+                </li>
+                <li className="flex items-center">
+                  <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
+                  Measurement protocol secrets
+                </li>
+              </ul>
+            </div>
+            <div className="space-y-4">
+              <h4 className="font-bold text-white flex items-center">
+                <Star className="w-5 h-5 mr-2 text-orange-400" />
+                Beast Insights
+              </h4>
+              <ul className="space-y-2 text-gray-400">
+                <li className="flex items-center">
+                  <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
+                  Missing dimension warnings
+                </li>
+                <li className="flex items-center">
+                  <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
+                  Configuration quality alerts
+                </li>
+                <li className="flex items-center">
+                  <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
+                  Data retention optimization
+                </li>
+                <li className="flex items-center">
+                  <ArrowUp className="w-4 h-4 mr-2 text-orange-400" />
+                  Integration status verification
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <button
+            onClick={login}
+            className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-10 py-4 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-bold uppercase tracking-wide text-lg shadow-lg shadow-orange-600/25 transform hover:scale-105"
+          >
+            Audit My GA4 Setup
+          </button>
+          
+          <div className="flex items-center justify-center space-x-2 mt-6 text-sm text-gray-400">
+            <Shield className="w-4 h-4" />
+            <span>Secure OAuth - read-only access - we never store passwords</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
