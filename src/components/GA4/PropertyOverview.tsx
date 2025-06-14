@@ -108,11 +108,11 @@ export const PropertyOverview: React.FC<PropertyOverviewProps> = ({ audit }) => 
             <div>
               <h6 className="font-semibold text-red-300 mb-1">No Key Events Configured - Critical Issue</h6>
               <p className="text-sm text-red-200">
-                You have no key events (conversions) set up, which means you can't measure business success or optimize marketing campaigns. 
+                You have no key events (conversions) set up, which means you can&apos;t measure business success or optimize marketing campaigns. 
                 Set up key events for purchases, sign-ups, downloads, and other important actions.
               </p>
               <p className="text-xs text-red-300 mt-2">
-                <strong>Action Required:</strong> Go to Admin > Events > Mark events as key events
+                <strong>Action Required:</strong> Go to Admin &gt; Events &gt; Mark events as key events
               </p>
             </div>
           </div>
