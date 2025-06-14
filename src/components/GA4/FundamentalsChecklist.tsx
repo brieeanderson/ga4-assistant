@@ -21,7 +21,7 @@ interface FundamentalsChecklistProps {
 interface ChecklistItem {
   id: string;
   name: string;
-  status: 'complete' | 'warning' | 'critical' | 'missing';
+  status: 'complete' | 'warning' | 'critical' | 'missing' | 'optional';
   value: string;
   description: string;
   recommendation: string;
@@ -52,31 +52,35 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
     setExpandedSections(newExpanded);
   };
 
-  const getStatusIcon = (status: ChecklistItem['status']) => {
-    switch (status) {
-      case 'complete':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case 'warning':
-        return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
-      case 'critical':
-        return <XCircle className="w-5 h-5 text-red-500" />;
-      case 'missing':
-        return <XCircle className="w-5 h-5 text-gray-500" />;
-    }
-  };
+const getStatusIcon = (status: ChecklistItem['status']) => {
+  switch (status) {
+    case 'complete':
+      return <CheckCircle className="w-5 h-5 text-green-500" />;
+    case 'warning':
+      return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
+    case 'critical':
+      return <XCircle className="w-5 h-5 text-red-500" />;
+    case 'missing':
+      return <XCircle className="w-5 h-5 text-gray-500" />;
+    case 'optional':
+      return <AlertTriangle className="w-5 h-5 text-blue-500" />;
+  }
+};
 
-  const getStatusColor = (status: ChecklistItem['status']) => {
-    switch (status) {
-      case 'complete':
-        return 'border-green-500/30 bg-green-500/10';
-      case 'warning':
-        return 'border-yellow-500/30 bg-yellow-500/10';
-      case 'critical':
-        return 'border-red-500/30 bg-red-500/10';
-      case 'missing':
-        return 'border-gray-500/30 bg-gray-500/10';
-    }
-  };
+const getStatusColor = (status: ChecklistItem['status']) => {
+  switch (status) {
+    case 'complete':
+      return 'border-green-500/30 bg-green-500/10';
+    case 'warning':
+      return 'border-yellow-500/30 bg-yellow-500/10';
+    case 'critical':
+      return 'border-red-500/30 bg-red-500/10';
+    case 'missing':
+      return 'border-gray-500/30 bg-gray-500/10';
+    case 'optional':
+      return 'border-blue-500/30 bg-blue-500/10';
+  }
+};
 
   // Build the checklist sections based on audit data
   const sections: ChecklistSection[] = [
