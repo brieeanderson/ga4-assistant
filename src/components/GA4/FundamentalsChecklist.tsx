@@ -21,7 +21,7 @@ interface FundamentalsChecklistProps {
 interface ChecklistItem {
   id: string;
   name: string;
-  status: 'complete' | 'warning' | 'critical' | 'missing' | 'optional';
+  status: 'complete' | 'warning' | 'critical' | 'missing';
   value: string;
   description: string;
   recommendation: string;
@@ -52,35 +52,31 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
     setExpandedSections(newExpanded);
   };
 
-const getStatusIcon = (status: ChecklistItem['status']) => {
-  switch (status) {
-    case 'complete':
-      return <CheckCircle className="w-5 h-5 text-green-500" />;
-    case 'warning':
-      return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
-    case 'critical':
-      return <XCircle className="w-5 h-5 text-red-500" />;
-    case 'missing':
-      return <XCircle className="w-5 h-5 text-gray-500" />;
-    case 'optional':
-      return <AlertTriangle className="w-5 h-5 text-blue-500" />;
-  }
-};
+  const getStatusIcon = (status: ChecklistItem['status']) => {
+    switch (status) {
+      case 'complete':
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'warning':
+        return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
+      case 'critical':
+        return <XCircle className="w-5 h-5 text-red-500" />;
+      case 'missing':
+        return <XCircle className="w-5 h-5 text-gray-500" />;
+    }
+  };
 
-const getStatusColor = (status: ChecklistItem['status']) => {
-  switch (status) {
-    case 'complete':
-      return 'border-green-500/30 bg-green-500/10';
-    case 'warning':
-      return 'border-yellow-500/30 bg-yellow-500/10';
-    case 'critical':
-      return 'border-red-500/30 bg-red-500/10';
-    case 'missing':
-      return 'border-gray-500/30 bg-gray-500/10';
-    case 'optional':
-      return 'border-blue-500/30 bg-blue-500/10';
-  }
-};
+  const getStatusColor = (status: ChecklistItem['status']) => {
+    switch (status) {
+      case 'complete':
+        return 'border-green-500/30 bg-green-500/10';
+      case 'warning':
+        return 'border-yellow-500/30 bg-yellow-500/10';
+      case 'critical':
+        return 'border-red-500/30 bg-red-500/10';
+      case 'missing':
+        return 'border-gray-500/30 bg-gray-500/10';
+    }
+  };
 
   // Build the checklist sections based on audit data
   const sections: ChecklistSection[] = [
@@ -203,7 +199,7 @@ const getStatusColor = (status: ChecklistItem['status']) => {
           value: `${audit.keyEvents.length} key event(s) configured`,
           description: '"Conversions" are now "Key Events" - these can be imported to Google Ads as conversions',
           recommendation: audit.keyEvents.length > 0
-            ? `Active events: ${audit.keyEvents.map(e => e.eventName).slice(0, 3).join(', ')}`
+            ? `Active events: ${audit.keyEvents.map(e => e.eventName).join(', ')}`
             : 'CRITICAL: Set up key events for purchases, sign-ups, downloads',
           priority: 'critical',
           adminPath: 'Admin > Events > Mark events as key events'
@@ -231,7 +227,7 @@ const getStatusColor = (status: ChecklistItem['status']) => {
         {
           id: 'custom-metrics',
           name: 'Create Custom Metrics',
-          status: audit.customMetrics.length > 0 ? 'complete' : 'optional',
+          status: audit.customMetrics.length > 0 ? 'complete' : 'missing',
           value: `${audit.customMetrics.length}/50 configured`,
           description: 'Track numerical business KPIs beyond standard GA4 metrics',
           recommendation: audit.customMetrics.length > 0
@@ -289,21 +285,25 @@ const getStatusColor = (status: ChecklistItem['status']) => {
         {
           id: 'search-console',
           name: 'Connect Search Console',
-          status: audit.searchConsoleDataStatus.isLinked ? 'complete' : 'warning',
+          status: audit.searchConsoleDataStatus.isLinked 
+            ? (audit.searchConsoleDataStatus.hasData ? 'complete' : 'warning')
+            : 'missing',
           value: audit.searchConsoleDataStatus.isLinked 
-            ? `Linked (${audit.searchConsoleDataStatus.totalClicks} clicks)` 
+            ? `${audit.searchConsoleDataStatus.hasData ? 'Active' : 'Linked, no data'} (${audit.searchConsoleDataStatus.organicImpressions?.toLocaleString() || 0} impressions)` 
             : 'Not Connected',
           description: 'Shows which Google search queries bring visitors to your site',
-          recommendation: audit.searchConsoleDataStatus.isLinked
+          recommendation: audit.searchConsoleDataStatus.isLinked && audit.searchConsoleDataStatus.hasData
             ? 'Search Console providing organic search insights'
-            : 'Link Search Console for organic search query data',
+            : audit.searchConsoleDataStatus.isLinked
+              ? 'Linked but verify data flow - check Reports > Library > Search Console'
+              : 'Link Search Console for organic search query data',
           priority: 'important',
           adminPath: 'Admin > Product linking > Search Console'
         },
         {
           id: 'bigquery',
           name: 'Connect BigQuery',
-          status: audit.bigQueryLinks.length > 0 ? 'complete' : 'optional',
+          status: audit.bigQueryLinks.length > 0 ? 'complete' : 'missing',
           value: audit.bigQueryLinks.length > 0 ? 'Export Configured' : 'Not Configured',
           description: 'Free tier available for GA4 - enables advanced analysis with SQL',
           recommendation: audit.bigQueryLinks.length > 0
@@ -322,7 +322,7 @@ const getStatusColor = (status: ChecklistItem['status']) => {
       items: [
         {
           id: 'attribution-model',
-          name: 'Configure Attribution Settings',
+          name: 'Attribution Model Configuration',
           status: audit.attribution.reportingAttributionModel === 'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN' 
             ? 'complete' : audit.attribution.reportingAttributionModel ? 'warning' : 'missing',
           value: (() => {
@@ -330,20 +330,29 @@ const getStatusColor = (status: ChecklistItem['status']) => {
             if (!model) return 'Not accessible via API';
             
             const modelNames: Record<string, string> = {
-              'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN': 'Data-driven (recommended)',
-              'PAID_AND_ORGANIC_CHANNELS_LAST_CLICK': 'Last click',
-              'PAID_AND_ORGANIC_CHANNELS_FIRST_CLICK': 'First click',
-              'PAID_AND_ORGANIC_CHANNELS_LINEAR': 'Linear',
-              'PAID_AND_ORGANIC_CHANNELS_TIME_DECAY': 'Time decay',
-              'PAID_AND_ORGANIC_CHANNELS_POSITION_BASED': 'Position-based'
+              'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN': '✅ Data-driven (optimal)',
+              'PAID_AND_ORGANIC_CHANNELS_LAST_CLICK': '⚠️ Last click (legacy)',
+              'PAID_AND_ORGANIC_CHANNELS_FIRST_CLICK': '⚠️ First click (legacy)', 
+              'PAID_AND_ORGANIC_CHANNELS_LINEAR': '⚠️ Linear (basic)',
+              'PAID_AND_ORGANIC_CHANNELS_TIME_DECAY': '⚠️ Time decay (basic)',
+              'PAID_AND_ORGANIC_CHANNELS_POSITION_BASED': '⚠️ Position-based (basic)'
             };
             
             return modelNames[model] || model;
           })(),
-          description: 'Data-driven attribution with 30-day acquisition, 90-day other events is recommended',
+          description: (() => {
+            const model = audit.attribution.reportingAttributionModel;
+            const acquisition = audit.attribution.acquisitionConversionEventLookbackWindow || '30 days';
+            const other = audit.attribution.otherConversionEventLookbackWindow || '90 days';
+            const scope = model?.includes('PAID_AND_ORGANIC') ? 'Paid + Organic channels' : 'All channels';
+            
+            return `Attribution Model: ${model === 'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN' ? 
+              'Machine learning assigns credit across touchpoints' : 
+              'Simple rule-based attribution - upgrade recommended'} | Lookback Windows: Acquisition ${acquisition} | Other Events ${other} | Credit Scope: ${scope}`;
+          })(),
           recommendation: audit.attribution.reportingAttributionModel === 'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN'
-            ? 'Using optimal data-driven attribution model'
-            : 'Consider switching to data-driven attribution for better accuracy',
+            ? 'Optimal setup: Data-driven attribution provides the most accurate conversion credit'
+            : 'UPGRADE: Switch to data-driven attribution for machine learning-based conversion credit',
           priority: 'important',
           adminPath: 'Admin > Attribution settings'
         }
