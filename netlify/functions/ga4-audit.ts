@@ -450,7 +450,7 @@ async function getEventCreateRulesForStreams(accessToken: string, propertyId: st
   return eventCreateRulesData;
 }
 
-// FIXED: Enhanced Search Console data availability check
+// UPDATED: Enhanced Search Console data availability check with organicGoogleSearchImpressions
 async function checkSearchConsoleDataAvailability(accessToken: string, propertyId: string, searchConsoleLinks: Array<Record<string, unknown>>) {
   const searchConsoleStatus = {
     isLinked: searchConsoleLinks.length > 0,
@@ -458,13 +458,14 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
     lastDataDate: null as string | null,
     linkDetails: searchConsoleLinks,
     totalClicks: 0,
-    totalImpressions: 0
+    totalImpressions: 0,
+    organicImpressions: 0
   };
 
-  // If Search Console is linked, try to check for actual data with better validation
+  // If Search Console is linked, check for actual organic search data
   if (searchConsoleLinks.length > 0) {
     try {
-      // Try to get Search Console data to verify it's working
+      // Check for organic Google search impressions specifically
       const response = await fetch(
         `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
         {
@@ -474,13 +475,20 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            dimensions: [{ name: 'googleSearchConsoleQuery' }],
+            dimensions: [{ name: 'sessionDefaultChannelGroup' }],
             metrics: [
-              { name: 'googleSearchConsoleClicks' },
-              { name: 'googleSearchConsoleImpressions' }
+              { name: 'organicGoogleSearchImpressions' },
+              { name: 'organicGoogleSearchClicks' }
             ],
             dateRanges: [{ startDate: '30daysAgo', endDate: 'yesterday' }],
-            limit: 10
+            dimensionFilter: {
+              filter: {
+                fieldName: 'sessionDefaultChannelGroup',
+                stringFilter: {
+                  value: 'Organic Search'
+                }
+              }
+            }
           })
         }
       );
@@ -488,35 +496,40 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
       if (response.ok) {
         const data = await response.json();
         if (data.rows && data.rows.length > 0) {
-          // Check if we have actual clicks/impressions > 0
-          let totalClicks = 0;
           let totalImpressions = 0;
+          let totalClicks = 0;
           
           data.rows.forEach((row: any) => {
             if (row.metricValues && row.metricValues.length >= 2) {
-              totalClicks += parseInt(row.metricValues[0].value) || 0;
-              totalImpressions += parseInt(row.metricValues[1].value) || 0;
+              totalImpressions += parseInt(row.metricValues[0].value) || 0;
+              totalClicks += parseInt(row.metricValues[1].value) || 0;
             }
           });
           
+          searchConsoleStatus.organicImpressions = totalImpressions;
           searchConsoleStatus.totalClicks = totalClicks;
-          searchConsoleStatus.totalImpressions = totalImpressions;
-          searchConsoleStatus.hasData = totalClicks > 0 || totalImpressions > 0;
+          searchConsoleStatus.hasData = totalImpressions > 0;
           
           if (searchConsoleStatus.hasData) {
-            searchConsoleStatus.lastDataDate = 'Recent data available (last 30 days)';
+            searchConsoleStatus.lastDataDate = `Found ${totalImpressions.toLocaleString()} organic impressions in last 30 days`;
+          } else {
+            searchConsoleStatus.lastDataDate = 'Linked but no organic search data detected in last 30 days - check connection';
           }
         }
+      } else {
+        console.log('Search Console data check failed:', response.status);
+        searchConsoleStatus.lastDataDate = 'Unable to verify data - check link configuration';
       }
     } catch (error) {
       console.error('Error checking Search Console data availability:', error);
+      searchConsoleStatus.lastDataDate = 'Error checking data availability';
     }
   }
 
   return searchConsoleStatus;
 }
 
-// FIXED: Helper function to build comprehensive audit with enhanced logic
+// Helper function to build comprehensive audit with enhanced logic
 function buildComprehensiveAudit(data: Record<string, unknown>) {
   const {
     propertyData,
@@ -563,7 +576,7 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
   // Analyze event create rules
   const eventCreateRulesWarnings = analyzeEventCreateRules(eventCreateRules as Array<Record<string, unknown>>);
 
-  // FIXED: Helper function to get readable data retention status
+  // Helper function to get readable data retention status
   const getDataRetentionStatus = (eventDataRetention: string) => {
     switch (eventDataRetention) {
       case 'FOURTEEN_MONTHS':
@@ -593,7 +606,7 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
     }
   };
 
-  // FIXED: Helper function for attribution model readability
+  // Helper function for attribution model readability
   const getAttributionModelDisplay = (attribution: Record<string, unknown>) => {
     const model = attribution.reportingAttributionModel as string;
     
@@ -613,7 +626,7 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
     return modelNames[model] || model;
   };
 
-  // FIXED: Helper function for Google Signals status
+  // Helper function for Google Signals status
   const getGoogleSignalsStatus = (googleSignals: Record<string, unknown>) => {
     const state = googleSignals.state as string;
     
@@ -808,15 +821,15 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
           ((searchConsoleDataStatus as Record<string, unknown>).hasData ? 'configured' : 'linked_no_data') : 
           'not_configured',
         value: (searchConsoleDataStatus as Record<string, unknown>).isLinked 
-          ? `${searchConsoleLinks.length} Search Console link(s) | Data: ${(searchConsoleDataStatus as Record<string, unknown>).hasData ? 'Yes' : 'No'} | Clicks: ${(searchConsoleDataStatus as Record<string, unknown>).totalClicks || 0} | Impressions: ${(searchConsoleDataStatus as Record<string, unknown>).totalImpressions || 0}`
+          ? `Linked | ${(searchConsoleDataStatus as Record<string, unknown>).lastDataDate || 'Checking data...'}`
           : 'Search Console not linked',
         recommendation: (searchConsoleDataStatus as Record<string, unknown>).isLinked && (searchConsoleDataStatus as Record<string, unknown>).hasData
-          ? '✅ Search Console is linked and providing data for organic search insights'
+          ? '✅ Search Console is linked and providing organic search data'
           : (searchConsoleDataStatus as Record<string, unknown>).isLinked 
-            ? '⚠️ Search Console is linked but no data detected. Check link configuration and wait 48 hours for data.'
-            : 'Link Search Console in Admin > Product linking > Search Console for organic search data.',
+            ? '⚠️ Search Console is linked but verify data is flowing. Check in Reports > Library > Search Console collections.'
+            : 'Link Search Console in Admin > Product linking > Search Console for organic search insights.',
         details: (searchConsoleDataStatus as Record<string, unknown>).isLinked 
-          ? `Search Console integration provides organic search queries, clicks, impressions, and CTR data. ${(searchConsoleDataStatus as Record<string, unknown>).lastDataDate || 'Checking data availability...'}`
+          ? `Search Console integration provides organic search queries, clicks, impressions, and CTR data. ${(searchConsoleDataStatus as Record<string, unknown>).lastDataDate || 'Status unknown'}`
           : 'Search Console integration shows which Google search queries bring visitors to your site'
       }
     }
