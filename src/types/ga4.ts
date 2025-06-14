@@ -59,6 +59,7 @@ export interface SearchConsoleDataStatus {
   lastDataDate?: string;
   totalClicks: number;
   totalImpressions: number;
+  organicImpressions: number; // Added this missing property
   linkDetails: Array<any>;
 }
 
