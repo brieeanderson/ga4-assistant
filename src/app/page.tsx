@@ -6,8 +6,7 @@ import { useOAuth } from '@/hooks/useOAuth';
 import { useGA4Audit } from '@/hooks/useGA4Audit';
 import { PropertyOverview } from '@/components/GA4/PropertyOverview';
 import { ConnectionStatus } from '@/components/GA4/ConnectionStatus';
-import { ComplianceProgress } from '@/components/GA4/ComplianceProgress';
-import { EnhancedMeasurementAnalysis } from '@/components/GA4/EnhancedMeasurementAnalysis';
+import { FundamentalsChecklist } from '@/components/GA4/FundamentalsChecklist';
 import { ErrorDisplay } from '@/components/common/ErrorDisplay';
 
 const GA4GTMAssistant = () => {
@@ -30,7 +29,6 @@ const GA4GTMAssistant = () => {
     selectedProperty,
     ga4Audit,
     error,
-    complianceScore,
     setSelectedProperty,
     fetchGA4Properties,
     runGA4Audit,
@@ -152,57 +150,100 @@ const GA4GTMAssistant = () => {
                 {/* Property Overview */}
                 <PropertyOverview audit={ga4Audit} />
                 
-                {/* Compliance Progress */}
-                <ComplianceProgress score={complianceScore} audit={ga4Audit} />
+                {/* Complete Fundamentals Checklist */}
+                <FundamentalsChecklist audit={ga4Audit} />
 
-                {/* Enhanced Measurement Analysis */}
-                <EnhancedMeasurementAnalysis audit={ga4Audit} />
-
-                {/* Custom Definitions Summary */}
+                {/* Additional Details Section */}
                 <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
-                  <h3 className="text-2xl font-bold text-white mb-6">Custom Definitions Summary</h3>
+                  <h3 className="text-2xl font-bold text-white mb-6">Additional Configuration Details</h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                      <h4 className="text-lg font-semibold text-white mb-4">
-                        Custom Dimensions ({ga4Audit.customDimensions.length}/50)
-                      </h4>
-                      <div className="space-y-2">
-                        {ga4Audit.customDimensions.slice(0, 3).map((dim, index) => (
-                          <div key={index} className="bg-black/50 rounded-lg p-3 border border-gray-600/50">
-                            <div className="font-medium text-white">{dim.displayName}</div>
-                            <div className="text-sm text-gray-400">{dim.parameterName}</div>
-                          </div>
-                        ))}
-                        {ga4Audit.customDimensions.length > 3 && (
-                          <div className="text-sm text-gray-400 text-center py-2">
-                            + {ga4Audit.customDimensions.length - 3} more dimensions
-                          </div>
-                        )}
-                      </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Enhanced Measurement Details */}
+                    <div className="space-y-4">
+                      <h4 className="text-lg font-semibold text-white">Enhanced Measurement Events</h4>
+                      {ga4Audit.enhancedMeasurement.length > 0 ? (
+                        <div className="space-y-3">
+                          {ga4Audit.enhancedMeasurement.map((stream, index) => {
+                            const enabledEvents = [];
+                            const settings = stream.settings;
+                            
+                            if (settings.scrollsEnabled) enabledEvents.push('scroll');
+                            if (settings.outboundClicksEnabled) enabledEvents.push('outbound_clicks');
+                            if (settings.siteSearchEnabled) enabledEvents.push('site_search');
+                            if (settings.videoEngagementEnabled) enabledEvents.push('video_engagement');
+                            if (settings.fileDownloadsEnabled) enabledEvents.push('file_downloads');
+                            if (settings.formInteractionsEnabled) enabledEvents.push('form_interactions');
+                            if (settings.pageChangesEnabled) enabledEvents.push('page_changes');
+                            
+                            return (
+                              <div key={index} className="bg-black/50 rounded-lg p-4 border border-gray-600/50">
+                                <div className="font-medium text-white mb-2">{stream.streamName}</div>
+                                <div className="text-sm text-gray-300">
+                                  Active: {enabledEvents.length > 0 ? enabledEvents.join(', ') : 'None'}
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {enabledEvents.length}/7 possible events enabled
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-400 bg-black/30 rounded-lg p-4 border border-gray-700/50">
+                          No enhanced measurement configuration found. Enable in your data stream settings.
+                        </div>
+                      )}
                     </div>
 
-                    <div>
-                      <h4 className="text-lg font-semibold text-white mb-4">
-                        Custom Metrics ({ga4Audit.customMetrics.length}/50)
-                      </h4>
-                      <div className="space-y-2">
-                        {ga4Audit.customMetrics.slice(0, 3).map((metric, index) => (
-                          <div key={index} className="bg-black/50 rounded-lg p-3 border border-gray-600/50">
-                            <div className="font-medium text-white">{metric.displayName}</div>
-                            <div className="text-sm text-gray-400">{metric.parameterName}</div>
+                    {/* Custom Definitions Summary */}
+                    <div className="space-y-4">
+                      <h4 className="text-lg font-semibold text-white">Custom Definitions Summary</h4>
+                      
+                      <div className="space-y-3">
+                        <div className="bg-black/50 rounded-lg p-4 border border-gray-600/50">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-white">Custom Dimensions</span>
+                            <span className="text-sm text-gray-400">{ga4Audit.customDimensions.length}/50</span>
                           </div>
-                        ))}
-                        {ga4Audit.customMetrics.length > 3 && (
-                          <div className="text-sm text-gray-400 text-center py-2">
-                            + {ga4Audit.customMetrics.length - 3} more metrics
+                          {ga4Audit.customDimensions.length > 0 ? (
+                            <div className="text-sm text-gray-300">
+                              Recent: {ga4Audit.customDimensions.slice(0, 3).map(d => d.displayName).join(', ')}
+                              {ga4Audit.customDimensions.length > 3 && ` +${ga4Audit.customDimensions.length - 3} more`}
+                            </div>
+                          ) : (
+                            <div className="text-sm text-gray-400">No custom dimensions configured</div>
+                          )}
+                        </div>
+
+                        <div className="bg-black/50 rounded-lg p-4 border border-gray-600/50">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-white">Custom Metrics</span>
+                            <span className="text-sm text-gray-400">{ga4Audit.customMetrics.length}/50</span>
                           </div>
-                        )}
-                        {ga4Audit.customMetrics.length === 0 && (
-                          <div className="text-sm text-gray-400 text-center py-8 bg-black/30 rounded-lg border border-gray-700/50">
-                            No custom metrics configured yet.
+                          {ga4Audit.customMetrics.length > 0 ? (
+                            <div className="text-sm text-gray-300">
+                              Recent: {ga4Audit.customMetrics.slice(0, 3).map(m => m.displayName).join(', ')}
+                              {ga4Audit.customMetrics.length > 3 && ` +${ga4Audit.customMetrics.length - 3} more`}
+                            </div>
+                          ) : (
+                            <div className="text-sm text-gray-400">No custom metrics configured</div>
+                          )}
+                        </div>
+
+                        <div className="bg-black/50 rounded-lg p-4 border border-gray-600/50">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-white">Key Events</span>
+                            <span className="text-sm text-gray-400">{ga4Audit.keyEvents.length} configured</span>
                           </div>
-                        )}
+                          {ga4Audit.keyEvents.length > 0 ? (
+                            <div className="text-sm text-gray-300">
+                              {ga4Audit.keyEvents.map(e => e.eventName).slice(0, 3).join(', ')}
+                              {ga4Audit.keyEvents.length > 3 && ` +${ga4Audit.keyEvents.length - 3} more`}
+                            </div>
+                          ) : (
+                            <div className="text-sm text-red-400">⚠️ No key events configured - critical for conversion tracking</div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -244,20 +285,20 @@ const GA4GTMAssistant = () => {
                 <h3 className="text-lg font-bold text-white">Quick Start Guide</h3>
                 <ul className="space-y-2 text-gray-300">
                   <li>• Connect your GA4 account for a complete audit</li>
-                  <li>• Review compliance score and priority fixes</li>
+                  <li>• Review fundamentals checklist and priority fixes</li>
                   <li>• Configure custom dimensions and metrics</li>
                   <li>• Set up key events for conversion tracking</li>
                   <li>• Link Google Ads and Search Console</li>
                 </ul>
               </div>
               <div className="space-y-4">
-                <h3 className="text-lg font-bold text-white">Best Practices</h3>
+                <h3 className="text-lg font-bold text-white">2025 Best Practices</h3>
                 <ul className="space-y-2 text-gray-300">
-                  <li>• Set data retention to 14 months</li>
+                  <li>• Set data retention to 14 months immediately</li>
                   <li>• Use data-driven attribution model</li>
-                  <li>• Enable enhanced measurement</li>
+                  <li>• Enable enhanced measurement events</li>
                   <li>• Register custom parameters as dimensions</li>
-                  <li>• Implement proper event naming conventions</li>
+                  <li>• Configure proper timezone for your business</li>
                 </ul>
               </div>
             </div>
