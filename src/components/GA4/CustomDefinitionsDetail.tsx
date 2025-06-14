@@ -1,255 +1,178 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Database, BarChart3, Tag, Eye, EyeOff } from 'lucide-react';
+import { ChevronDown, ChevronRight, Database, BarChart3, Tag } from 'lucide-react';
 import { GA4Audit } from '@/types/ga4';
 
-interface CustomDefinitionsDisplayProps {
+interface CustomDefinitionsDetailProps {
   audit: GA4Audit;
 }
 
-export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> = ({ audit }) => {
-  const [showAllDimensions, setShowAllDimensions] = useState(false);
-  const [showAllMetrics, setShowAllMetrics] = useState(false);
-
-  const getScopeColor = (scope: string) => {
-    switch (scope.toLowerCase()) {
-      case 'event': return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
-      case 'user': return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
-      case 'session': return 'bg-green-500/20 text-green-300 border-green-500/30';
-      case 'item': return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
-      default: return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
-    }
-  };
-
-  const displayedDimensions = showAllDimensions ? audit.customDimensions : audit.customDimensions.slice(0, 5);
-  const displayedMetrics = showAllMetrics ? audit.customMetrics : audit.customMetrics.slice(0, 5);
+export const CustomDefinitionsDetail: React.FC<CustomDefinitionsDetailProps> = ({ audit }) => {
+  const [expandedDimensions, setExpandedDimensions] = useState(false);
+  const [expandedMetrics, setExpandedMetrics] = useState(false);
 
   return (
     <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
       <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
         <Database className="w-7 h-7 mr-3 text-orange-400" />
-        Complete Custom Definitions Configuration
+        Complete Custom Definitions
       </h3>
       
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Custom Dimensions */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="text-xl font-semibold text-white flex items-center">
-              <Database className="w-6 h-6 mr-2 text-blue-400" />
-              Custom Dimensions
+            <h4 className="text-lg font-semibold text-white flex items-center">
+              <Database className="w-5 h-5 mr-2 text-blue-400" />
+              Custom Dimensions ({audit.customDimensions.length}/50)
             </h4>
-            <div className="flex items-center space-x-3">
-              <div className="text-sm text-gray-400">
-                {audit.customDimensions.length}/50 used
-              </div>
-              <div className="w-24 bg-gray-700 rounded-full h-2">
-                <div 
-                  className="h-2 rounded-full bg-blue-500 transition-all duration-300"
-                  style={{ width: `${(audit.customDimensions.length / 50) * 100}%` }}
-                />
-              </div>
-            </div>
+            <button
+              onClick={() => setExpandedDimensions(!expandedDimensions)}
+              className="flex items-center space-x-2 text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              <span>{expandedDimensions ? 'Collapse' : 'View All'}</span>
+              {expandedDimensions ? 
+                <ChevronDown className="w-4 h-4" /> : 
+                <ChevronRight className="w-4 h-4" />
+              }
+            </button>
           </div>
 
-          {audit.customDimensions.length > 0 ? (
-            <div className="space-y-3">
-              {displayedDimensions.map((dimension, index) => (
-                <div key={index} className="bg-black/50 rounded-lg p-4 border border-gray-600/50 hover:border-blue-500/50 transition-colors">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h5 className="font-semibold text-white text-lg mb-1">{dimension.displayName}</h5>
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className={`text-xs px-2 py-1 rounded border ${getScopeColor(dimension.scope)}`}>
-                          {dimension.scope.toUpperCase()}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          Index: {index + 1}
-                        </span>
+          <div className="space-y-3">
+            {audit.customDimensions.length > 0 ? (
+              <>
+                {(expandedDimensions ? audit.customDimensions : audit.customDimensions.slice(0, 3)).map((dim, index) => (
+                  <div key={index} className="bg-black/50 rounded-lg p-4 border border-gray-600/50">
+                    <div className="flex items-center justify-between mb-2">
+                      <h5 className="font-medium text-white">{dim.displayName}</h5>
+                      <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded">
+                        {dim.scope}
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-sm text-gray-400">
+                        <span className="text-gray-500">Parameter:</span>{' '}
+                        <code className="bg-gray-800 px-2 py-1 rounded text-orange-300 text-xs">
+                          {dim.parameterName}
+                        </code>
                       </div>
+                      {dim.description && (
+                        <div className="text-xs text-gray-500">{dim.description}</div>
+                      )}
                     </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-400 min-w-[80px]">Parameter:</span>
-                      <code className="bg-gray-800 px-3 py-1 rounded text-orange-300 text-sm font-mono">
-                        {dimension.parameterName}
-                      </code>
-                    </div>
-                    {dimension.description && (
-                      <div className="flex items-start space-x-2">
-                        <span className="text-sm text-gray-400 min-w-[80px]">Description:</span>
-                        <span className="text-sm text-gray-300 flex-1">{dimension.description}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-              
-              {audit.customDimensions.length > 5 && (
-                <button
-                  onClick={() => setShowAllDimensions(!showAllDimensions)}
-                  className="w-full flex items-center justify-center space-x-2 py-3 text-blue-400 hover:text-blue-300 border border-blue-500/30 rounded-lg hover:border-blue-500/50 transition-all duration-200 bg-blue-500/5 hover:bg-blue-500/10"
-                >
-                  {showAllDimensions ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  <span>
-                    {showAllDimensions 
-                      ? 'Show Less' 
-                      : `Show ${audit.customDimensions.length - 5} More Dimensions`
-                    }
-                  </span>
-                  {showAllDimensions ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-8 bg-black/30 rounded-lg border border-gray-700/50">
-              <Database className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-              <h5 className="text-gray-400 font-medium mb-2">No Custom Dimensions</h5>
-              <p className="text-sm text-gray-500 mb-4">
-                Custom dimensions let you track business-specific data like user types, content categories, or campaign details.
-              </p>
-              <p className="text-xs text-gray-600">
-                Go to Admin &gt; Custom definitions &gt; Custom dimensions to create them
-              </p>
-            </div>
-          )}
+                ))}
+                
+                {!expandedDimensions && audit.customDimensions.length > 3 && (
+                  <button
+                    onClick={() => setExpandedDimensions(true)}
+                    className="w-full text-center py-3 text-sm text-gray-400 hover:text-white border border-gray-700 rounded-lg hover:border-gray-600 transition-colors"
+                  >
+                    Show {audit.customDimensions.length - 3} more dimensions
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className="text-sm text-gray-400 bg-black/30 rounded-lg p-4 border border-gray-700/50 text-center">
+                <Database className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                No custom dimensions configured yet
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Custom Metrics */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="text-xl font-semibold text-white flex items-center">
-              <BarChart3 className="w-6 h-6 mr-2 text-purple-400" />
-              Custom Metrics
+            <h4 className="text-lg font-semibold text-white flex items-center">
+              <BarChart3 className="w-5 h-5 mr-2 text-purple-400" />
+              Custom Metrics ({audit.customMetrics.length}/50)
             </h4>
-            <div className="flex items-center space-x-3">
-              <div className="text-sm text-gray-400">
-                {audit.customMetrics.length}/50 used
-              </div>
-              <div className="w-24 bg-gray-700 rounded-full h-2">
-                <div 
-                  className="h-2 rounded-full bg-purple-500 transition-all duration-300"
-                  style={{ width: `${(audit.customMetrics.length / 50) * 100}%` }}
-                />
-              </div>
-            </div>
+            <button
+              onClick={() => setExpandedMetrics(!expandedMetrics)}
+              className="flex items-center space-x-2 text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              <span>{expandedMetrics ? 'Collapse' : 'View All'}</span>
+              {expandedMetrics ? 
+                <ChevronDown className="w-4 h-4" /> : 
+                <ChevronRight className="w-4 h-4" />
+              }
+            </button>
           </div>
 
-          {audit.customMetrics.length > 0 ? (
-            <div className="space-y-3">
-              {displayedMetrics.map((metric, index) => (
-                <div key={index} className="bg-black/50 rounded-lg p-4 border border-gray-600/50 hover:border-purple-500/50 transition-colors">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h5 className="font-semibold text-white text-lg mb-1">{metric.displayName}</h5>
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className={`text-xs px-2 py-1 rounded border ${getScopeColor(metric.scope)}`}>
-                          {metric.scope.toUpperCase()}
-                        </span>
-                        <span className="text-xs px-2 py-1 rounded bg-gray-700 text-gray-300">
-                          {metric.unitOfMeasurement}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          Index: {index + 1}
-                        </span>
+          <div className="space-y-3">
+            {audit.customMetrics.length > 0 ? (
+              <>
+                {(expandedMetrics ? audit.customMetrics : audit.customMetrics.slice(0, 3)).map((metric, index) => (
+                  <div key={index} className="bg-black/50 rounded-lg p-4 border border-gray-600/50">
+                    <div className="flex items-center justify-between mb-2">
+                      <h5 className="font-medium text-white">{metric.displayName}</h5>
+                      <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded">
+                        {metric.scope}
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-sm text-gray-400">
+                        <span className="text-gray-500">Parameter:</span>{' '}
+                        <code className="bg-gray-800 px-2 py-1 rounded text-orange-300 text-xs">
+                          {metric.parameterName}
+                        </code>
                       </div>
+                      <div className="text-xs text-gray-500">
+                        <span className="text-gray-500">Unit:</span> {metric.unitOfMeasurement}
+                      </div>
+                      {metric.description && (
+                        <div className="text-xs text-gray-500">{metric.description}</div>
+                      )}
                     </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-400 min-w-[80px]">Parameter:</span>
-                      <code className="bg-gray-800 px-3 py-1 rounded text-orange-300 text-sm font-mono">
-                        {metric.parameterName}
-                      </code>
-                    </div>
-                    {metric.description && (
-                      <div className="flex items-start space-x-2">
-                        <span className="text-sm text-gray-400 min-w-[80px]">Description:</span>
-                        <span className="text-sm text-gray-300 flex-1">{metric.description}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-              
-              {audit.customMetrics.length > 5 && (
-                <button
-                  onClick={() => setShowAllMetrics(!showAllMetrics)}
-                  className="w-full flex items-center justify-center space-x-2 py-3 text-purple-400 hover:text-purple-300 border border-purple-500/30 rounded-lg hover:border-purple-500/50 transition-all duration-200 bg-purple-500/5 hover:bg-purple-500/10"
-                >
-                  {showAllMetrics ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  <span>
-                    {showAllMetrics 
-                      ? 'Show Less' 
-                      : `Show ${audit.customMetrics.length - 5} More Metrics`
-                    }
-                  </span>
-                  {showAllMetrics ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-8 bg-black/30 rounded-lg border border-gray-700/50">
-              <BarChart3 className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-              <h5 className="text-gray-400 font-medium mb-2">No Custom Metrics</h5>
-              <p className="text-sm text-gray-500 mb-4">
-                Custom metrics let you track numerical business KPIs like engagement scores, revenue per user, or completion rates.
-              </p>
-              <p className="text-xs text-gray-600">
-                Go to Admin &gt; Custom definitions &gt; Custom metrics to create them
-              </p>
-            </div>
-          )}
+                ))}
+                
+                {!expandedMetrics && audit.customMetrics.length > 3 && (
+                  <button
+                    onClick={() => setExpandedMetrics(true)}
+                    className="w-full text-center py-3 text-sm text-gray-400 hover:text-white border border-gray-700 rounded-lg hover:border-gray-600 transition-colors"
+                  >
+                    Show {audit.customMetrics.length - 3} more metrics
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className="text-sm text-gray-400 bg-black/30 rounded-lg p-4 border border-gray-700/50 text-center">
+                <BarChart3 className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                No custom metrics configured yet
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Key Events Section */}
       <div className="mt-8 pt-8 border-t border-gray-700">
-        <div className="flex items-center justify-between mb-6">
-          <h4 className="text-xl font-semibold text-white flex items-center">
-            <Tag className="w-6 h-6 mr-2 text-green-400" />
-            Key Events (Conversions)
-          </h4>
-          <div className="text-sm text-gray-400">
-            {audit.keyEvents.length} configured
-          </div>
-        </div>
+        <h4 className="text-lg font-semibold text-white mb-4 flex items-center">
+          <Tag className="w-5 h-5 mr-2 text-green-400" />
+          All Key Events ({audit.keyEvents.length})
+        </h4>
         
         {audit.keyEvents.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {audit.keyEvents.map((event, index) => (
-              <div key={index} className="bg-black/50 rounded-lg p-4 border border-gray-600/50 hover:border-green-500/50 transition-colors">
-                <div className="flex items-start justify-between mb-2">
-                  <h5 className="font-semibold text-white">{event.eventName}</h5>
-                  <span className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded">
-                    KEY EVENT
-                  </span>
+              <div key={index} className="bg-black/50 rounded-lg p-4 border border-gray-600/50">
+                <div className="font-medium text-white mb-1">{event.eventName}</div>
+                <div className="text-xs text-gray-400">
+                  Created: {new Date(event.createTime).toLocaleDateString()}
                 </div>
-                <div className="space-y-1">
-                  <div className="text-xs text-gray-400">
-                    Created: {new Date(event.createTime).toLocaleDateString()}
+                {event.countingMethod && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    Counting: {event.countingMethod}
                   </div>
-                  {event.countingMethod && (
-                    <div className="text-xs text-gray-500">
-                      Counting: {event.countingMethod}
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 bg-red-500/10 rounded-lg border border-red-500/30">
-            <Tag className="w-12 h-12 text-red-600 mx-auto mb-3" />
-            <h5 className="text-red-300 font-medium mb-2">⚠️ No Key Events Configured</h5>
-            <p className="text-sm text-red-200 mb-4">
-              Key events are critical for conversion tracking and can be imported to Google Ads for Smart Bidding.
-            </p>
-            <p className="text-xs text-red-300">
-              Go to Admin &gt; Events &gt; Mark events as key events
-            </p>
+          <div className="text-sm text-red-400 bg-red-500/10 rounded-lg p-4 border border-red-500/30 text-center">
+            <Tag className="w-8 h-8 text-red-600 mx-auto mb-2" />
+            ⚠️ No key events configured - critical for conversion tracking
           </div>
         )}
       </div>
