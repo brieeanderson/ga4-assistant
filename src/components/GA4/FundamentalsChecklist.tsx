@@ -6,7 +6,6 @@ import {
   ChevronDown, 
   ChevronRight,
   Settings,
-  Shield,
   TrendingUp,
   Database,
   Link,
