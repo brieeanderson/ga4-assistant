@@ -76,12 +76,6 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
                         {dimension.parameterName}
                       </code>
                     </div>
-                    {dimension.description && (
-                      <div className="flex items-start space-x-2">
-                        <span className="text-sm text-gray-400 min-w-[80px]">Description:</span>
-                        <span className="text-sm text-gray-300 flex-1">{dimension.description}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
@@ -107,7 +101,7 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
               <Database className="w-12 h-12 text-gray-600 mx-auto mb-3" />
               <h5 className="text-gray-400 font-medium mb-2">No Custom Dimensions</h5>
               <p className="text-sm text-gray-500 mb-4">
-                Custom dimensions let you track business-specific data like user types, content categories, or campaign details.
+                Custom dimensions let you register event parameters as reportable dimensions in GA4.
               </p>
               <p className="text-xs text-gray-600">
                 Go to Admin &gt; Custom definitions &gt; Custom dimensions to create them
@@ -164,12 +158,6 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
                         {metric.parameterName}
                       </code>
                     </div>
-                    {metric.description && (
-                      <div className="flex items-start space-x-2">
-                        <span className="text-sm text-gray-400 min-w-[80px]">Description:</span>
-                        <span className="text-sm text-gray-300 flex-1">{metric.description}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
@@ -195,7 +183,7 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
               <BarChart3 className="w-12 h-12 text-gray-600 mx-auto mb-3" />
               <h5 className="text-gray-400 font-medium mb-2">No Custom Metrics</h5>
               <p className="text-sm text-gray-500 mb-4">
-                Custom metrics let you track numerical business KPIs like engagement scores, revenue per user, or completion rates.
+                Custom metrics let you register numerical event parameters as reportable metrics in GA4.
               </p>
               <p className="text-xs text-gray-600">
                 Go to Admin &gt; Custom definitions &gt; Custom metrics to create them
