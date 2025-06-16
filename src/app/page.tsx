@@ -68,7 +68,7 @@ const GA4GTMAssistant = () => {
 
   // Helper function to scroll to a section
   const scrollToSection = (section: string) => {
-    const refs: Record<string, React.RefObject<HTMLDivElement>> = {
+    const refs: Record<string, React.RefObject<HTMLDivElement | null>> = {
       propertyOverview: propertyOverviewRef,
       fundamentalsChecklist: fundamentalsChecklistRef,
       attributionSettings: attributionSettingsRef,
