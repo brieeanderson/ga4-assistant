@@ -21,7 +21,7 @@ interface FundamentalsChecklistProps {
 interface ChecklistItem {
   id: string;
   name: string;
-  status: 'complete' | 'warning' | 'critical' | 'missing';
+  status: 'complete' | 'warning' | 'critical' | 'missing' | 'opportunity';
   value: string;
   description: string;
   recommendation: string;
@@ -62,6 +62,8 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
         return <XCircle className="w-5 h-5 text-red-500" />;
       case 'missing':
         return <XCircle className="w-5 h-5 text-gray-500" />;
+      case 'opportunity':
+        return <AlertTriangle className="w-5 h-5 text-blue-500" />;
     }
   };
 
@@ -75,6 +77,8 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
         return 'border-red-500/30 bg-red-500/10';
       case 'missing':
         return 'border-gray-500/30 bg-gray-500/10';
+      case 'opportunity':
+        return 'border-blue-500/30 bg-blue-500/10';
     }
   };
 
@@ -93,8 +97,8 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           value: audit.property.timeZone || 'Not Set (defaults to Pacific Time)',
           description: 'Keep timezones consistent across marketing platforms for accurate attribution',
           recommendation: audit.property.timeZone 
-            ? 'Timezone is properly configured' 
-            : 'CRITICAL: Set timezone in Admin > Property > Property Details',
+            ? `Timezone set to ${audit.property.timeZone}` 
+            : 'CRITICAL: Set timezone to match your business location',
           priority: 'critical',
           adminPath: 'Admin > Property > Property details'
         },
@@ -103,51 +107,32 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           name: 'Set Currency',
           status: audit.property.currencyCode ? 'complete' : 'warning',
           value: audit.property.currencyCode || 'USD (default)',
-          description: 'GA4 defaults to USD and converts all transactions based on daily rates',
+          description: 'Used for e-commerce tracking and revenue reporting',
           recommendation: audit.property.currencyCode
-            ? 'Currency is configured'
-            : 'Consider setting your primary business currency',
-          priority: 'important',
-          adminPath: 'Admin > Property > Property details'
-        },
-        {
-          id: 'industry',
-          name: 'Set Industry Category',
-          status: audit.property.industryCategory ? 'complete' : 'warning',
-          value: audit.property.industryCategory || 'Not Set',
-          description: 'Improves machine learning predictions and benchmarking data',
-          recommendation: audit.property.industryCategory
-            ? 'Industry category set for better insights'
-            : 'Set industry category for improved benchmarking',
+            ? `Currency set to ${audit.property.currencyCode}`
+            : 'Set currency for accurate revenue reporting',
           priority: 'important',
           adminPath: 'Admin > Property > Property details'
         },
         {
           id: 'data-retention',
-          name: 'Set Data Retention Period',
-          status: audit.dataRetention.eventDataRetention === 'FOURTEEN_MONTHS' ? 'complete' : 'critical',
+          name: 'Data Retention',
+          status: audit.dataRetention.eventDataRetention === 'FOURTEEN_MONTHS' ? 'complete' : 'warning',
           value: audit.dataRetention.eventDataRetention === 'FOURTEEN_MONTHS' 
-            ? '14 months (optimal)' 
-            : audit.dataRetention.eventDataRetention || '2 months (default - CRITICAL)',
-          description: 'Default is only 2 months! Set to 14 months maximum for historical analysis',
+            ? '14 months (maximum)' 
+            : `${audit.dataRetention.eventDataRetention || '2 months (default)'}`,
+          description: 'Standard properties max out at 14 months',
           recommendation: audit.dataRetention.eventDataRetention === 'FOURTEEN_MONTHS'
-            ? 'Data retention optimized'
-            : 'URGENT: Change to 14 months to prevent permanent data loss',
-          priority: 'critical',
-          adminPath: 'Admin > Data Settings > Data retention'
-        }
-      ]
-    },
-    {
-      id: 'data-collection',
-      title: 'Data Collection & Privacy',
-      icon: Shield,
-      description: 'Privacy settings and data collection configuration',
-      items: [
+            ? 'Data retention set to maximum (14 months)'
+            : 'Consider increasing retention to 14 months for longer analysis windows',
+          priority: 'important',
+          adminPath: 'Admin > Data settings > Data retention'
+        },
         {
           id: 'google-signals',
-          name: 'Configure Google Signals',
-          status: audit.googleSignals.state === 'GOOGLE_SIGNALS_ENABLED' ? 'warning' : 'missing',
+          name: 'Google Signals',
+          status: audit.googleSignals.state === 'GOOGLE_SIGNALS_ENABLED' ? 
+            'warning' : 'missing',
           value: audit.googleSignals.state === 'GOOGLE_SIGNALS_ENABLED' 
             ? 'Enabled (check privacy policy)' 
             : 'Not enabled',
@@ -195,12 +180,16 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
         {
           id: 'key-events-setup',
           name: 'Set Key Events',
-          status: audit.keyEvents.length > 0 ? 'complete' : 'critical',
+          // FIX 1: Show warning for too many key events
+          status: audit.keyEvents.length === 0 ? 'critical' : 
+                 audit.keyEvents.length > 2 ? 'warning' : 'complete',
           value: `${audit.keyEvents.length} key event(s) configured`,
           description: '"Conversions" are now "Key Events" - these can be imported to Google Ads as conversions',
-          recommendation: audit.keyEvents.length > 0
-            ? `Active events: ${audit.keyEvents.map(e => e.eventName).join(', ')}`
-            : 'CRITICAL: Set up key events for purchases, sign-ups, downloads',
+          recommendation: audit.keyEvents.length === 0
+            ? 'CRITICAL: Set up key events for purchases, sign-ups, downloads'
+            : audit.keyEvents.length > 2
+            ? `⚠️ TOO MANY: ${audit.keyEvents.length} key events may skew data. Consider focusing on 1-2 primary goals.`
+            : `Active events: ${audit.keyEvents.map(e => e.eventName).join(', ')}`,
           priority: 'critical',
           adminPath: 'Admin > Events > Mark events as key events'
         }
@@ -215,24 +204,26 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
         {
           id: 'custom-dimensions',
           name: 'Define Custom Dimensions',
-          status: audit.customDimensions.length > 0 ? 'complete' : 'warning',
+          // FIX 2: Make custom dimensions optional/opportunity rather than warning when missing
+          status: audit.customDimensions.length > 0 ? 'complete' : 'opportunity',
           value: `${audit.customDimensions.length}/50 configured`,
           description: 'Register event parameters as custom dimensions to use in reports',
           recommendation: audit.customDimensions.length > 0
             ? `${audit.customDimensions.length} dimensions for detailed analysis`
-            : 'Add custom dimensions for user types, content categories, etc.',
-          priority: 'important',
+            : 'Optional: Add custom dimensions for user types, content categories, etc.',
+          priority: 'optional',
           adminPath: 'Admin > Custom definitions > Custom dimensions'
         },
         {
           id: 'custom-metrics',
           name: 'Create Custom Metrics',
-          status: audit.customMetrics.length > 0 ? 'complete' : 'missing',
+          // FIX 2: Make custom metrics optional/opportunity rather than missing when none
+          status: audit.customMetrics.length > 0 ? 'complete' : 'opportunity',
           value: `${audit.customMetrics.length}/50 configured`,
           description: 'Track numerical business KPIs beyond standard GA4 metrics',
           recommendation: audit.customMetrics.length > 0
             ? `${audit.customMetrics.length} custom metrics for business KPIs`
-            : 'Consider adding for engagement scores, business-specific metrics',
+            : 'Optional: Consider adding for engagement scores, business-specific metrics',
           priority: 'optional',
           adminPath: 'Admin > Custom definitions > Custom metrics'
         },
@@ -248,14 +239,14 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
             
             if (hasVideoParams && hasFormParams) return 'complete';
             if (hasVideoParams || hasFormParams) return 'warning';
-            return 'missing';
+            return 'opportunity';
           })(),
           value: (() => {
             const videoParams = ['video_current_time', 'video_duration', 'video_percent'];
             const formParams = ['form_id', 'form_name', 'file_name'];
             const existingParams = audit.customDimensions.map(d => d.parameterName.toLowerCase());
             const foundParams = [...videoParams, ...formParams].filter(p => existingParams.includes(p));
-            return foundParams.length > 0 ? `${foundParams.length} parameters registered` : 'No EM parameters found';
+            return foundParams.length > 0 ? `${foundParams.length} parameters registered` : 'Recommend: video_current_time, form_id, form_name, file_name';
           })(),
           description: 'Register video_current_time, form_id, form_name, file_name for enhanced measurement',
           recommendation: 'Register enhanced measurement parameters as dimensions for detailed insights',
@@ -303,12 +294,13 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
         {
           id: 'bigquery',
           name: 'Connect BigQuery',
-          status: audit.bigQueryLinks.length > 0 ? 'complete' : 'missing',
+          // FIX 3: Make BigQuery an opportunity rather than missing
+          status: audit.bigQueryLinks.length > 0 ? 'complete' : 'opportunity',
           value: audit.bigQueryLinks.length > 0 ? 'Export Configured' : 'Not Configured',
           description: 'Free tier available for GA4 - enables advanced analysis with SQL',
           recommendation: audit.bigQueryLinks.length > 0
             ? 'BigQuery export configured for advanced analysis'
-            : 'Consider BigQuery for raw data export and custom analysis',
+            : 'OPPORTUNITY: Consider BigQuery for raw data export and custom analysis (free tier available!)',
           priority: 'optional',
           adminPath: 'Admin > Product linking > BigQuery'
         }
@@ -324,194 +316,107 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           id: 'attribution-model',
           name: 'Attribution Model Configuration',
           status: audit.attribution.reportingAttributionModel === 'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN' 
-            ? 'complete' : audit.attribution.reportingAttributionModel ? 'warning' : 'missing',
+            ? 'complete' : audit.attribution.reportingAttributionModel ?
+            'warning' : 'missing',
           value: (() => {
+            // FIX 4: Make attribution more legible
             const model = audit.attribution.reportingAttributionModel;
-            if (!model) return 'Not accessible via API';
+            if (!model) return 'Not configured';
             
             const modelNames: Record<string, string> = {
-              'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN': '✅ Data-driven (optimal)',
-              'PAID_AND_ORGANIC_CHANNELS_LAST_CLICK': '⚠️ Last click (legacy)',
-              'PAID_AND_ORGANIC_CHANNELS_FIRST_CLICK': '⚠️ First click (legacy)', 
-              'PAID_AND_ORGANIC_CHANNELS_LINEAR': '⚠️ Linear (basic)',
-              'PAID_AND_ORGANIC_CHANNELS_TIME_DECAY': '⚠️ Time decay (basic)',
-              'PAID_AND_ORGANIC_CHANNELS_POSITION_BASED': '⚠️ Position-based (basic)'
+              'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN': 'Data-driven (optimal)',
+              'PAID_AND_ORGANIC_CHANNELS_LAST_CLICK': 'Last click (legacy)',
+              'PAID_AND_ORGANIC_CHANNELS_FIRST_CLICK': 'First click (legacy)',
+              'PAID_AND_ORGANIC_CHANNELS_LINEAR': 'Linear (basic)',
+              'PAID_AND_ORGANIC_CHANNELS_TIME_DECAY': 'Time decay (basic)',
+              'PAID_AND_ORGANIC_CHANNELS_POSITION_BASED': 'Position-based (basic)'
             };
             
-            return modelNames[model] || model;
+            return modelNames[model] || 'Unknown model';
           })(),
-          description: (() => {
-            const model = audit.attribution.reportingAttributionModel;
-            const acquisition = audit.attribution.acquisitionConversionEventLookbackWindow || '30 days';
-            const other = audit.attribution.otherConversionEventLookbackWindow || '90 days';
-            const scope = model?.includes('PAID_AND_ORGANIC') ? 'Paid + Organic channels' : 'All channels';
-            
-            return `Attribution Model: ${model === 'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN' ? 
-              'Machine learning assigns credit across touchpoints' : 
-              'Simple rule-based attribution - upgrade recommended'} | Lookback Windows: Acquisition ${acquisition} | Other Events ${other} | Credit Scope: ${scope}`;
-          })(),
+          description: 'Data-driven attribution provides the most accurate conversion credit using machine learning',
           recommendation: audit.attribution.reportingAttributionModel === 'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN'
-            ? 'Optimal setup: Data-driven attribution provides the most accurate conversion credit'
-            : 'UPGRADE: Switch to data-driven attribution for machine learning-based conversion credit',
-          priority: 'important',
+            ? '✅ Optimal setup: Data-driven attribution provides the most accurate conversion credit'
+            : audit.attribution.reportingAttributionModel
+            ? '⚠️ Consider upgrading to data-driven attribution for better insights and Google Ads performance'
+            : 'Configure attribution model in Admin > Attribution settings',
+          priority: audit.attribution.reportingAttributionModel === 'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN' 
+            ? 'optional' : 'important',
           adminPath: 'Admin > Attribution settings'
         }
       ]
     }
   ];
 
-  const getOverallScore = () => {
-    const allItems = sections.flatMap(s => s.items);
-    const criticalItems = allItems.filter(i => i.priority === 'critical');
-    const completedCritical = criticalItems.filter(i => i.status === 'complete').length;
-    const totalCritical = criticalItems.length;
-    
-    const importantItems = allItems.filter(i => i.priority === 'important');
-    const completedImportant = importantItems.filter(i => i.status === 'complete').length;
-    const totalImportant = importantItems.length;
-    
-    // Weight critical items more heavily
-    const criticalScore = totalCritical > 0 ? (completedCritical / totalCritical) * 0.7 : 0;
-    const importantScore = totalImportant > 0 ? (completedImportant / totalImportant) * 0.3 : 0;
-    
-    return Math.round((criticalScore + importantScore) * 100);
-  };
-
-  const score = getOverallScore();
-
   return (
-    <div className="space-y-6">
-      {/* Overall Score Header */}
-      <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-3xl font-bold text-white">GA4 Fundamentals Checklist</h3>
-            <p className="text-gray-400">2025 Edition - Essential configuration items</p>
-          </div>
-          <div className="text-right">
-            <div className={`text-4xl font-bold ${
-              score >= 90 ? 'text-green-400' : score >= 70 ? 'text-yellow-400' : 'text-red-400'
-            }`}>
-              {score}%
-            </div>
-            <p className="text-sm text-gray-400">Fundamentals Complete</p>
-          </div>
-        </div>
-        
-        <div className="w-full bg-gray-700 rounded-full h-4 mb-4">
-          <div 
-            className={`h-4 rounded-full transition-all duration-500 ${
-              score >= 90 ? 'bg-green-500' : score >= 70 ? 'bg-yellow-500' : 'bg-red-500'
-            }`}
-            style={{ width: `${score}%` }}
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-            <div className="text-red-400 font-bold text-lg">
-              {sections.flatMap(s => s.items).filter(i => i.priority === 'critical' && i.status !== 'complete').length}
-            </div>
-            <div className="text-xs text-red-300">Critical Issues</div>
-          </div>
-          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
-            <div className="text-yellow-400 font-bold text-lg">
-              {sections.flatMap(s => s.items).filter(i => i.priority === 'important' && i.status !== 'complete').length}
-            </div>
-            <div className="text-xs text-yellow-300">Important Items</div>
-          </div>
-          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-            <div className="text-green-400 font-bold text-lg">
-              {sections.flatMap(s => s.items).filter(i => i.status === 'complete').length}
-            </div>
-            <div className="text-xs text-green-300">Completed</div>
-          </div>
-        </div>
-      </div>
+    <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
+      <h3 className="text-2xl font-bold text-white mb-8 flex items-center">
+        <CheckCircle className="w-7 h-7 mr-3 text-orange-400" />
+        GA4 Fundamentals Checklist
+      </h3>
 
-      {/* Checklist Sections */}
-      {sections.map((section) => {
-        const criticalIssues = section.items.filter(i => i.priority === 'critical' && i.status !== 'complete').length;
-        
-        return (
-          <div key={section.id} className="bg-black/50 rounded-xl border border-gray-700/50 overflow-hidden">
-            <button
-              onClick={() => toggleSection(section.id)}
-              className="w-full p-6 text-left hover:bg-black/70 transition-colors duration-200"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="relative">
-                    <section.icon className="w-6 h-6 text-orange-400" />
-                    {criticalIssues > 0 && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                        <span className="text-xs text-white font-bold">{criticalIssues}</span>
-                      </div>
-                    )}
+      <div className="space-y-6">
+        {sections.map((section) => {
+          const isExpanded = expandedSections.has(section.id);
+          const IconComponent = section.icon;
+          
+          return (
+            <div key={section.id} className="bg-black/50 rounded-xl border border-gray-600/50">
+              <button
+                onClick={() => toggleSection(section.id)}
+                className="w-full p-6 text-left hover:bg-gray-800/30 transition-colors rounded-xl"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <IconComponent className="w-6 h-6 text-orange-400" />
+                    <div>
+                      <h4 className="text-xl font-semibold text-white">{section.title}</h4>
+                      <p className="text-sm text-gray-400 mt-1">{section.description}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-lg font-bold text-white">{section.title}</h4>
-                    <p className="text-sm text-gray-400">{section.description}</p>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-sm text-gray-400">
+                      {section.items.filter(item => item.status === 'complete').length}/{section.items.length} complete
+                    </div>
+                    {isExpanded ? 
+                      <ChevronDown className="w-5 h-5 text-gray-400" /> : 
+                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                    }
                   </div>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <div className="flex space-x-1">
-                    {section.items.map((item, index) => (
-                      <div key={index} className="w-2 h-2 rounded-full">
-                        {item.status === 'complete' && <div className="w-2 h-2 bg-green-500 rounded-full" />}
-                        {item.status === 'warning' && <div className="w-2 h-2 bg-yellow-500 rounded-full" />}
-                        {(item.status === 'critical' || item.status === 'missing') && <div className="w-2 h-2 bg-red-500 rounded-full" />}
-                      </div>
-                    ))}
-                  </div>
-                  {expandedSections.has(section.id) ? 
-                    <ChevronDown className="w-5 h-5 text-gray-400" /> : 
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
-                  }
-                </div>
-              </div>
-            </button>
-            
-            {expandedSections.has(section.id) && (
-              <div className="px-6 pb-6 space-y-4">
-                {section.items.map((item) => (
-                  <div key={item.id} className={`rounded-lg p-4 border ${getStatusColor(item.status)}`}>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-3">
+              </button>
+
+              {isExpanded && (
+                <div className="px-6 pb-6 space-y-4">
+                  {section.items.map((item) => (
+                    <div 
+                      key={item.id} 
+                      className={`p-4 rounded-lg border ${getStatusColor(item.status)}`}
+                    >
+                      <div className="flex items-start space-x-3">
                         {getStatusIcon(item.status)}
-                        <div>
-                          <h5 className="font-semibold text-white">{item.name}</h5>
-                          {item.priority === 'critical' && (
-                            <span className="text-xs bg-red-500 text-white px-2 py-1 rounded font-bold">
-                              CRITICAL
-                            </span>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-semibold text-white">{item.name}</h5>
+                            <span className="text-sm font-medium text-gray-300">{item.value}</span>
+                          </div>
+                          <p className="text-sm text-gray-300 mb-2">{item.description}</p>
+                          <p className="text-sm text-gray-400 mb-2">{item.recommendation}</p>
+                          {item.adminPath && (
+                            <p className="text-xs text-gray-500">
+                              <strong>Location:</strong> {item.adminPath}
+                            </p>
                           )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium text-gray-300">{item.value}</div>
-                        {item.adminPath && (
-                          <div className="text-xs text-gray-500 mt-1">{item.adminPath}</div>
-                        )}
-                      </div>
                     </div>
-                    
-                    <div className="space-y-2 ml-8">
-                      <p className="text-sm text-gray-300">{item.description}</p>
-                      <p className={`text-sm font-medium ${
-                        item.status === 'complete' ? 'text-green-300' : 
-                        item.status === 'warning' ? 'text-yellow-300' : 'text-red-300'
-                      }`}>
-                        {item.recommendation}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
