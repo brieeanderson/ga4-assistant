@@ -92,7 +92,7 @@ export const AttributionSettingsDisplay: React.FC<AttributionSettingsDisplayProp
       'ONE_DAY': { display: '1 day', description: 'Minimal lookback period' }
     };
     
-    return windowMap[window] || { display: window || 'Unknown', description: 'Custom setting' };
+    return windowMap[window || ''] || { display: window || 'Unknown', description: 'Custom setting' };
   };
 
   const modelInfo = getAttributionModelInfo(audit.attribution.reportingAttributionModel);
