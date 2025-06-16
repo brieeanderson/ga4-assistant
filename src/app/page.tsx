@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Send, Code, Zap, BookOpen, Search, Sparkles } from 'lucide-react';
 import { useOAuth } from '@/hooks/useOAuth';
 import { useGA4Audit } from '@/hooks/useGA4Audit';
@@ -241,7 +242,7 @@ const GA4GTMAssistant = () => {
                   <li>• Configure custom dimensions and metrics</li>
                   <li>• Set up key events for conversion tracking</li>
                   <li>• Link Google Ads and Search Console</li>
-                </ul>
+                  </ul>
               </div>
               <div className="space-y-4">
                 <h3 className="text-lg font-bold text-white">2025 Best Practices</h3>
@@ -251,7 +252,7 @@ const GA4GTMAssistant = () => {
                   <li>• Enable enhanced measurement events</li>
                   <li>• Register custom parameters as dimensions</li>
                   <li>• Configure proper timezone for your business</li>
-                </ul>
+                    </ul>
               </div>
             </div>
           </div>
