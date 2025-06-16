@@ -12,21 +12,6 @@ import { AttributionSettingsDisplay } from '@/components/GA4/AttributionSettings
 import { EnhancedMeasurementAnalysis } from '@/components/GA4/EnhancedMeasurementAnalysis';
 import { ErrorDisplay } from '@/components/common/ErrorDisplay';
 
-const sectionRefs = {
-  propertyOverview: useRef<HTMLDivElement>(null),
-  fundamentalsChecklist: useRef<HTMLDivElement>(null),
-  attributionSettings: useRef<HTMLDivElement>(null),
-  enhancedMeasurement: useRef<HTMLDivElement>(null),
-  customDefinitions: useRef<HTMLDivElement>(null),
-};
-
-export const scrollToSection = (section: keyof typeof sectionRefs) => {
-  const ref = sectionRefs[section];
-  if (ref && ref.current) {
-    ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-};
-
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('audit');
   
@@ -71,6 +56,28 @@ const GA4GTMAssistant = () => {
   const handleRunGA4Audit = () => {
     if (accessToken && selectedProperty) {
       runGA4Audit(accessToken, selectedProperty);
+    }
+  };
+
+  // Section refs (must be inside the component)
+  const propertyOverviewRef = useRef<HTMLDivElement>(null);
+  const fundamentalsChecklistRef = useRef<HTMLDivElement>(null);
+  const attributionSettingsRef = useRef<HTMLDivElement>(null);
+  const enhancedMeasurementRef = useRef<HTMLDivElement>(null);
+  const customDefinitionsRef = useRef<HTMLDivElement>(null);
+
+  // Helper function to scroll to a section
+  const scrollToSection = (section: string) => {
+    const refs: Record<string, React.RefObject<HTMLDivElement>> = {
+      propertyOverview: propertyOverviewRef,
+      fundamentalsChecklist: fundamentalsChecklistRef,
+      attributionSettings: attributionSettingsRef,
+      enhancedMeasurement: enhancedMeasurementRef,
+      customDefinitions: customDefinitionsRef,
+    };
+    const ref = refs[section];
+    if (ref && ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -166,27 +173,27 @@ const GA4GTMAssistant = () => {
             {ga4Audit && (
               <>
                 {/* Property Overview */}
-                <div ref={sectionRefs.propertyOverview}>
+                <div ref={propertyOverviewRef}>
                   <PropertyOverview audit={ga4Audit} />
                 </div>
                 
                 {/* Complete Fundamentals Checklist */}
-                <div ref={sectionRefs.fundamentalsChecklist}>
-                  <FundamentalsChecklist audit={ga4Audit} />
+                <div ref={fundamentalsChecklistRef}>
+                  <FundamentalsChecklist audit={ga4Audit} scrollToSection={scrollToSection} />
                 </div>
 
                 {/* Attribution Settings - NEW ENHANCED COMPONENT */}
-                <div ref={sectionRefs.attributionSettings}>
+                <div ref={attributionSettingsRef}>
                   <AttributionSettingsDisplay audit={ga4Audit} />
                 </div>
 
                 {/* Enhanced Measurement Analysis */}
-                <div ref={sectionRefs.enhancedMeasurement}>
+                <div ref={enhancedMeasurementRef}>
                   <EnhancedMeasurementAnalysis audit={ga4Audit} />
                 </div>
 
                 {/* Complete Custom Definitions - NEW ENHANCED COMPONENT */}
-                <div ref={sectionRefs.customDefinitions}>
+                <div ref={customDefinitionsRef}>
                   <CustomDefinitionsDisplay audit={ga4Audit} />
                 </div>
               </>
