@@ -455,7 +455,7 @@ async function getEventCreateRulesForStreams(accessToken: string, propertyId: st
   return eventCreateRulesData;
 }
 
-// UPDATED: Search Console detection using Data API only
+// UPDATED: Search Console detection using Data API with proper dimensions
 async function checkSearchConsoleDataAvailability(accessToken: string, propertyId: string) {
   const searchConsoleStatus = {
     isLinked: false,
@@ -469,11 +469,11 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
     debugInfo: [] as string[]
   };
 
-  searchConsoleStatus.debugInfo.push('Using Data API to detect Search Console integration');
+  searchConsoleStatus.debugInfo.push('Using Data API with landingPagePlusQueryString dimension to detect Search Console integration');
 
-  // Method 1: Test organic search metrics directly (no dimensions needed)
+  // Method 1: Test with landingPagePlusQueryString dimension (CORRECT APPROACH)
   try {
-    searchConsoleStatus.debugInfo.push('Method 1: Testing organicGoogleSearch metrics');
+    searchConsoleStatus.debugInfo.push('Method 1: Testing organicGoogleSearch metrics with landingPagePlusQueryString dimension');
     
     const response = await fetchWithTimeout(
       `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
@@ -484,58 +484,69 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          // No dimensions - just test if the metrics exist
+          dimensions: [
+            { name: 'landingPagePlusQueryString' }
+          ],
           metrics: [
             { name: 'organicGoogleSearchClicks' },
             { name: 'organicGoogleSearchImpressions' }
           ],
-          dateRanges: [{ startDate: '30daysAgo', endDate: 'yesterday' }]
+          dateRanges: [{ startDate: '30daysAgo', endDate: 'yesterday' }],
+          limit: 10 // Just need to see if data exists
         })
       },
-      8000
+      10000
     );
 
     if (response.ok) {
       const data = await response.json();
       searchConsoleStatus.debugInfo.push(`Method 1 success: ${data.rows?.length || 0} rows returned`);
       
-      // If we get ANY response (even with 0 values), it means Search Console is linked
+      // If we get ANY response with rows, it means Search Console is linked
       // because these metrics only exist when Search Console is connected
       if (data.rows && data.rows.length > 0) {
-        const row = data.rows[0];
-        if (row.metricValues && row.metricValues.length >= 2) {
-          const totalClicks = parseInt(row.metricValues[0].value) || 0;
-          const totalImpressions = parseInt(row.metricValues[1].value) || 0;
-          
-          searchConsoleStatus.isLinked = true; // Metrics exist = Search Console is linked
-          searchConsoleStatus.totalClicks = totalClicks;
-          searchConsoleStatus.totalImpressions = totalImpressions;
-          searchConsoleStatus.organicImpressions = totalImpressions;
-          searchConsoleStatus.hasData = totalImpressions > 0;
-          searchConsoleStatus.dataMethod = 'data_api';
-          
-          if (searchConsoleStatus.hasData) {
-            const ctr = totalClicks > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : '0';
-            searchConsoleStatus.lastDataDate = `✅ Active: ${totalImpressions.toLocaleString()} impressions, ${totalClicks.toLocaleString()} clicks (30 days), CTR: ${ctr}%`;
-            searchConsoleStatus.debugInfo.push(`Search Console connected with active data`);
-          } else {
-            searchConsoleStatus.lastDataDate = `✅ Search Console linked but no recent organic traffic (last 30 days)`;
-            searchConsoleStatus.debugInfo.push(`Search Console connected but no impressions in date range`);
+        let totalClicks = 0;
+        let totalImpressions = 0;
+        
+        data.rows.forEach((row: any) => {
+          if (row.metricValues && row.metricValues.length >= 2) {
+            totalClicks += parseInt(row.metricValues[0].value) || 0;
+            totalImpressions += parseInt(row.metricValues[1].value) || 0;
           }
-          
-          return searchConsoleStatus;
+        });
+        
+        searchConsoleStatus.isLinked = true; // Metrics exist = Search Console is linked
+        searchConsoleStatus.totalClicks = totalClicks;
+        searchConsoleStatus.totalImpressions = totalImpressions;
+        searchConsoleStatus.organicImpressions = totalImpressions;
+        searchConsoleStatus.hasData = totalImpressions > 0 || totalClicks > 0;
+        searchConsoleStatus.dataMethod = 'data_api';
+        
+        if (searchConsoleStatus.hasData) {
+          const ctr = totalClicks > 0 && totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : '0';
+          searchConsoleStatus.lastDataDate = `✅ Active: ${totalImpressions.toLocaleString()} impressions, ${totalClicks.toLocaleString()} clicks (30 days), CTR: ${ctr}%`;
+          searchConsoleStatus.debugInfo.push(`Search Console connected with active data: ${totalImpressions} impressions, ${totalClicks} clicks`);
+        } else {
+          searchConsoleStatus.lastDataDate = `✅ Search Console linked but no recent organic traffic (last 30 days)`;
+          searchConsoleStatus.debugInfo.push(`Search Console connected but no impressions/clicks in date range`);
         }
+        
+        return searchConsoleStatus;
       } else {
-        // No rows returned could mean metrics don't exist (not linked) or no data
-        searchConsoleStatus.debugInfo.push('Method 1: No rows returned - may indicate Search Console not linked');
+        // No rows returned could mean no data in this date range, but could still be linked
+        searchConsoleStatus.debugInfo.push('Method 1: No rows returned - may indicate no organic traffic in date range');
       }
     } else {
       const errorText = await response.text();
       searchConsoleStatus.debugInfo.push(`Method 1 failed: ${response.status} - ${errorText}`);
       
       // If we get a 400 error mentioning these metrics don't exist, it confirms no Search Console
-      if (response.status === 400 && errorText.includes('organicGoogleSearch')) {
-        searchConsoleStatus.debugInfo.push('Confirmed: organicGoogleSearch metrics not available = Search Console not linked');
+      if (response.status === 400 && (
+        errorText.includes('organicGoogleSearch') || 
+        errorText.includes('INVALID_METRIC') ||
+        errorText.includes('landingPagePlusQueryString')
+      )) {
+        searchConsoleStatus.debugInfo.push('Confirmed: organicGoogleSearch metrics or landingPagePlusQueryString dimension not available = Search Console not linked');
         searchConsoleStatus.isLinked = false;
         searchConsoleStatus.lastDataDate = `❌ Search Console not linked (organic search metrics unavailable)`;
         return searchConsoleStatus;
@@ -545,9 +556,9 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
     searchConsoleStatus.debugInfo.push(`Method 1 error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
-  // Method 2: Try with a longer date range to see if Search Console was ever linked
+  // Method 2: Try with googleSearchConsoleQuery dimension as alternative
   try {
-    searchConsoleStatus.debugInfo.push('Method 2: Testing longer date range (90 days)');
+    searchConsoleStatus.debugInfo.push('Method 2: Testing with googleSearchConsoleQuery dimension (alternative approach)');
     
     const response = await fetchWithTimeout(
       `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
@@ -558,11 +569,17 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          metrics: [{ name: 'organicGoogleSearchImpressions' }],
-          dateRanges: [{ startDate: '90daysAgo', endDate: 'yesterday' }]
+          dimensions: [
+            { name: 'googleSearchConsoleQuery' }
+          ],
+          metrics: [
+            { name: 'organicGoogleSearchImpressions' }
+          ],
+          dateRanges: [{ startDate: '90daysAgo', endDate: 'yesterday' }],
+          limit: 5
         })
       },
-      6000
+      8000
     );
 
     if (response.ok) {
@@ -570,7 +587,9 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
       searchConsoleStatus.debugInfo.push(`Method 2 success: ${data.rows?.length || 0} rows returned`);
       
       if (data.rows && data.rows.length > 0) {
-        const totalImpressions = parseInt(data.rows[0].metricValues?.[0]?.value) || 0;
+        const totalImpressions = data.rows.reduce((sum: number, row: any) => {
+          return sum + (parseInt(row.metricValues?.[0]?.value) || 0);
+        }, 0);
         
         searchConsoleStatus.isLinked = true;
         searchConsoleStatus.organicImpressions = totalImpressions;
@@ -579,6 +598,7 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
         
         if (searchConsoleStatus.hasData) {
           searchConsoleStatus.lastDataDate = `✅ Historical data: ${totalImpressions.toLocaleString()} impressions (90 days)`;
+          searchConsoleStatus.debugInfo.push(`Method 2 success: Found ${totalImpressions} impressions via googleSearchConsoleQuery dimension`);
         } else {
           searchConsoleStatus.lastDataDate = `✅ Search Console linked but no organic impressions in last 90 days`;
         }
@@ -593,9 +613,70 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
     searchConsoleStatus.debugInfo.push(`Method 2 error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
+  // Method 3: Final check with basic googleSearchConsoleSearchTerm dimension
+  try {
+    searchConsoleStatus.debugInfo.push('Method 3: Testing with googleSearchConsoleSearchTerm dimension (final attempt)');
+    
+    const response = await fetchWithTimeout(
+      `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          dimensions: [
+            { name: 'googleSearchConsoleSearchTerm' }
+          ],
+          metrics: [
+            { name: 'organicGoogleSearchImpressions' }
+          ],
+          dateRanges: [{ startDate: '180daysAgo', endDate: 'yesterday' }],
+          limit: 1
+        })
+      },
+      6000
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      searchConsoleStatus.debugInfo.push(`Method 3 success: ${data.rows?.length || 0} rows returned`);
+      
+      // Even getting a successful response (even with 0 rows) indicates Search Console is linked
+      // because these dimensions wouldn't be available otherwise
+      searchConsoleStatus.isLinked = true;
+      searchConsoleStatus.dataMethod = 'data_api_simplified';
+      
+      if (data.rows && data.rows.length > 0) {
+        const totalImpressions = data.rows.reduce((sum: number, row: any) => {
+          return sum + (parseInt(row.metricValues?.[0]?.value) || 0);
+        }, 0);
+        
+        searchConsoleStatus.organicImpressions = totalImpressions;
+        searchConsoleStatus.hasData = totalImpressions > 0;
+        searchConsoleStatus.lastDataDate = totalImpressions > 0 
+          ? `✅ Historical data: ${totalImpressions.toLocaleString()} impressions (180 days)`
+          : `✅ Search Console linked but no impressions in last 180 days`;
+      } else {
+        searchConsoleStatus.hasData = false;
+        searchConsoleStatus.lastDataDate = `✅ Search Console linked but no search term data in last 180 days`;
+      }
+      
+      searchConsoleStatus.debugInfo.push('Method 3: Search Console is linked (API accepts Search Console dimensions)');
+      return searchConsoleStatus;
+      
+    } else {
+      const errorText = await response.text();
+      searchConsoleStatus.debugInfo.push(`Method 3 failed: ${response.status} - ${errorText}`);
+    }
+  } catch (error) {
+    searchConsoleStatus.debugInfo.push(`Method 3 error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+
   // If we get here, Search Console is likely not linked
   searchConsoleStatus.isLinked = false;
-  searchConsoleStatus.lastDataDate = `❌ Search Console not linked - organic search metrics unavailable`;
+  searchConsoleStatus.lastDataDate = `❌ Search Console not linked - organic search dimensions/metrics unavailable`;
   
   searchConsoleStatus.debugInfo.push('💡 TO CONNECT SEARCH CONSOLE:');
   searchConsoleStatus.debugInfo.push('1. Go to GA4 Admin > Product linking > Search Console');
