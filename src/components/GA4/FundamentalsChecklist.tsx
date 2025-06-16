@@ -12,10 +12,10 @@ import {
   BarChart3
 } from 'lucide-react';
 import { GA4Audit } from '@/types/ga4';
-import { scrollToSection } from '@/app/page';
 
 interface FundamentalsChecklistProps {
   audit: GA4Audit;
+  scrollToSection?: (section: string) => void;
 }
 
 interface ChecklistItem {
@@ -37,7 +37,7 @@ interface ChecklistSection {
   items: ChecklistItem[];
 }
 
-export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ audit }) => {
+export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ audit, scrollToSection }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['property-config', 'key-events'])
   );
@@ -407,7 +407,7 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
                               <strong>Location:</strong> {item.adminPath}
                             </p>
                           )}
-                          {item.id === 'enhanced-measurement' && (
+                          {item.id === 'enhanced-measurement' && scrollToSection && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
