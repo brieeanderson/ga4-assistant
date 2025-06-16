@@ -407,12 +407,33 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
                               <strong>Location:</strong> {item.adminPath}
                             </p>
                           )}
-                          {item.id === 'enhanced-measurement' && scrollToSection && (
+                          {item.id === 'data-streams' && scrollToSection && (
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                scrollToSection('enhancedMeasurement');
-                              }}
+                              onClick={e => { e.stopPropagation(); scrollToSection('propertyOverview'); }}
+                              className="mt-2 text-xs text-orange-400 hover:underline focus:outline-none"
+                            >
+                              View Details
+                            </button>
+                          )}
+                          {item.id === 'key-events-setup' && scrollToSection && (
+                            <button
+                              onClick={e => { e.stopPropagation(); scrollToSection('fundamentalsChecklist'); }}
+                              className="mt-2 text-xs text-orange-400 hover:underline focus:outline-none"
+                            >
+                              View Details
+                            </button>
+                          )}
+                          {item.id === 'custom-dimensions' && scrollToSection && (
+                            <button
+                              onClick={e => { e.stopPropagation(); scrollToSection('customDefinitions'); }}
+                              className="mt-2 text-xs text-orange-400 hover:underline focus:outline-none"
+                            >
+                              View Details
+                            </button>
+                          )}
+                          {item.id === 'attribution-model' && scrollToSection && (
+                            <button
+                              onClick={e => { e.stopPropagation(); scrollToSection('attributionSettings'); }}
                               className="mt-2 text-xs text-orange-400 hover:underline focus:outline-none"
                             >
                               View Details
