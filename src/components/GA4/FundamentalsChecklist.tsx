@@ -12,6 +12,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { GA4Audit } from '@/types/ga4';
+import { scrollToSection } from '@/app/page';
 
 interface FundamentalsChecklistProps {
   audit: GA4Audit;
@@ -405,6 +406,17 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
                             <p className="text-xs text-gray-500">
                               <strong>Location:</strong> {item.adminPath}
                             </p>
+                          )}
+                          {item.id === 'enhanced-measurement' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                scrollToSection('enhancedMeasurement');
+                              }}
+                              className="mt-2 text-xs text-orange-400 hover:underline focus:outline-none"
+                            >
+                              View Details
+                            </button>
                           )}
                         </div>
                       </div>
