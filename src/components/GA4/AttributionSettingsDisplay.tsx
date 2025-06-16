@@ -77,20 +77,36 @@ export const AttributionSettingsDisplay: React.FC<AttributionSettingsDisplayProp
   };
 
   const getLookbackWindowDisplay = (window: string) => {
-    const windowMap: Record<string, { display: string; description: string }> = {
-      'THIRTY_DAYS': { display: '30 days', description: 'Standard for most businesses' },
-      'NINETY_DAYS': { display: '90 days', description: 'Extended window for longer sales cycles' },
-      'SEVEN_DAYS': { display: '7 days', description: 'Short window for quick conversions' },
-      'ONE_DAY': { display: '1 day', description: 'Same-day conversions only' }
-    };
-
-    return windowMap[window] || { display: window || 'Default', description: 'Custom or default setting' };
+    if (!window) return { display: 'Default', description: 'Default setting' };
+    
+    // Extract number of days from various formats
+    const windowStr = window.toString().toUpperCase();
+    
+    // Handle direct formats
+    if (windowStr === 'THIRTY_DAYS') return { display: '30 days', description: 'Standard for most businesses' };
+    if (windowStr === 'NINETY_DAYS') return { display: '90 days', description: 'Extended window for longer sales cycles' };
+    if (windowStr === 'SEVEN_DAYS') return { display: '7 days', description: 'Short window for quick conversions' };
+    if (windowStr === 'ONE_DAY') return { display: '1 day', description: 'Same-day conversions only' };
+    
+    // Handle API format strings - extract the number
+    if (windowStr.includes('90')) return { display: '90 days', description: 'Extended window for longer sales cycles' };
+    if (windowStr.includes('30')) return { display: '30 days', description: 'Standard for most businesses' };
+    if (windowStr.includes('7')) return { display: '7 days', description: 'Short window for quick conversions' };
+    if (windowStr.includes('1')) return { display: '1 day', description: 'Same-day conversions only' };
+    
+    // Fallback
+    return { display: window, description: 'Custom setting' };
   };
 
   const model = audit.attribution.reportingAttributionModel;
   const modelInfo = model ? getAttributionModelInfo(model) : null;
-  const acquisitionWindow = getLookbackWindowDisplay(audit.attribution.acquisitionConversionEventLookbackWindow || 'THIRTY_DAYS');
-  const otherWindow = getLookbackWindowDisplay(audit.attribution.otherConversionEventLookbackWindow || 'NINETY_DAYS');
+  
+  // Clean up the lookback window values and get display info
+  const acquisitionWindowRaw = audit.attribution.acquisitionConversionEventLookbackWindow;
+  const otherWindowRaw = audit.attribution.otherConversionEventLookbackWindow;
+  
+  const acquisitionWindow = getLookbackWindowDisplay(acquisitionWindowRaw || 'THIRTY_DAYS');
+  const otherWindow = getLookbackWindowDisplay(otherWindowRaw || 'NINETY_DAYS');
   
   // Determine if this affects paid channels only
   const isPaidChannelsOnly = model?.includes('PAID_AND_ORGANIC_CHANNELS');
