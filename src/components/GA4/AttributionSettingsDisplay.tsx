@@ -7,7 +7,7 @@ interface AttributionSettingsDisplayProps {
 }
 
 export const AttributionSettingsDisplay: React.FC<AttributionSettingsDisplayProps> = ({ audit }) => {
-  const getAttributionModelInfo = (model: string) => {
+  const getAttributionModelInfo = (model: string | undefined) => {
     const modelMap: Record<string, {
       name: string;
       description: string;
@@ -73,7 +73,7 @@ export const AttributionSettingsDisplay: React.FC<AttributionSettingsDisplayProp
       }
     };
 
-    return modelMap[model] || {
+    return modelMap[model || ''] || {
       name: 'Unknown Attribution Model',
       description: 'Attribution model not recognized.',
       status: 'basic' as const,
@@ -84,7 +84,7 @@ export const AttributionSettingsDisplay: React.FC<AttributionSettingsDisplayProp
     };
   };
 
-  const getLookbackWindowInfo = (window: string) => {
+  const getLookbackWindowInfo = (window: string | undefined) => {
     const windowMap: Record<string, { display: string; description: string }> = {
       'THIRTY_DAYS': { display: '30 days', description: 'Standard lookback period' },
       'NINETY_DAYS': { display: '90 days', description: 'Extended lookback period' },
