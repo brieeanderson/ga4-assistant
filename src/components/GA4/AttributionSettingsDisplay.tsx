@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, Clock, Target, Zap, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { TrendingUp, Clock, Target, Zap, AlertTriangle, CheckCircle } from 'lucide-react';
 import { GA4Audit } from '@/types/ga4';
 
 interface AttributionSettingsDisplayProps {
