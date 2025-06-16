@@ -30,7 +30,7 @@ const handler: Handler = async (event, context) => {
       };
     }
 
-    console.log('=== COMPREHENSIVE GA4 AUDIT v5.1 - 2025 EDITION ===');
+    console.log('=== COMPREHENSIVE GA4 AUDIT v5.2 - 2025 EDITION ===');
     console.log('PropertyId provided:', !!propertyId);
 
     // Test the access token first
@@ -287,7 +287,7 @@ const handler: Handler = async (event, context) => {
       dataStreams.dataStreams || []
     );
 
-    // UPDATED: Check for Search Console data availability with proper dimensions
+    // ENHANCED: Check for Search Console data availability with proper dimensions
     const searchConsoleDataStatus = await checkSearchConsoleDataAvailability(
       accessToken,
       propertyId,
@@ -349,6 +349,21 @@ const handler: Handler = async (event, context) => {
         details: error instanceof Error ? error.message : 'Unknown error'
       }),
     };
+  }
+};
+
+// Helper function: Fetch with timeout to prevent hanging requests
+const fetchWithTimeout = async (url: string, options: any, timeoutMs: number = 10000) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
   }
 };
 
@@ -450,7 +465,7 @@ async function getEventCreateRulesForStreams(accessToken: string, propertyId: st
   return eventCreateRulesData;
 }
 
-// ENHANCED: Search Console data availability check with multiple fallback methods
+// ENHANCED: Search Console data availability check with multiple fallback methods and improved error handling
 async function checkSearchConsoleDataAvailability(accessToken: string, propertyId: string, searchConsoleLinks: Array<Record<string, unknown>>) {
   const searchConsoleStatus = {
     isLinked: searchConsoleLinks.length > 0,
@@ -471,11 +486,11 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
 
   searchConsoleStatus.debugInfo.push(`Found ${searchConsoleLinks.length} Search Console link(s)`);
 
-  // Method 1: Try the dimension combination that works in Looker
+  // Method 1: Try the dimension combination that works in Looker (googleSearchConsoleQuery + landingPagePlusQueryString)
   try {
     searchConsoleStatus.debugInfo.push('Attempting Method 1: googleSearchConsoleQuery + landingPagePlusQueryString');
     
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
       {
         method: 'POST',
@@ -502,7 +517,8 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
             }
           }
         })
-      }
+      },
+      8000 // 8 second timeout
     );
 
     if (response.ok) {
@@ -510,6 +526,15 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
       searchConsoleStatus.debugInfo.push(`Method 1 success: ${data.rows?.length || 0} rows returned`);
       
       if (data.rows && data.rows.length > 0) {
+        // Validate that we have the expected metric structure
+        const hasValidMetrics = data.rows.every((row: any) => 
+          row.metricValues && row.metricValues.length >= 2
+        );
+        
+        if (!hasValidMetrics) {
+          searchConsoleStatus.debugInfo.push('Method 1 warning: Some rows missing expected metric values');
+        }
+        
         let totalClicks = 0;
         let totalImpressions = 0;
         
@@ -527,24 +552,45 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
         searchConsoleStatus.dataMethod = 'api';
         
         if (searchConsoleStatus.hasData) {
+          const ctr = totalClicks > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : '0';
           searchConsoleStatus.lastDataDate = `✅ Active: ${totalImpressions.toLocaleString()} impressions, ${totalClicks.toLocaleString()} clicks in last 30 days`;
+          searchConsoleStatus.debugInfo.push(`Data quality: ${data.rows.length} query/page combinations, CTR: ${ctr}%`);
         }
         
         return searchConsoleStatus;
+      } else {
+        searchConsoleStatus.debugInfo.push('Method 1: API succeeded but returned no data rows');
       }
     } else {
       const errorText = await response.text();
-      searchConsoleStatus.debugInfo.push(`Method 1 failed: ${response.status} - ${errorText}`);
+      
+      // Parse specific error messages for better debugging
+      let errorDetail = `${response.status} - ${errorText}`;
+      if (errorText.includes('INVALID_ARGUMENT')) {
+        errorDetail += ' (Likely dimension compatibility issue)';
+      } else if (errorText.includes('PERMISSION_DENIED')) {
+        errorDetail += ' (Check Search Console permissions)';
+      } else if (errorText.includes('UNAUTHENTICATED')) {
+        errorDetail += ' (Token may have expired)';
+      }
+      
+      searchConsoleStatus.debugInfo.push(`Method 1 failed: ${errorDetail}`);
     }
   } catch (error) {
-    searchConsoleStatus.debugInfo.push(`Method 1 error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    searchConsoleStatus.debugInfo.push(`Method 1 error: ${errorMsg}`);
+    
+    // Check for specific error types
+    if (errorMsg.includes('AbortError')) {
+      searchConsoleStatus.debugInfo.push('Method 1 timeout: Request took longer than 8 seconds');
+    }
   }
 
   // Method 2: Try simplified approach with just googleSearchConsoleQuery
   try {
     searchConsoleStatus.debugInfo.push('Attempting Method 2: googleSearchConsoleQuery only');
     
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
       {
         method: 'POST',
@@ -561,7 +607,8 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
           dateRanges: [{ startDate: '7daysAgo', endDate: 'yesterday' }],
           limit: 5
         })
-      }
+      },
+      6000 // 6 second timeout for simplified method
     );
 
     if (response.ok) {
@@ -599,11 +646,11 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
     searchConsoleStatus.debugInfo.push(`Method 2 error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
-  // Method 3: Try with different date range (longer lookback)
+  // Method 3: Try with different date range and landingPage dimension
   try {
-    searchConsoleStatus.debugInfo.push('Attempting Method 3: Extended date range');
+    searchConsoleStatus.debugInfo.push('Attempting Method 3: Extended date range with landingPage');
     
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
       {
         method: 'POST',
@@ -620,7 +667,8 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
           dateRanges: [{ startDate: '90daysAgo', endDate: 'yesterday' }],
           limit: 5
         })
-      }
+      },
+      6000
     );
 
     if (response.ok) {
@@ -641,33 +689,50 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
     searchConsoleStatus.debugInfo.push(`Method 3 error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
+  // Method 4: Validate Search Console link details and add helpful info
+  try {
+    searchConsoleStatus.debugInfo.push('Method 4: Validating Search Console link details');
+    
+    // Extract useful info from the link details
+    const linkInfo = searchConsoleLinks.map((link: any) => ({
+      siteUrl: link.siteUrl || 'Unknown',
+      state: link.state || 'Unknown',
+      dailyExportEnabled: link.dailyExportEnabled || false
+    }));
+    
+    searchConsoleStatus.debugInfo.push(`Link details: ${JSON.stringify(linkInfo)}`);
+    
+    // Check if daily export is enabled (this affects data availability)
+    const hasEnabledExport = linkInfo.some(link => link.dailyExportEnabled === true);
+    if (!hasEnabledExport) {
+      searchConsoleStatus.lastDataDate = `⚠️ Search Console linked but daily export may not be enabled. Check link configuration in Admin > Product linking > Search Console.`;
+    } else {
+      searchConsoleStatus.lastDataDate = `⚠️ Search Console linked with daily export enabled, but data flow not verified via Reporting API. Check Reports > Library > Search Console in GA4 manually.`;
+    }
+    
+  } catch (error) {
+    searchConsoleStatus.debugInfo.push('Method 4 failed: Could not parse link details');
+  }
+
   // Fallback: Admin link exists but no data detected via API
-  searchConsoleStatus.dataMethod = 'admin_link_only';
-  searchConsoleStatus.lastDataDate = `⚠️ Search Console linked via Admin API but data flow not verified via Reporting API. Check Reports > Library > Search Console in GA4 manually.`;
+  if (searchConsoleStatus.dataMethod === 'none') {
+    searchConsoleStatus.dataMethod = 'admin_link_only';
+    if (!searchConsoleStatus.lastDataDate) {
+      searchConsoleStatus.lastDataDate = `⚠️ Search Console linked via Admin API but data flow not verified via Reporting API. Check Reports > Library > Search Console in GA4 manually.`;
+    }
+  }
   
-  // Add helpful debugging info
-  searchConsoleStatus.debugInfo.push('All API methods failed - Search Console may need time to populate or additional permissions');
-  searchConsoleStatus.debugInfo.push('Recommendation: Check GA4 Reports > Library > Search Console collections manually');
+  // Add troubleshooting tips for common issues
+  if (searchConsoleLinks.length > 0 && !searchConsoleStatus.hasData) {
+    searchConsoleStatus.debugInfo.push('💡 TROUBLESHOOTING TIPS:');
+    searchConsoleStatus.debugInfo.push('1. Search Console data can take 48-72 hours to appear in GA4');
+    searchConsoleStatus.debugInfo.push('2. Check GA4 Reports > Library > Search Console - publish collections if needed');
+    searchConsoleStatus.debugInfo.push('3. Verify you\'re a verified owner (not just user) in Search Console');
+    searchConsoleStatus.debugInfo.push('4. Ensure the Search Console property URL exactly matches your GA4 data stream URL');
+    searchConsoleStatus.debugInfo.push('5. Try manually checking Reports > Acquisition > Traffic acquisition for "Google Organic Search"');
+  }
   
   return searchConsoleStatus;
-}
-
-// UTILITY: Check if Search Console collections are published in GA4
-async function checkSearchConsoleCollections(accessToken: string, propertyId: string) {
-  try {
-    // This would need to be implemented using the GA4 Admin API
-    // to check if Search Console collections are published
-    // For now, return a helpful message
-    return {
-      collectionsPublished: 'unknown',
-      message: 'Check GA4 Reports > Library > Search Console collections and publish if needed'
-    };
-  } catch (error) {
-    return {
-      collectionsPublished: 'error',
-      message: 'Unable to check Search Console collections status'
-    };
-  }
 }
 
 // Helper function to build comprehensive audit with enhanced logic
