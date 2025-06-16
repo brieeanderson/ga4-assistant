@@ -417,7 +417,7 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
                           )}
                           {item.id === 'key-events-setup' && scrollToSection && (
                             <button
-                              onClick={e => { e.stopPropagation(); scrollToSection('fundamentalsChecklist'); }}
+                              onClick={e => { e.stopPropagation(); scrollToSection('keyEventsDetail'); }}
                               className="mt-2 text-xs text-orange-400 hover:underline focus:outline-none"
                             >
                               View Details
