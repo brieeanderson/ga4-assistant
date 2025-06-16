@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Send, Code, Zap, BookOpen, Search, Sparkles } from 'lucide-react';
 import { useOAuth } from '@/hooks/useOAuth';
 import { useGA4Audit } from '@/hooks/useGA4Audit';
@@ -11,6 +11,21 @@ import { CustomDefinitionsDisplay } from '@/components/GA4/CustomDefinitionsDisp
 import { AttributionSettingsDisplay } from '@/components/GA4/AttributionSettingsDisplay';
 import { EnhancedMeasurementAnalysis } from '@/components/GA4/EnhancedMeasurementAnalysis';
 import { ErrorDisplay } from '@/components/common/ErrorDisplay';
+
+const sectionRefs = {
+  propertyOverview: useRef<HTMLDivElement>(null),
+  fundamentalsChecklist: useRef<HTMLDivElement>(null),
+  attributionSettings: useRef<HTMLDivElement>(null),
+  enhancedMeasurement: useRef<HTMLDivElement>(null),
+  customDefinitions: useRef<HTMLDivElement>(null),
+};
+
+export const scrollToSection = (section: keyof typeof sectionRefs) => {
+  const ref = sectionRefs[section];
+  if (ref && ref.current) {
+    ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
 
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('audit');
@@ -151,19 +166,29 @@ const GA4GTMAssistant = () => {
             {ga4Audit && (
               <>
                 {/* Property Overview */}
-                <PropertyOverview audit={ga4Audit} />
+                <div ref={sectionRefs.propertyOverview}>
+                  <PropertyOverview audit={ga4Audit} />
+                </div>
                 
                 {/* Complete Fundamentals Checklist */}
-                <FundamentalsChecklist audit={ga4Audit} />
+                <div ref={sectionRefs.fundamentalsChecklist}>
+                  <FundamentalsChecklist audit={ga4Audit} />
+                </div>
 
                 {/* Attribution Settings - NEW ENHANCED COMPONENT */}
-                <AttributionSettingsDisplay audit={ga4Audit} />
+                <div ref={sectionRefs.attributionSettings}>
+                  <AttributionSettingsDisplay audit={ga4Audit} />
+                </div>
 
                 {/* Enhanced Measurement Analysis */}
-                <EnhancedMeasurementAnalysis audit={ga4Audit} />
+                <div ref={sectionRefs.enhancedMeasurement}>
+                  <EnhancedMeasurementAnalysis audit={ga4Audit} />
+                </div>
 
                 {/* Complete Custom Definitions - NEW ENHANCED COMPONENT */}
-                <CustomDefinitionsDisplay audit={ga4Audit} />
+                <div ref={sectionRefs.customDefinitions}>
+                  <CustomDefinitionsDisplay audit={ga4Audit} />
+                </div>
               </>
             )}
           </div>
