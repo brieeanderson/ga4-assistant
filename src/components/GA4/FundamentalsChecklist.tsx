@@ -439,6 +439,22 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
                               View Details
                             </button>
                           )}
+                          {item.id === 'custom-metrics' && scrollToSection && (
+                            <button
+                              onClick={e => { e.stopPropagation(); scrollToSection('customMetrics'); }}
+                              className="mt-2 text-xs text-orange-400 hover:underline focus:outline-none"
+                            >
+                              View Details
+                            </button>
+                          )}
+                          {item.id === 'enhanced-measurement' && scrollToSection && (
+                            <button
+                              onClick={e => { e.stopPropagation(); scrollToSection('enhancedMeasurement'); }}
+                              className="mt-2 text-xs text-orange-400 hover:underline focus:outline-none"
+                            >
+                              View Details
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
