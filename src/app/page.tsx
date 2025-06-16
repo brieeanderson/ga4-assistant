@@ -65,6 +65,7 @@ const GA4GTMAssistant = () => {
   const attributionSettingsRef = useRef<HTMLDivElement>(null);
   const enhancedMeasurementRef = useRef<HTMLDivElement>(null);
   const customDefinitionsRef = useRef<HTMLDivElement>(null);
+  const keyEventsDetailRef = useRef<HTMLDivElement>(null);
 
   // Helper function to scroll to a section
   const scrollToSection = (section: string) => {
@@ -74,6 +75,7 @@ const GA4GTMAssistant = () => {
       attributionSettings: attributionSettingsRef,
       enhancedMeasurement: enhancedMeasurementRef,
       customDefinitions: customDefinitionsRef,
+      keyEventsDetail: keyEventsDetailRef,
     };
     const ref = refs[section];
     if (ref && ref.current) {
@@ -194,7 +196,7 @@ const GA4GTMAssistant = () => {
 
                 {/* Complete Custom Definitions - NEW ENHANCED COMPONENT */}
                 <div ref={customDefinitionsRef}>
-                  <CustomDefinitionsDisplay audit={ga4Audit} />
+                  <CustomDefinitionsDisplay audit={ga4Audit} keyEventsDetailRef={keyEventsDetailRef} />
                 </div>
               </>
             )}
