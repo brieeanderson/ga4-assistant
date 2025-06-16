@@ -30,7 +30,7 @@ const handler: Handler = async (event, context) => {
       };
     }
 
-    console.log('=== COMPREHENSIVE GA4 AUDIT v5.0 - 2025 EDITION ===');
+    console.log('=== COMPREHENSIVE GA4 AUDIT v5.1 - 2025 EDITION ===');
     console.log('PropertyId provided:', !!propertyId);
 
     // Test the access token first
@@ -287,7 +287,7 @@ const handler: Handler = async (event, context) => {
       dataStreams.dataStreams || []
     );
 
-    // Check for Search Console data availability via reporting API
+    // UPDATED: Check for Search Console data availability with proper dimensions
     const searchConsoleDataStatus = await checkSearchConsoleDataAvailability(
       accessToken,
       propertyId,
@@ -450,7 +450,7 @@ async function getEventCreateRulesForStreams(accessToken: string, propertyId: st
   return eventCreateRulesData;
 }
 
-// UPDATED: Enhanced Search Console data availability check with organicGoogleSearchImpressions
+// UPDATED: Enhanced Search Console data availability check with proper dimensions
 async function checkSearchConsoleDataAvailability(accessToken: string, propertyId: string, searchConsoleLinks: Array<Record<string, unknown>>) {
   const searchConsoleStatus = {
     isLinked: searchConsoleLinks.length > 0,
@@ -462,10 +462,10 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
     organicImpressions: 0
   };
 
-  // If Search Console is linked, check for actual organic search data
+  // If Search Console is linked, try to check for actual data with proper dimensions
   if (searchConsoleLinks.length > 0) {
     try {
-      // Check for organic Google search impressions specifically
+      // Method 1: Try with googleSearchConsoleQuery + landingPagePlusQueryString (as user mentioned works in Looker)
       const response = await fetch(
         `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
         {
@@ -475,17 +475,23 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            dimensions: [{ name: 'sessionDefaultChannelGroup' }],
+            dimensions: [
+              { name: 'googleSearchConsoleQuery' },
+              { name: 'landingPagePlusQueryString' }
+            ],
             metrics: [
-              { name: 'organicGoogleSearchImpressions' },
-              { name: 'organicGoogleSearchClicks' }
+              { name: 'googleSearchConsoleClicks' },
+              { name: 'googleSearchConsoleImpressions' }
             ],
             dateRanges: [{ startDate: '30daysAgo', endDate: 'yesterday' }],
-            dimensionFilter: {
+            limit: 10,
+            // Add a filter to only get rows with actual data
+            metricFilter: {
               filter: {
-                fieldName: 'sessionDefaultChannelGroup',
-                stringFilter: {
-                  value: 'Organic Search'
+                fieldName: 'googleSearchConsoleImpressions',
+                numericFilter: {
+                  operation: 'GREATER_THAN',
+                  value: { int64Value: '0' }
                 }
               }
             }
@@ -495,34 +501,48 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Search Console API Response:', data);
+        
         if (data.rows && data.rows.length > 0) {
-          let totalImpressions = 0;
           let totalClicks = 0;
+          let totalImpressions = 0;
           
           data.rows.forEach((row: any) => {
             if (row.metricValues && row.metricValues.length >= 2) {
-              totalImpressions += parseInt(row.metricValues[0].value) || 0;
-              totalClicks += parseInt(row.metricValues[1].value) || 0;
+              totalClicks += parseInt(row.metricValues[0].value) || 0;
+              totalImpressions += parseInt(row.metricValues[1].value) || 0;
             }
           });
           
-          searchConsoleStatus.organicImpressions = totalImpressions;
           searchConsoleStatus.totalClicks = totalClicks;
+          searchConsoleStatus.totalImpressions = totalImpressions;
+          searchConsoleStatus.organicImpressions = totalImpressions; // For backward compatibility
           searchConsoleStatus.hasData = totalImpressions > 0;
           
           if (searchConsoleStatus.hasData) {
-            searchConsoleStatus.lastDataDate = `Found ${totalImpressions.toLocaleString()} organic impressions in last 30 days`;
+            searchConsoleStatus.lastDataDate = `Found ${totalImpressions.toLocaleString()} impressions across ${data.rows.length} query/page combinations in last 30 days`;
           } else {
-            searchConsoleStatus.lastDataDate = 'Linked but no organic search data detected in last 30 days - check connection';
+            searchConsoleStatus.lastDataDate = 'Search Console linked but no impression data detected in last 30 days';
           }
+        } else {
+          // No rows returned - could mean no data or API issue
+          searchConsoleStatus.lastDataDate = 'Search Console linked but no query data returned - may need time to populate or check link configuration';
         }
       } else {
-        console.log('Search Console data check failed:', response.status);
-        searchConsoleStatus.lastDataDate = 'Unable to verify data - check link configuration';
+        // API call failed - log the error
+        const errorText = await response.text();
+        console.log(`Search Console API failed: ${response.status} - ${errorText}`);
+        
+        // Try simpler approach - just check if Search Console collections are available
+        if (response.status === 400) {
+          searchConsoleStatus.lastDataDate = 'Search Console linked but data not yet available - check Reports > Library > Search Console collections in GA4';
+        } else {
+          searchConsoleStatus.lastDataDate = `Search Console API error (${response.status}) - may need additional permissions or time to populate`;
+        }
       }
     } catch (error) {
       console.error('Error checking Search Console data availability:', error);
-      searchConsoleStatus.lastDataDate = 'Error checking data availability';
+      searchConsoleStatus.lastDataDate = 'Search Console linked - unable to verify data flow via API, check manually in GA4';
     }
   }
 
