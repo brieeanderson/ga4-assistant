@@ -4,9 +4,10 @@ import { GA4Audit } from '@/types/ga4';
 
 interface CustomDefinitionsDisplayProps {
   audit: GA4Audit;
+  keyEventsDetailRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> = ({ audit }) => {
+export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> = ({ audit, keyEventsDetailRef }) => {
   const [showAllDimensions, setShowAllDimensions] = useState(false);
   const [showAllMetrics, setShowAllMetrics] = useState(false);
 
@@ -194,7 +195,7 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
       </div>
 
       {/* Key Events Section */}
-      <div className="mt-8 pt-8 border-t border-gray-700">
+      <div className="mt-8 pt-8 border-t border-gray-700" ref={keyEventsDetailRef}>
         <div className="flex items-center justify-between mb-6">
           <h4 className="text-xl font-semibold text-white flex items-center">
             <Tag className="w-6 h-6 mr-2 text-green-400" />
