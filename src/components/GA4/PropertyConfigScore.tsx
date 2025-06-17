@@ -69,6 +69,30 @@ const GA4_SCORING_CONFIG = [
     suggestion: 'Enable Enhanced Measurement for automatic event tracking.',
     importance: 'important' as const,
   },
+  {
+    id: 'enhancedMeasurementParams',
+    label: 'Register enhanced measurement parameters',
+    type: 'user-collected',
+    deduction: (audit: GA4Audit) => {
+      let deduction = 0;
+      // Check for form_id or form_name as custom dimensions
+      const customDims = audit.customDimensions.map(d => d.parameterName?.toLowerCase());
+      if (!customDims.includes('form_id') && !customDims.includes('form_name')) {
+        deduction -= 5;
+      }
+      // Check for video_percent as custom dimension or metric
+      const customMetrics = audit.customMetrics.map(m => m.parameterName?.toLowerCase());
+      if (
+        !customDims.includes('video_percent') &&
+        !customMetrics.includes('video_percent')
+      ) {
+        deduction -= 5;
+      }
+      return deduction;
+    },
+    suggestion: 'Register form_id or form_name as a custom dimension, and video_percent as a custom dimension or metric for better enhanced measurement reporting.',
+    importance: 'very-important' as const,
+  },
   // Add more config items as needed...
 ];
 
