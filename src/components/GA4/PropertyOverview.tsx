@@ -14,29 +14,29 @@ export const PropertyOverview: React.FC<PropertyOverviewProps> = ({ audit }) => 
         Property Overview: {audit.property.displayName}
       </h4>
       
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
           <Calendar className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-          <div className="text-base sm:text-lg font-bold text-white break-words leading-tight min-h-[3rem] flex items-center justify-center">{audit.property.timeZone || 'Not Set'}</div>
-          <div className="text-xs text-gray-400">Timezone</div>
+          <div className="text-sm sm:text-base font-bold text-white break-words leading-snug min-h-[2.5rem] flex items-center justify-center">{audit.property.timeZone || 'Not Set'}</div>
+          <div className="text-xs text-gray-400 mt-1">Timezone</div>
         </div>
         
         <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
           <DollarSign className="w-6 h-6 text-green-400 mx-auto mb-2" />
-          <div className="text-base sm:text-lg font-bold text-white break-words leading-tight min-h-[3rem] flex items-center justify-center">{audit.property.currencyCode || 'USD'}</div>
-          <div className="text-xs text-gray-400">Currency</div>
+          <div className="text-sm sm:text-base font-bold text-white break-words leading-snug min-h-[2.5rem] flex items-center justify-center">{audit.property.currencyCode || 'USD'}</div>
+          <div className="text-xs text-gray-400 mt-1">Currency</div>
         </div>
         
         <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
           <Shield className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-          <div className="text-base sm:text-lg font-bold text-white break-words leading-tight min-h-[3rem] flex items-center justify-center">{audit.property.industryCategory || 'Not Set'}</div>
-          <div className="text-xs text-gray-400">Industry</div>
+          <div className="text-xs sm:text-sm font-bold text-white break-words leading-snug min-h-[2.5rem] flex items-center justify-center">{audit.property.industryCategory || 'Not Set'}</div>
+          <div className="text-xs text-gray-400 mt-1">Industry</div>
         </div>
         
         <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
           <Database className="w-6 h-6 text-orange-400 mx-auto mb-2" />
-          <div className="text-base sm:text-lg font-bold text-white break-words leading-tight min-h-[3rem] flex items-center justify-center">{audit.dataStreams.length}</div>
-          <div className="text-xs text-gray-400">Data Streams</div>
+          <div className="text-sm sm:text-base font-bold text-white break-words leading-snug min-h-[2.5rem] flex items-center justify-center">{audit.dataStreams.length}</div>
+          <div className="text-xs text-gray-400 mt-1">Data Streams</div>
         </div>
 
         {/* Key Events Card with Warning Logic */}
@@ -48,13 +48,13 @@ export const PropertyOverview: React.FC<PropertyOverviewProps> = ({ audit }) => 
             audit.keyEvents.length === 0 ? 'text-red-400' : 
             audit.keyEvents.length > 2 ? 'text-yellow-400' : 'text-green-400'
           }`} />
-          <div className={`text-base sm:text-lg font-bold min-h-[3rem] flex items-center justify-center ${
+          <div className={`text-sm sm:text-base font-bold min-h-[2.5rem] flex items-center justify-center ${
             audit.keyEvents.length === 0 ? 'text-red-400' : 
             audit.keyEvents.length > 2 ? 'text-yellow-400' : 'text-white'
           }`}>
             {audit.keyEvents.length}
           </div>
-          <div className="text-xs text-gray-400">Key Events</div>
+          <div className="text-xs text-gray-400 mt-1">Key Events</div>
           {audit.keyEvents.length > 2 && (
             <div className="text-xs text-yellow-300 mt-1">⚠️ Too Many</div>
           )}
