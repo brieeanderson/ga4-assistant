@@ -15,7 +15,7 @@ const GA4_SCORING_CONFIG = [
     type: 'user-collected',
     deduction: (audit: GA4Audit) => !audit.property.industryCategory ? -5 : 0,
     suggestion: 'Set your industry category for better ML predictions and benchmarking.',
-    importance: 'info',
+    importance: 'info' as const,
   },
   {
     id: 'dataRetention',
@@ -23,7 +23,7 @@ const GA4_SCORING_CONFIG = [
     type: 'user-collected',
     deduction: (audit: GA4Audit) => audit.dataRetention.eventDataRetention === 'TWO_MONTHS' ? -20 : 0,
     suggestion: 'Set data retention to 14 months (max) to avoid losing historical data.',
-    importance: 'very-important',
+    importance: 'very-important' as const,
   },
   {
     id: 'keyEvents',
@@ -35,7 +35,7 @@ const GA4_SCORING_CONFIG = [
       return 0;
     },
     suggestion: 'Set 1-2 key events for clear conversion tracking. Too many can dilute your data.',
-    importance: 'very-important',
+    importance: 'very-important' as const,
   },
   {
     id: 'connectGoogleAds',
@@ -43,7 +43,7 @@ const GA4_SCORING_CONFIG = [
     type: 'user-collected',
     deduction: (audit: GA4Audit) => audit.googleAdsLinks.length === 0 ? -20 : 0,
     suggestion: 'Connect Google Ads to import conversions and optimize bidding.',
-    importance: 'very-important',
+    importance: 'very-important' as const,
   },
   {
     id: 'connectSearchConsole',
@@ -51,7 +51,7 @@ const GA4_SCORING_CONFIG = [
     type: 'user-collected',
     deduction: (audit: GA4Audit) => !audit.searchConsoleDataStatus?.hasData ? -5 : 0,
     suggestion: 'Connect Search Console for organic search insights.',
-    importance: 'important',
+    importance: 'important' as const,
   },
   {
     id: 'connectBigQuery',
@@ -59,7 +59,7 @@ const GA4_SCORING_CONFIG = [
     type: 'user-collected',
     deduction: (audit: GA4Audit) => audit.bigQueryLinks.length === 0 ? -5 : 0,
     suggestion: 'Connect BigQuery for advanced, unsampled analysis (free tier available).',
-    importance: 'info',
+    importance: 'info' as const,
   },
   {
     id: 'enhancedMeasurement',
@@ -67,7 +67,7 @@ const GA4_SCORING_CONFIG = [
     type: 'user-collected',
     deduction: (audit: GA4Audit) => audit.enhancedMeasurement.length === 0 ? -10 : 0,
     suggestion: 'Enable Enhanced Measurement for automatic event tracking.',
-    importance: 'important',
+    importance: 'important' as const,
   },
   // Add more config items as needed...
 ];
