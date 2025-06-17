@@ -17,25 +17,25 @@ export const PropertyOverview: React.FC<PropertyOverviewProps> = ({ audit }) => 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
         <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
           <Calendar className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-          <div className="text-lg font-bold text-white break-words truncate max-w-[10rem] mx-auto" title={audit.property.timeZone || 'Not Set'}>{audit.property.timeZone || 'Not Set'}</div>
+          <div className="text-base sm:text-lg font-bold text-white break-words leading-tight min-h-[3rem] flex items-center justify-center">{audit.property.timeZone || 'Not Set'}</div>
           <div className="text-xs text-gray-400">Timezone</div>
         </div>
         
         <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
           <DollarSign className="w-6 h-6 text-green-400 mx-auto mb-2" />
-          <div className="text-lg font-bold text-white break-words truncate max-w-[10rem] mx-auto" title={audit.property.currencyCode || 'USD'}>{audit.property.currencyCode || 'USD'}</div>
+          <div className="text-base sm:text-lg font-bold text-white break-words leading-tight min-h-[3rem] flex items-center justify-center">{audit.property.currencyCode || 'USD'}</div>
           <div className="text-xs text-gray-400">Currency</div>
         </div>
         
         <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
           <Shield className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-          <div className="text-lg font-bold text-white break-words truncate max-w-[10rem] mx-auto" title={audit.property.industryCategory || 'Not Set'}>{audit.property.industryCategory || 'Not Set'}</div>
+          <div className="text-base sm:text-lg font-bold text-white break-words leading-tight min-h-[3rem] flex items-center justify-center">{audit.property.industryCategory || 'Not Set'}</div>
           <div className="text-xs text-gray-400">Industry</div>
         </div>
         
         <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
           <Database className="w-6 h-6 text-orange-400 mx-auto mb-2" />
-          <div className="text-lg font-bold text-white">{audit.dataStreams.length}</div>
+          <div className="text-base sm:text-lg font-bold text-white break-words leading-tight min-h-[3rem] flex items-center justify-center">{audit.dataStreams.length}</div>
           <div className="text-xs text-gray-400">Data Streams</div>
         </div>
 
@@ -48,7 +48,7 @@ export const PropertyOverview: React.FC<PropertyOverviewProps> = ({ audit }) => 
             audit.keyEvents.length === 0 ? 'text-red-400' : 
             audit.keyEvents.length > 2 ? 'text-yellow-400' : 'text-green-400'
           }`} />
-          <div className={`text-lg font-bold ${
+          <div className={`text-base sm:text-lg font-bold min-h-[3rem] flex items-center justify-center ${
             audit.keyEvents.length === 0 ? 'text-red-400' : 
             audit.keyEvents.length > 2 ? 'text-yellow-400' : 'text-white'
           }`}>
