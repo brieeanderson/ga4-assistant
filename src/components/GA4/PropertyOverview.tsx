@@ -29,7 +29,7 @@ export const PropertyOverview: React.FC<PropertyOverviewProps> = ({ audit }) => 
         
         <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
           <Shield className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-          <div className="text-xs sm:text-sm font-bold text-white break-words leading-snug min-h-[2.5rem] flex items-center justify-center">{audit.property.industryCategory || 'Not Set'}</div>
+          <div className="text-xs sm:text-sm font-bold text-white break-words leading-snug min-h-[2.5rem] flex items-center justify-center">{(audit.property.industryCategory || 'Not Set').replace(/_/g, ' ')}</div>
           <div className="text-xs text-gray-400 mt-1">Industry</div>
         </div>
         
