@@ -11,6 +11,7 @@ import { CustomDefinitionsDisplay } from '@/components/GA4/CustomDefinitionsDisp
 import { AttributionSettingsDisplay } from '@/components/GA4/AttributionSettingsDisplay';
 import { EnhancedMeasurementAnalysis } from '@/components/GA4/EnhancedMeasurementAnalysis';
 import { ErrorDisplay } from '@/components/common/ErrorDisplay';
+import { PropertyConfigScore } from '@/components/GA4/PropertyConfigScore';
 
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('audit');
@@ -82,10 +83,10 @@ const GA4GTMAssistant = () => {
     const ref = refs[section];
     if (ref && ref.current) {
       ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
-  return (
+      }
+    };
+    
+    return (
     <div className="min-h-screen bg-black text-white">
       {/* Error Display */}
       {error && (
@@ -156,7 +157,7 @@ const GA4GTMAssistant = () => {
               <p className="text-lg text-gray-400 mb-8">
                 <strong className="text-orange-400">No More Guessing What's Broken</strong> - Get a detailed roadmap for better data.
               </p>
-            </div>
+              </div>
 
             {/* Connection Status */}
             <ConnectionStatus
@@ -179,7 +180,9 @@ const GA4GTMAssistant = () => {
                 {/* Property Overview */}
                 <div ref={propertyOverviewRef}>
                   <PropertyOverview audit={ga4Audit} />
-                </div>
+                    </div>
+                {/* Property Configuration Score and Suggestions */}
+                <PropertyConfigScore audit={ga4Audit} />
                 
                 {/* Complete Fundamentals Checklist */}
                 <div ref={fundamentalsChecklistRef}>
@@ -194,16 +197,16 @@ const GA4GTMAssistant = () => {
                 {/* Enhanced Measurement Analysis */}
                 <div ref={enhancedMeasurementRef}>
                   <EnhancedMeasurementAnalysis audit={ga4Audit} />
-                </div>
+                                </div>
 
                 {/* Complete Custom Definitions - NEW ENHANCED COMPONENT */}
                 <div ref={customDefinitionsRef}>
                   <CustomDefinitionsDisplay audit={ga4Audit} keyEventsDetailRef={keyEventsDetailRef} customMetricsRef={customMetricsRef} />
-                </div>
+                              </div>
               </>
-            )}
-          </div>
-        )}
+                              )}
+                      </div>
+                    )}
 
         {/* Other tabs with simplified content */}
         {activeTab === 'chat' && (
@@ -242,7 +245,7 @@ const GA4GTMAssistant = () => {
                   <li>• Set up key events for conversion tracking</li>
                   <li>• Link Google Ads and Search Console</li>
                   </ul>
-              </div>
+                </div>
               <div className="space-y-4">
                 <h3 className="text-lg font-bold text-white">2025 Best Practices</h3>
                 <ul className="space-y-2 text-gray-300">
@@ -251,7 +254,7 @@ const GA4GTMAssistant = () => {
                   <li>• Enable enhanced measurement events</li>
                   <li>• Register custom parameters as dimensions</li>
                   <li>• Configure proper timezone for your business</li>
-                    </ul>
+                      </ul>
               </div>
             </div>
           </div>
