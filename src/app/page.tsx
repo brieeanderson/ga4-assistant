@@ -10,6 +10,7 @@ import { FundamentalsChecklist } from '@/components/GA4/FundamentalsChecklist';
 import { CustomDefinitionsDisplay } from '@/components/GA4/CustomDefinitionsDisplay';
 import { AttributionSettingsDisplay } from '@/components/GA4/AttributionSettingsDisplay';
 import { EnhancedMeasurementAnalysis } from '@/components/GA4/EnhancedMeasurementAnalysis';
+import { EventCreateRulesDisplay } from '@/components/GA4/EventCreateRulesDisplay';
 import { ErrorDisplay } from '@/components/common/ErrorDisplay';
 import { PropertyConfigScore } from '@/components/GA4/PropertyConfigScore';
 
@@ -66,6 +67,7 @@ const GA4GTMAssistant = () => {
   const attributionSettingsRef = useRef<HTMLDivElement>(null);
   const enhancedMeasurementRef = useRef<HTMLDivElement>(null);
   const customDefinitionsRef = useRef<HTMLDivElement>(null);
+  const eventCreateRulesRef = useRef<HTMLDivElement>(null);
   const keyEventsDetailRef = useRef<HTMLDivElement>(null);
   const customMetricsRef = useRef<HTMLDivElement>(null);
 
@@ -77,16 +79,17 @@ const GA4GTMAssistant = () => {
       attributionSettings: attributionSettingsRef,
       enhancedMeasurement: enhancedMeasurementRef,
       customDefinitions: customDefinitionsRef,
+      eventCreateRules: eventCreateRulesRef,
       keyEventsDetail: keyEventsDetailRef,
       customMetrics: customMetricsRef,
     };
     const ref = refs[section];
     if (ref && ref.current) {
       ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    };
-    
-    return (
+    }
+  };
+  
+  return (
     <div className="min-h-screen bg-black text-white">
       {/* Error Display */}
       {error && (
@@ -157,7 +160,7 @@ const GA4GTMAssistant = () => {
               <p className="text-lg text-gray-400 mb-8">
                 <strong className="text-orange-400">No More Guessing What's Broken</strong> - Get a detailed roadmap for better data.
               </p>
-              </div>
+            </div>
 
             {/* Connection Status */}
             <ConnectionStatus
@@ -177,19 +180,20 @@ const GA4GTMAssistant = () => {
             {/* GA4 Analysis Results */}
             {ga4Audit && (
               <>
+                {/* Property Configuration Score and Suggestions */}
+                <PropertyConfigScore audit={ga4Audit} />
+                
                 {/* Property Overview */}
                 <div ref={propertyOverviewRef}>
                   <PropertyOverview audit={ga4Audit} />
-                    </div>
-                {/* Property Configuration Score and Suggestions */}
-                <PropertyConfigScore audit={ga4Audit} />
+                </div>
                 
                 {/* Complete Fundamentals Checklist */}
                 <div ref={fundamentalsChecklistRef}>
                   <FundamentalsChecklist audit={ga4Audit} scrollToSection={scrollToSection} />
                 </div>
 
-                {/* Attribution Settings - NEW ENHANCED COMPONENT */}
+                {/* Attribution Settings */}
                 <div ref={attributionSettingsRef}>
                   <AttributionSettingsDisplay audit={ga4Audit} />
                 </div>
@@ -197,16 +201,21 @@ const GA4GTMAssistant = () => {
                 {/* Enhanced Measurement Analysis */}
                 <div ref={enhancedMeasurementRef}>
                   <EnhancedMeasurementAnalysis audit={ga4Audit} />
-                                </div>
+                </div>
 
-                {/* Complete Custom Definitions - NEW ENHANCED COMPONENT */}
+                {/* Complete Custom Definitions */}
                 <div ref={customDefinitionsRef}>
                   <CustomDefinitionsDisplay audit={ga4Audit} keyEventsDetailRef={keyEventsDetailRef} customMetricsRef={customMetricsRef} />
-                              </div>
+                </div>
+
+                {/* Event Create Rules Analysis */}
+                <div ref={eventCreateRulesRef}>
+                  <EventCreateRulesDisplay audit={ga4Audit} />
+                </div>
               </>
-                              )}
-                      </div>
-                    )}
+            )}
+          </div>
+        )}
 
         {/* Other tabs with simplified content */}
         {activeTab === 'chat' && (
@@ -233,30 +242,9 @@ const GA4GTMAssistant = () => {
           <div className="bg-black/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-orange-500/30 p-8">
             <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
               <BookOpen className="w-7 h-7 mr-3 text-orange-400" />
-              The Beast Playbook
+              The GA4 Playbook
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold text-white">Quick Start Guide</h3>
-                <ul className="space-y-2 text-gray-300">
-                  <li>• Connect your GA4 account for a complete audit</li>
-                  <li>• Review fundamentals checklist and priority fixes</li>
-                  <li>• Configure custom dimensions and metrics</li>
-                  <li>• Set up key events for conversion tracking</li>
-                  <li>• Link Google Ads and Search Console</li>
-                  </ul>
-                </div>
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold text-white">2025 Best Practices</h3>
-                <ul className="space-y-2 text-gray-300">
-                  <li>• Set data retention to 14 months immediately</li>
-                  <li>• Use data-driven attribution model</li>
-                  <li>• Enable enhanced measurement events</li>
-                  <li>• Register custom parameters as dimensions</li>
-                  <li>• Configure proper timezone for your business</li>
-                      </ul>
-              </div>
-            </div>
+            <p className="text-gray-400">Comprehensive guides coming soon...</p>
           </div>
         )}
       </div>
