@@ -254,30 +254,85 @@ export const EventCreateRulesDisplay: React.FC<EventCreateRulesDisplayProps> = (
                           )}
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div className="space-y-4">
                           {(showAllRules ? stream.rules : stream.rules.slice(0, 5)).map((rule, ruleIndex) => (
-                            <div key={ruleIndex} className="bg-gray-800/50 rounded-lg p-4 border border-gray-600/30">
-                              <div className="flex items-start justify-between mb-2">
-                                <h5 className="font-semibold text-white text-sm">{rule.displayName || `Rule ${ruleIndex + 1}`}</h5>
-                                <div className="px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs rounded border border-yellow-500/30">
+                            <div key={ruleIndex} className="bg-gray-800/50 rounded-lg p-6 border border-gray-600/30">
+                              {/* Rule Header */}
+                              <div className="flex items-start justify-between mb-4">
+                                <div className="flex-1">
+                                  <h5 className="font-bold text-lg text-white mb-1">
+                                    {rule.destinationEvent || rule.displayName || `Rule ${ruleIndex + 1}`}
+                                  </h5>
+                                  <div className="text-sm text-gray-400">
+                                    {rule.destinationEvent ? 'Creates new event' : 'Modifies existing event'}
+                                  </div>
+                                </div>
+                                <div className="px-3 py-1 bg-yellow-500/20 text-yellow-300 text-xs font-semibold rounded border border-yellow-500/30">
                                   REVIEW NEEDED
                                 </div>
                               </div>
-                              <p className="text-gray-400 text-xs mb-3">
-                                Event create rules modify incoming events or create new events based on conditions
-                              </p>
+
+                              {/* Rule Logic */}
+                              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                                <div className="text-sm font-semibold text-orange-400 mb-2">Fires when:</div>
+                                <div className="space-y-1">
+                                  {rule.eventConditions && rule.eventConditions.length > 0 ? (
+                                    rule.eventConditions.map((condition, condIndex) => (
+                                      <div key={condIndex} className="flex items-center text-sm">
+                                        {condIndex > 0 && (
+                                          <span className="text-blue-400 font-bold mr-2">AND</span>
+                                        )}
+                                        <span className="text-gray-300">
+                                          <span className="text-blue-300 font-medium">{condition.field}</span>
+                                          <span className="text-gray-400 mx-2">{condition.comparisonType.toLowerCase()}</span>
+                                          <span className="text-green-300 font-medium">"{condition.value}"</span>
+                                        </span>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <div className="text-gray-400 italic">No conditions specified</div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Parameter Handling */}
+                              {rule.sourceCopyParameters && (
+                                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 mb-4">
+                                  <div className="flex items-center text-blue-300 text-sm">
+                                    <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                                    Copies all parameters from source event
+                                  </div>
+                                </div>
+                              )}
+
+                              {rule.parameterMutations && rule.parameterMutations.length > 0 && (
+                                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3 mb-4">
+                                  <div className="text-sm font-semibold text-purple-400 mb-2">Parameter Changes:</div>
+                                  <div className="space-y-1">
+                                    {rule.parameterMutations.map((mutation, mutIndex) => (
+                                      <div key={mutIndex} className="text-sm text-gray-300">
+                                        <span className="text-purple-300 font-medium">{mutation.parameter}</span>
+                                        <span className="text-gray-400 mx-2">=</span>
+                                        <span className="text-green-300">"{mutation.parameterValue}"</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Audit Warnings */}
                               <div className="space-y-2 text-xs">
                                 <div className="flex items-center text-orange-300">
-                                  <AlertTriangle className="w-3 h-3 mr-1" />
-                                  <span>Verify rule logic and parameter mapping</span>
+                                  <AlertTriangle className="w-3 h-3 mr-2 flex-shrink-0" />
+                                  <span>Verify this rule doesn't create duplicate events with different names</span>
                                 </div>
                                 <div className="flex items-center text-orange-300">
-                                  <AlertTriangle className="w-3 h-3 mr-1" />
-                                  <span>Check for duplicate or conflicting events</span>
+                                  <AlertTriangle className="w-3 h-3 mr-2 flex-shrink-0" />
+                                  <span>Confirm attribution data remains intact after event transformation</span>
                                 </div>
                                 <div className="flex items-center text-orange-300">
-                                  <AlertTriangle className="w-3 h-3 mr-1" />
-                                  <span>Confirm attribution data integrity</span>
+                                  <AlertTriangle className="w-3 h-3 mr-2 flex-shrink-0" />
+                                  <span>Test that downstream integrations (Google Ads, etc.) still function correctly</span>
                                 </div>
                               </div>
                             </div>
