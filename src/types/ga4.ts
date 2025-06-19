@@ -59,8 +59,34 @@ export interface SearchConsoleDataStatus {
   lastDataDate?: string;
   totalClicks: number;
   totalImpressions: number;
-  organicImpressions: number; // Added this missing property
+  organicImpressions: number;
   linkDetails: Array<any>;
+}
+
+// Enhanced Event Create Rule interface
+export interface EventCreateRule {
+  name?: string;
+  displayName: string;
+  eventConditions?: Array<{
+    field: string;
+    comparisonType: string;
+    value: string;
+  }>;
+  destinationEvent?: string;
+  parameterMutations?: Array<{
+    parameter: string;
+    parameterValue: string;
+  }>;
+  // Additional fields that might be available from the API
+  sourceCopyParameters?: boolean;
+  createTime?: string;
+  etag?: string;
+}
+
+export interface EventCreateRuleStream {
+  streamId?: string;
+  streamName: string;
+  rules: EventCreateRule[];
 }
 
 export interface GA4Audit {
@@ -80,10 +106,7 @@ export interface GA4Audit {
     streamName: string;
     secrets: Array<{ displayName: string }>;
   }>;
-  eventCreateRules: Array<{
-    streamName: string;
-    rules: Array<{ displayName: string }>;
-  }>;
+  eventCreateRules: EventCreateRuleStream[];
   searchConsoleDataStatus: SearchConsoleDataStatus;
   googleAdsLinks: Array<any>;
   bigQueryLinks: Array<any>;
