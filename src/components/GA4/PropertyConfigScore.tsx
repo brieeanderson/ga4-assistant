@@ -35,7 +35,7 @@ const GA4_SCORING_CONFIG: ScoringConfig[] = [
     id: 'dataRetention',
     label: 'Data retention period',
     type: 'system',
-    deduction: (audit: GA4Audit) => audit.property.dataRetentionTtl === 'MONTHS_2' ? -15 : 0,
+    deduction: (audit: GA4Audit) => audit.dataRetention.eventDataRetention === 'TWO_MONTHS' ? -15 : 0,
     suggestion: 'Extend data retention to 14 months to maintain year-over-year reporting capabilities.',
     importance: 'very-important' as const,
   },
@@ -64,7 +64,22 @@ const GA4_SCORING_CONFIG: ScoringConfig[] = [
     suggestion: 'Upgrade to data-driven attribution for the most accurate conversion credit.',
     importance: 'important' as const,
   },
-  // Add more config items as needed...
+  {
+    id: 'searchConsole',
+    label: 'Search Console integration',
+    type: 'user-collected',
+    deduction: (audit: GA4Audit) => !audit.searchConsoleDataStatus?.hasData ? -5 : 0,
+    suggestion: 'Connect Search Console for organic search performance insights.',
+    importance: 'moderate' as const,
+  },
+  {
+    id: 'bigQuery',
+    label: 'BigQuery integration',
+    type: 'user-collected',
+    deduction: (audit: GA4Audit) => audit.bigQueryLinks.length === 0 ? -5 : 0,
+    suggestion: 'Connect BigQuery for advanced analysis and data exports (free tier available).',
+    importance: 'optional' as const,
+  },
 ];
 
 function calculateScoreAndSuggestions(audit: GA4Audit) {
@@ -145,8 +160,8 @@ export const PropertyConfigScore: React.FC<{ audit: GA4Audit }> = ({ audit }) =>
 
   // Group suggestions by importance
   const criticalSuggestions = suggestions.filter(s => s.importance === 'critical');
-  const importantSuggestions = suggestions.filter(s => s.importance === 'very-important' || s.importance === 'important');
-  const otherSuggestions = suggestions.filter(s => !['critical', 'very-important', 'important'].includes(s.importance));
+  const importantSuggestions = suggestions.filter(s => s.importance === 'very-important' || s.importance === 'important' || s.importance === 'moderate');
+  const otherSuggestions = suggestions.filter(s => !['critical', 'very-important', 'important', 'moderate'].includes(s.importance));
 
   return (
     <div className="space-y-8">
