@@ -82,6 +82,9 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
     }
   };
 
+  // Get total count of event create rules
+  const totalEventCreateRules = audit.eventCreateRules.reduce((total, stream) => total + stream.rules.length, 0);
+
   // Build the checklist sections based on audit data
   const sections: ChecklistSection[] = [
     {
@@ -97,8 +100,8 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           value: audit.property.timeZone || 'Not Set (defaults to Pacific Time)',
           description: 'Keep timezones consistent across marketing platforms for accurate attribution',
           recommendation: audit.property.timeZone 
-            ? `Timezone set to ${audit.property.timeZone}` 
-            : 'CRITICAL: Set timezone to match your business location',
+            ? `Timezone set to ${audit.property.timeZone}. Ensure this matches your business location.`
+            : 'CRITICAL: Set your timezone in Admin > Property > Property details.',
           priority: 'critical',
           adminPath: 'Admin > Property > Property details'
         },
@@ -107,80 +110,62 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           name: 'Set Currency',
           status: audit.property.currencyCode ? 'complete' : 'warning',
           value: audit.property.currencyCode || 'USD (default)',
-          description: 'Used for e-commerce tracking and revenue reporting',
-          recommendation: audit.property.currencyCode
-            ? `Currency set to ${audit.property.currencyCode}`
-            : 'Set currency for accurate revenue reporting',
+          description: 'All e-commerce data will be converted to this reporting currency',
+          recommendation: audit.property.currencyCode 
+            ? `Currency set to ${audit.property.currencyCode}. E-commerce data will be converted to this currency.`
+            : 'Consider setting your reporting currency if you accept multiple currencies.',
           priority: 'important',
           adminPath: 'Admin > Property > Property details'
         },
         {
-          id: 'data-retention',
-          name: 'Data Retention',
-          status: audit.dataRetention.eventDataRetention === 'FOURTEEN_MONTHS' ? 'complete' : 'warning',
-          value: audit.dataRetention.eventDataRetention === 'FOURTEEN_MONTHS' 
-            ? '14 months (maximum)' 
-            : `${audit.dataRetention.eventDataRetention || '2 months (default)'}`,
-          description: 'Standard properties max out at 14 months',
-          recommendation: audit.dataRetention.eventDataRetention === 'FOURTEEN_MONTHS'
-            ? 'Data retention set to maximum (14 months)'
-            : 'Consider increasing retention to 14 months for longer analysis windows',
-          priority: 'important',
-          adminPath: 'Admin > Data settings > Data retention'
+          id: 'industry-category',
+          name: 'Set Industry Category',
+          status: audit.property.industryCategory ? 'complete' : 'opportunity',
+          value: audit.property.industryCategory || 'Not Set',
+          description: 'Helps GA4 provide relevant benchmarks and improved automated insights',
+          recommendation: audit.property.industryCategory 
+            ? `Industry category: ${audit.property.industryCategory.replace(/_/g, ' ')}`
+            : 'Optional: Set industry category for better benchmarking insights.',
+          priority: 'optional',
+          adminPath: 'Admin > Property > Property details'
         },
         {
-          id: 'google-signals',
-          name: 'Google Signals',
-          status: audit.googleSignals.state === 'GOOGLE_SIGNALS_ENABLED' ? 
-            'warning' : 'missing',
-          value: audit.googleSignals.state === 'GOOGLE_SIGNALS_ENABLED' 
-            ? 'Enabled (check privacy policy)' 
-            : 'Not enabled',
-          description: 'Enables demographics but may cause data thresholding and requires privacy updates',
-          recommendation: audit.googleSignals.state === 'GOOGLE_SIGNALS_ENABLED'
-            ? 'PRIVACY: Ensure privacy policy mentions demographics collection'
-            : 'Consider enabling for cross-device insights (requires privacy review)',
-          priority: 'optional',
-          adminPath: 'Admin > Data collection > Data collection'
+          id: 'data-retention',
+          name: 'Data Retention Settings',
+          status: audit.dataRetention.eventDataRetention === 'TWO_MONTHS' ? 'critical' : 'complete',
+          value: audit.dataRetention.eventDataRetention === 'TWO_MONTHS' 
+            ? '⚠️ CRITICAL: 2 months (losing data!)' 
+            : audit.dataRetention.eventDataRetention || 'Check settings',
+          description: 'Controls how long GA4 keeps your event data for analysis',
+          recommendation: audit.dataRetention.eventDataRetention === 'TWO_MONTHS'
+            ? '🚨 URGENT: You\'re losing data after 2 months! Extend to 14 months immediately.'
+            : 'Data retention properly configured for historical analysis.',
+          priority: 'critical',
+          adminPath: 'Admin > Data settings > Data retention'
         },
         {
           id: 'data-streams',
           name: 'Configure Data Streams',
           status: audit.dataStreams.length > 0 ? 'complete' : 'critical',
-          value: `${audit.dataStreams.length} stream(s) configured`,
-          description: 'Each platform (web, iOS, Android) should have its own stream',
-          recommendation: audit.dataStreams.length > 0
-            ? 'Data streams are properly configured'
-            : 'CRITICAL: Add data streams for your platforms',
+          value: `${audit.dataStreams.length} data stream(s)`,
+          description: 'Data streams collect data from your websites and apps',
+          recommendation: audit.dataStreams.length > 0 
+            ? `${audit.dataStreams.length} data streams configured`
+            : 'CRITICAL: No data streams found. Create a web data stream for your website.',
           priority: 'critical',
-          adminPath: 'Admin > Data Streams'
-        },
-        {
-          id: 'enhanced-measurement',
-          name: 'Enable Enhanced Measurement',
-          status: audit.enhancedMeasurement.length > 0 ? 'complete' : 'warning',
-          value: audit.enhancedMeasurement.length > 0 
-            ? `Active on ${audit.enhancedMeasurement.length} stream(s)`
-            : 'Not configured',
-          description: 'Automatically tracks page views, scrolls, outbound clicks, site search, video, file downloads',
-          recommendation: audit.enhancedMeasurement.length > 0
-            ? 'Enhanced measurement is active'
-            : 'Enable for automatic event tracking without code changes',
-          priority: 'important',
-          adminPath: 'Admin > Data Streams > [Stream] > Enhanced measurement'
+          adminPath: 'Admin > Data streams'
         }
       ]
     },
     {
       id: 'key-events',
-      title: 'Key Events (Conversions)',
+      title: 'Key Events Setup',
       icon: TrendingUp,
-      description: 'Business goals and conversion tracking',
+      description: 'Define your most important business outcomes for conversion tracking',
       items: [
         {
           id: 'key-events-setup',
-          name: 'Set Key Events',
-          // FIX 1: Show warning for too many key events
+          name: 'Define Key Events',
           status: audit.keyEvents.length === 0 ? 'critical' : 
                  audit.keyEvents.length > 2 ? 'warning' : 'complete',
           value: `${audit.keyEvents.length} key event(s) configured`,
@@ -197,14 +182,13 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
     },
     {
       id: 'custom-definitions',
-      title: 'Custom Definitions',
+      title: 'Custom Definitions & Advanced Configuration',
       icon: Database,
-      description: 'Business-specific tracking parameters',
+      description: 'Business-specific tracking parameters and advanced settings',
       items: [
         {
           id: 'custom-dimensions',
           name: 'Define Custom Dimensions',
-          // FIX 2: Make custom dimensions optional/opportunity rather than warning when missing
           status: audit.customDimensions.length > 0 ? 'complete' : 'opportunity',
           value: `${audit.customDimensions.length}/50 configured`,
           description: 'Register event parameters as custom dimensions to use in reports',
@@ -217,7 +201,6 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
         {
           id: 'custom-metrics',
           name: 'Create Custom Metrics',
-          // FIX 2: Make custom metrics optional/opportunity rather than missing when none
           status: audit.customMetrics.length > 0 ? 'complete' : 'opportunity',
           value: `${audit.customMetrics.length}/50 configured`,
           description: 'Track numerical business KPIs beyond standard GA4 metrics',
@@ -226,6 +209,23 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
             : 'Optional: Consider adding for engagement scores, business-specific metrics',
           priority: 'optional',
           adminPath: 'Admin > Custom definitions > Custom metrics'
+        },
+        {
+          id: 'event-create-rules',
+          name: 'Event Create Rules',
+          status: totalEventCreateRules === 0 ? 'complete' : 
+                 totalEventCreateRules <= 5 ? 'warning' : 'critical',
+          value: totalEventCreateRules === 0 
+            ? 'No rules (clean setup)' 
+            : `${totalEventCreateRules} rule(s) configured`,
+          description: 'Advanced rules that modify or create events - often misconfigured',
+          recommendation: totalEventCreateRules === 0
+            ? '✅ Clean setup with no event modification rules'
+            : totalEventCreateRules <= 5
+            ? '⚠️ Event create rules detected - requires expert review for proper configuration'
+            : '🚨 CRITICAL: Complex rule configuration detected - high risk of data quality issues',
+          priority: totalEventCreateRules > 0 ? 'critical' : 'optional',
+          adminPath: 'Admin > Events > Event create rules'
         },
         {
           id: 'enhanced-measurement-params',
@@ -265,76 +265,79 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           id: 'google-ads',
           name: 'Connect Google Ads',
           status: audit.googleAdsLinks.length > 0 ? 'complete' : 'warning',
-          value: audit.googleAdsLinks.length > 0 ? 'Connected & Active' : 'Not Connected',
+          value: audit.googleAdsLinks.length > 0 
+            ? `${audit.googleAdsLinks.length} account(s) linked` 
+            : 'Not connected',
           description: 'Import key events as Google Ads conversions for bidding optimization',
           recommendation: audit.googleAdsLinks.length > 0
-            ? 'Google Ads linked for conversion tracking'
-            : 'Link Google Ads for Smart Bidding and audience sharing',
+            ? `Google Ads connected for conversion optimization`
+            : 'Connect Google Ads to import conversions and access attribution data.',
           priority: 'important',
           adminPath: 'Admin > Product linking > Google Ads'
         },
         {
           id: 'search-console',
           name: 'Connect Search Console',
-          status: audit.searchConsoleDataStatus.isLinked 
-            ? (audit.searchConsoleDataStatus.hasData ? 'complete' : 'warning')
-            : 'missing',
-          value: audit.searchConsoleDataStatus.isLinked 
-            ? `${audit.searchConsoleDataStatus.hasData ? 'Active' : 'Linked, no data'} (${audit.searchConsoleDataStatus.organicImpressions?.toLocaleString() || 0} impressions)` 
-            : 'Not Connected',
-          description: 'Shows which Google search queries bring visitors to your site',
-          recommendation: audit.searchConsoleDataStatus.isLinked && audit.searchConsoleDataStatus.hasData
+          status: audit.searchConsoleDataStatus.hasData ? 'complete' : 'warning',
+          value: audit.searchConsoleDataStatus.hasData 
+            ? 'Connected with data' 
+            : audit.searchConsoleDataStatus.isLinked 
+            ? 'Linked (verify data)' 
+            : 'Not connected',
+          description: 'View organic search queries and performance in GA4 reports',
+          recommendation: audit.searchConsoleDataStatus.hasData
             ? 'Search Console providing organic search insights'
-            : audit.searchConsoleDataStatus.isLinked
-              ? 'Linked but verify data flow - check Reports > Library > Search Console'
-              : 'Link Search Console for organic search query data',
+            : audit.searchConsoleDataStatus.isLinked 
+            ? 'Search Console linked - verify data is flowing'
+            : 'Connect Search Console for organic search insights.',
           priority: 'important',
           adminPath: 'Admin > Product linking > Search Console'
         },
         {
           id: 'bigquery',
           name: 'Connect BigQuery',
-          // FIX 3: Make BigQuery an opportunity rather than missing
           status: audit.bigQueryLinks.length > 0 ? 'complete' : 'opportunity',
-          value: audit.bigQueryLinks.length > 0 ? 'Export Configured' : 'Not Configured',
-          description: 'Free tier available for GA4 - enables advanced analysis with SQL',
+          value: audit.bigQueryLinks.length > 0 
+            ? 'Connected for advanced analysis' 
+            : 'Not connected',
+          description: 'Export GA4 data for advanced analysis and machine learning',
           recommendation: audit.bigQueryLinks.length > 0
-            ? 'BigQuery export configured for advanced analysis'
-            : 'OPPORTUNITY: Consider BigQuery for raw data export and custom analysis (free tier available!)',
+            ? 'BigQuery connected for advanced analysis'
+            : 'Optional: Connect BigQuery for raw data access (free tier available).',
           priority: 'optional',
           adminPath: 'Admin > Product linking > BigQuery'
         }
       ]
     },
     {
-      id: 'attribution',
-      title: 'Attribution & Reporting',
+      id: 'data-quality',
+      title: 'Data Quality & Attribution',
       icon: BarChart3,
-      description: 'How conversion credit is assigned across touchpoints',
+      description: 'Settings that affect data accuracy and attribution',
       items: [
         {
+          id: 'enhanced-measurement',
+          name: 'Enable Enhanced Measurement',
+          status: audit.enhancedMeasurement.length > 0 ? 'complete' : 'warning',
+          value: audit.enhancedMeasurement.length > 0 
+            ? `Active on ${audit.enhancedMeasurement.length} stream(s)` 
+            : 'Not configured',
+          description: 'Automatic tracking for common website interactions without code',
+          recommendation: audit.enhancedMeasurement.length > 0
+            ? 'Enhanced Measurement providing automatic event tracking'
+            : 'Enable Enhanced Measurement for automatic tracking of scrolls, clicks, downloads.',
+          priority: 'important',
+          adminPath: 'Admin > Data streams > Enhanced measurement'
+        },
+        {
           id: 'attribution-model',
-          name: 'Attribution Model Configuration',
+          name: 'Attribution Model',
           status: audit.attribution.reportingAttributionModel === 'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN' 
-            ? 'complete' : audit.attribution.reportingAttributionModel ?
-            'warning' : 'missing',
-          value: (() => {
-            // FIX 4: Make attribution more legible
-            const model = audit.attribution.reportingAttributionModel;
-            if (!model) return 'Not configured';
-            
-            const modelNames: Record<string, string> = {
-              'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN': 'Data-driven (optimal)',
-              'PAID_AND_ORGANIC_CHANNELS_LAST_CLICK': 'Last click (legacy)',
-              'PAID_AND_ORGANIC_CHANNELS_FIRST_CLICK': 'First click (legacy)',
-              'PAID_AND_ORGANIC_CHANNELS_LINEAR': 'Linear (basic)',
-              'PAID_AND_ORGANIC_CHANNELS_TIME_DECAY': 'Time decay (basic)',
-              'PAID_AND_ORGANIC_CHANNELS_POSITION_BASED': 'Position-based (basic)'
-            };
-            
-            return modelNames[model] || 'Unknown model';
-          })(),
-          description: 'Data-driven attribution provides the most accurate conversion credit using machine learning',
+            ? 'complete' : 'warning',
+          value: audit.attribution.reportingAttributionModel 
+            ? audit.attribution.reportingAttributionModel.replace(/_/g, ' ').toLowerCase() 
+            : 'Check settings',
+          description: 'How GA4 assigns conversion credit across marketing touchpoints',
           recommendation: audit.attribution.reportingAttributionModel === 'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN'
             ? '✅ Optimal setup: Data-driven attribution provides the most accurate conversion credit'
             : audit.attribution.reportingAttributionModel
@@ -378,7 +381,7 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
                     <div className="text-sm text-gray-400">
                       {section.items.filter(item => item.status === 'complete').length}/{section.items.length} complete
                     </div>
-                    {isExpanded ? 
+                    {isExpanded ?
                       <ChevronDown className="w-5 h-5 text-gray-400" /> : 
                       <ChevronRight className="w-5 h-5 text-gray-400" />
                     }
@@ -429,6 +432,14 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
                               className="mt-2 text-xs text-orange-400 hover:underline focus:outline-none"
                             >
                               View Details
+                            </button>
+                          )}
+                          {item.id === 'event-create-rules' && scrollToSection && (
+                            <button
+                              onClick={e => { e.stopPropagation(); scrollToSection('eventCreateRules'); }}
+                              className="mt-2 text-xs text-orange-400 hover:underline focus:outline-none"
+                            >
+                              View Detailed Analysis
                             </button>
                           )}
                           {item.id === 'attribution-model' && scrollToSection && (
