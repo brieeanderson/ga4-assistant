@@ -1,3 +1,5 @@
+import './globals.css'
+
 export const metadata = {
   title: 'GA4 Helper - Coming Soon',
   description: 'Stop losing money on broken GA4 setup',
