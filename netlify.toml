@@ -1,13 +1,19 @@
 [build]
   command = "npm run build"
-  functions = "netlify/functions"
   publish = ".next"
+  functions = "netlify/functions"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  NEXT_PLUGIN_NETLIFY_FORMS = "true"
 
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
 
-[build.environment]
-  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
-  PUPPETEER_EXECUTABLE_PATH = "/opt/buildhome/.cache/puppeteer/chrome"
+# Enable form detection
+[forms]
+  forms = true
