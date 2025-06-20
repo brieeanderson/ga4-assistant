@@ -27,20 +27,16 @@ const GA4HelperLanding = () => {
     setIsSubmitting(true);
     
     try {
-      await fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          'form-name': 'ga4-helper-newsletter',
-          'email': email
-        })
-      });
+      // Simple approach: Log email for now
+      console.log('Email collected:', email);
+      
+      // You can add a real service later (ConvertKit, Mailchimp, etc.)
+      // await fetch('your-email-service-endpoint', { ... });
       
       setIsSubmitted(true);
       setEmail('');
     } catch (error) {
-      console.error('Error submitting form:', error);
-      // You could add error handling here
+      console.error('Error:', error);
     }
     
     setIsSubmitting(false);
@@ -334,13 +330,6 @@ const GA4HelperLanding = () => {
             </div>
           </div>
         </footer>
-
-        {/* Hidden form for Netlify Forms detection */}
-        <div style={{ display: 'none' }}>
-          <form name="ga4-helper-newsletter" data-netlify="true">
-            <input type="email" name="email" />
-          </form>
-        </div>
       </div>
     </div>
   );
