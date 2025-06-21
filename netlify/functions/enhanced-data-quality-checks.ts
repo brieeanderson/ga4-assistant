@@ -380,7 +380,7 @@ async function analyzeSearchImplementation(accessToken: string, propertyId: stri
       topSearchTerms: searchTerms.slice(0, 10),
       customSearchParams,
       missedSearchPatterns: missedSearchPatterns.slice(0, 20),
-      totalCustomSearchActivity: missedSearchPatterns.reduce((sum, item) => sum + item.views, 0),
+      totalCustomSearchActivity: missedSearchPatterns.reduce((sum: number, item) => sum + item.views, 0),
       status,
       recommendation,
       adminPath: 'Admin > Data Streams > [Stream] > Enhanced measurement > Site search',
@@ -475,14 +475,14 @@ async function analyzeTrafficSources(accessToken: string, propertyId: string) {
 
     // Analyze referral patterns for anomalies
     const referralSources = sources.filter((s: TrafficSourceData) => s.medium === 'referral');
-    const totalReferralSessions = referralSources.reduce((sum, s) => sum + s.sessions, 0);
+    const totalReferralSessions = referralSources.reduce((sum: number, s: TrafficSourceData) => sum + s.sessions, 0);
     
     return {
       unwantedReferrals: {
         detected: unwantedReferrals.length > 0,
         count: unwantedReferrals.length,
         sources: unwantedReferrals,
-        totalSessions: unwantedReferrals.reduce((sum, s) => sum + s.sessions, 0),
+        totalSessions: unwantedReferrals.reduce((sum: number, s: TrafficSourceData) => sum + s.sessions, 0),
         recommendation: unwantedReferrals.length > 0
           ? `🚨 CRITICAL: ${unwantedReferrals.length} payment processors detected as referrals. Add to referral exclusion list.`
           : '✅ No payment processor referrals detected'
@@ -491,7 +491,7 @@ async function analyzeTrafficSources(accessToken: string, propertyId: string) {
         detected: suspiciousSelfReferrals.length > 0,
         count: suspiciousSelfReferrals.length,
         sources: suspiciousSelfReferrals,
-        totalSessions: suspiciousSelfReferrals.reduce((sum, s) => sum + s.sessions, 0),
+        totalSessions: suspiciousSelfReferrals.reduce((sum: number, s: TrafficSourceData) => sum + s.sessions, 0),
         recommendation: suspiciousSelfReferrals.length > 0
           ? `⚠️ Potential cross-domain tracking issues detected. Check if these are your own domains: ${suspiciousSelfReferrals.map(s => s.source).join(', ')}`
           : '✅ No obvious cross-domain tracking issues detected'
