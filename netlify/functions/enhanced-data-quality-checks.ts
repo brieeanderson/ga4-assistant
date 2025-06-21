@@ -1,3 +1,14 @@
+interface UrlData {
+  url: string;
+  views: number;
+}
+
+interface SearchPatternConfig {
+  param: string;
+  pattern: RegExp;
+  category: string;
+}
+
 async function detectPIIInPagePaths(accessToken: string, propertyId: string) {
   try {
     console.log('🔍 Checking for PII in page paths and query strings...');
@@ -249,13 +260,13 @@ async function analyzeSearchImplementation(accessToken: string, propertyId: stri
 
     if (urlResponse.ok) {
       const urlData = await urlResponse.json();
-      const urls = urlData.rows?.map((row: any) => ({
+      const urls: UrlData[] = urlData.rows?.map((row: any) => ({
         url: row.dimensionValues[0].value,
         views: parseInt(row.metricValues[0].value)
       })) || [];
 
       // Non-standard search parameters that GA4 Enhanced Measurement might miss
-      const customSearchPatterns = [
+      const customSearchPatterns: SearchPatternConfig[] = [
         // Common custom search parameters
         { param: 'search_term', pattern: /[?&](search_term)=([^&]+)/gi, category: 'custom' },
         { param: 'searchterm', pattern: /[?&](searchterm)=([^&]+)/gi, category: 'custom' },
@@ -288,8 +299,8 @@ async function analyzeSearchImplementation(accessToken: string, propertyId: stri
       // Track which custom parameters are found
       const foundCustomParams = new Set<string>();
       
-      urls.forEach(({ url, views }) => {
-        customSearchPatterns.forEach(({ param, pattern, category }) => {
+      urls.forEach(({ url, views }: UrlData) => {
+        customSearchPatterns.forEach(({ param, pattern, category }: SearchPatternConfig) => {
           const matches = [...url.matchAll(pattern)];
           matches.forEach(match => {
             const searchValue = decodeURIComponent(match[2] || match[1] || '');
