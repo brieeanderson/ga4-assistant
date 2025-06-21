@@ -40,7 +40,7 @@ const GA4_SCORING_CONFIG = [
     label: 'Key events configuration',
     type: 'conversion-tracking',
     deduction: (audit: GA4Audit) => audit.keyEvents.length === 0 ? -20 : audit.keyEvents.length > 2 ? -5 : 0,
-    suggestion: audit.keyEvents.length === 0 ? 'Configure 1-2 key events for conversion tracking.' : 'Consider optimizing to 1-2 primary key events.',
+    suggestion: (audit: GA4Audit) => audit.keyEvents.length === 0 ? 'Configure 1-2 key events for conversion tracking.' : 'Consider optimizing to 1-2 primary key events.',
     importance: 'critical' as const,
   },
   {
@@ -111,7 +111,7 @@ function calculateScoreAndSuggestions(audit: GA4Audit) {
       score += deduction;
       suggestions.push({
         label: item.label,
-        suggestion: item.suggestion,
+        suggestion: typeof item.suggestion === 'function' ? item.suggestion(audit) : item.suggestion,
         importance: item.importance,
         points: deduction,
       });

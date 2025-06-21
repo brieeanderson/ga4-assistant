@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Database, BarChart3, Tag, Eye, EyeOff } from 'lucide-react';
+import { Database, BarChart3, Tag, Eye, EyeOff } from 'lucide-react';
 import { GA4Audit } from '@/types/ga4';
 
 interface CustomDefinitionsDisplayProps {
@@ -80,12 +80,7 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
                   )}
                   
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-500">
-                      Archive: {dimension.disallowAdsPersonalization ? 
-                        <span className="text-green-400">Disabled</span> : 
-                        <span className="text-yellow-400">Enabled</span>
-                      }
-                    </span>
+                    {/* Removed Archive: disallowAdsPersonalization */}
                   </div>
                 </div>
               ))}
@@ -164,10 +159,7 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
                   
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-gray-500">
-                      Unit: {metric.unit || 'Standard'}
-                    </span>
-                    <span className="text-gray-500">
-                      Type: {metric.measurementUnit || 'Numeric'}
+                      Unit: {metric.unitOfMeasurement || 'N/A'}
                     </span>
                   </div>
                 </div>
@@ -232,15 +224,6 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
                       {event.countingMethod === 'ONCE_PER_EVENT' ? 'Once per event' : 'Once per session'}
                     </span>
                   </div>
-                  
-                  {event.custom !== undefined && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Type:</span>
-                      <span className="text-gray-300">
-                        {event.custom ? 'Custom Event' : 'Standard Event'}
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
             ))}

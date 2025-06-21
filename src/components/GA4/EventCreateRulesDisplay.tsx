@@ -211,21 +211,20 @@ export const EventCreateRulesDisplay: React.FC<EventCreateRulesDisplayProps> = (
                           <div className="flex items-start justify-between mb-3">
                             <div>
                               <h5 className="font-semibold text-white mb-1">{rule.destinationEvent}</h5>
-                              <p className="text-xs text-gray-400">Created from: {rule.sourceEvent || 'Not specified'}</p>
                             </div>
                             <span className="px-2 py-1 rounded text-xs font-medium bg-blue-500/20 text-blue-300">
                               Rule #{ruleIndex + 1}
                             </span>
                           </div>
 
-                          {rule.conditions && rule.conditions.length > 0 && (
+                          {rule.eventConditions && rule.eventConditions.length > 0 && (
                             <div className="mb-3">
                               <h6 className="text-sm font-medium text-gray-300 mb-2">Conditions:</h6>
                               <div className="space-y-1">
-                                {rule.conditions.map((condition, condIndex) => (
+                                {rule.eventConditions.map((condition, condIndex) => (
                                   <div key={condIndex} className="text-xs bg-gray-800/80 px-2 py-1 rounded">
                                     <code className="text-gray-300">
-                                      {condition.parameter} {condition.operator} {condition.value}
+                                      {condition.field} {condition.comparisonType} {condition.value}
                                     </code>
                                   </div>
                                 ))}
@@ -233,24 +232,20 @@ export const EventCreateRulesDisplay: React.FC<EventCreateRulesDisplayProps> = (
                             </div>
                           )}
 
-                          {rule.parameterModifications && rule.parameterModifications.length > 0 && (
+                          {rule.parameterMutations && rule.parameterMutations.length > 0 && (
                             <div className="mb-3">
-                              <h6 className="text-sm font-medium text-gray-300 mb-2">Parameter Modifications:</h6>
+                              <h6 className="text-sm font-medium text-gray-300 mb-2">Parameter Mutations:</h6>
                               <div className="space-y-1">
-                                {rule.parameterModifications.map((mod, modIndex) => (
+                                {rule.parameterMutations.map((mod, modIndex) => (
                                   <div key={modIndex} className="text-xs bg-blue-800/30 px-2 py-1 rounded">
                                     <code className="text-blue-300">
-                                      {mod.parameter}: {mod.operation} → {mod.value}
+                                      {mod.parameter}: {mod.parameterValue}
                                     </code>
                                   </div>
                                 ))}
                               </div>
                             </div>
                           )}
-
-                          <div className="text-xs text-gray-500">
-                            <strong>Status:</strong> {rule.isActive ? 'Active' : 'Inactive'}
-                          </div>
                         </div>
                       ))}
 

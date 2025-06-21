@@ -113,10 +113,8 @@ export const EnhancedMeasurementAnalysis: React.FC<EnhancedMeasurementAnalysisPr
                 {stream.settings.siteSearchEnabled ? 'Active - Tracking site search events' : 'Disabled - Missing search insights'}
               </p>
               <p className="text-xs text-gray-400">
-                {stream.settings.searchQueryParameter ? 
-                  `Parameter: ${stream.settings.searchQueryParameter}` : 
-                  'No search parameter configured'
-                }
+                {/* Site Search parameter not available in type */}
+                No search parameter configured
               </p>
             </div>
 
@@ -167,23 +165,20 @@ export const EnhancedMeasurementAnalysis: React.FC<EnhancedMeasurementAnalysisPr
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-gray-400">Query Parameter:</span>
-                  <div className="text-white font-medium">{stream.settings.searchQueryParameter || 'Not configured'}</div>
+                  <div className="text-white font-medium">Not available</div>
                 </div>
                 <div>
                   <span className="text-gray-400">Status:</span>
-                  <div className={`font-medium ${stream.settings.searchQueryParameter ? 'text-green-400' : 'text-yellow-400'}`}>
-                    {stream.settings.searchQueryParameter ? 'Properly configured' : 'Needs configuration'}
+                  <div className="font-medium text-yellow-400">
+                    Not configurable
                   </div>
                 </div>
               </div>
-              
-              {!stream.settings.searchQueryParameter && (
-                <div className="mt-3 p-3 bg-yellow-900/30 border border-yellow-600/30 rounded">
-                  <p className="text-xs text-yellow-200">
-                    <strong>Action needed:</strong> Configure your site's search parameter (common ones: q, search, query, s) to track search terms.
-                  </p>
-                </div>
-              )}
+              <div className="mt-3 p-3 bg-yellow-900/30 border border-yellow-600/30 rounded">
+                <p className="text-xs text-yellow-200">
+                  <strong>Note:</strong> Site search parameter configuration is not available in this audit.
+                </p>
+              </div>
             </div>
           )}
 

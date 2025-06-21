@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, Shield, Filter, Search, ExternalLink } from 'lucide-react';
+import { AlertTriangle, Shield, Filter, Search } from 'lucide-react';
 import { GA4Audit } from '@/types/ga4';
 
 interface DataQualityAlertsProps {

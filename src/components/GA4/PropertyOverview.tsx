@@ -78,12 +78,12 @@ export const PropertyOverview: React.FC<PropertyOverviewProps> = ({ audit }) => 
             Data Streams
           </h5>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {audit.dataStreams.map((stream, index) => (
+            {audit.dataStreams.map((stream, _index) => (
               <div key={stream.name} className="bg-black/50 rounded-xl p-4 border border-gray-600/50">
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h6 className="font-semibold text-white text-sm">{stream.displayName}</h6>
-                    <p className="text-xs text-gray-400 mt-1">Stream {index + 1}</p>
+                    <p className="text-xs text-gray-400 mt-1">Stream {_index + 1}</p>
                   </div>
                   <span className={`px-2 py-1 rounded text-xs font-medium ${
                     stream.type === 'WEB_DATA_STREAM' ? 'bg-blue-500/20 text-blue-300' :
@@ -99,25 +99,6 @@ export const PropertyOverview: React.FC<PropertyOverviewProps> = ({ audit }) => 
                   <div className="space-y-2">
                     <div className="text-xs text-gray-300">
                       <span className="text-gray-500">Default URI:</span> {stream.webStreamData.defaultUri || 'Not set'}
-                    </div>
-                    <div className="text-xs text-gray-300">
-                      <span className="text-gray-500">Measurement ID:</span> {stream.webStreamData.measurementId || 'Not available'}
-                    </div>
-                  </div>
-                )}
-                
-                {stream.androidAppStreamData && (
-                  <div className="space-y-2">
-                    <div className="text-xs text-gray-300">
-                      <span className="text-gray-500">Package:</span> {stream.androidAppStreamData.packageName || 'Not set'}
-                    </div>
-                  </div>
-                )}
-                
-                {stream.iosAppStreamData && (
-                  <div className="space-y-2">
-                    <div className="text-xs text-gray-300">
-                      <span className="text-gray-500">Bundle ID:</span> {stream.iosAppStreamData.bundleId || 'Not set'}
                     </div>
                   </div>
                 )}
@@ -135,7 +116,7 @@ export const PropertyOverview: React.FC<PropertyOverviewProps> = ({ audit }) => 
             Key Events ({audit.keyEvents.length})
           </h5>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {audit.keyEvents.map((event, index) => (
+            {audit.keyEvents.map((event, _index) => (
               <div key={event.eventName} className="bg-black/50 rounded-lg p-3 border border-gray-600/50">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-white">{event.eventName}</span>

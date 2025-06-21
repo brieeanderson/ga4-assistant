@@ -5,7 +5,6 @@ import {
   ChevronDown, 
   ChevronRight, 
   ExternalLink,
-  Settings,
   Shield,
   Target,
   Database,

@@ -209,7 +209,7 @@ export interface EnhancedGA4Audit {
     propertySettings: { [key: string]: AuditItem };
     dataCollection: { 
       [key: string]: AuditItem;
-      // Enhanced audit items
+    } & {
       piiRedaction?: AuditItem;
       siteSearch?: AuditItem;
       unwantedReferrals?: AuditItem;

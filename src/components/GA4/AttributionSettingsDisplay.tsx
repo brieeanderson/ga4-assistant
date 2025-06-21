@@ -90,9 +90,9 @@ export const AttributionSettingsDisplay: React.FC<AttributionSettingsDisplayProp
     }
   };
 
-  const currentModel = getModelInfo(audit.attribution.reportingAttributionModel);
-  const acquisitionWindow = formatLookbackWindow(audit.attribution.acquisitionConversionEventLookbackWindow);
-  const otherWindow = formatLookbackWindow(audit.attribution.otherConversionEventLookbackWindow);
+  const currentModel = getModelInfo(audit.attribution.reportingAttributionModel ?? "");
+  const acquisitionWindow = formatLookbackWindow(audit.attribution.acquisitionConversionEventLookbackWindow ?? "");
+  const otherWindow = formatLookbackWindow(audit.attribution.otherConversionEventLookbackWindow ?? "");
 
   return (
     <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
