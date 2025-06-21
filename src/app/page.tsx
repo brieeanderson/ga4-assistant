@@ -96,11 +96,11 @@ const GA4GTMAssistant = () => {
   };
   
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Error Display */}
-      {error && (
-        <ErrorDisplay error={error} onDismiss={clearError} />
-      )}
+  <div className="min-h-screen bg-black text-white">
+    {/* Error Display */}
+    {error && (
+      <ErrorDisplay error={error} onDismiss={clearError} />
+    )}
 
       {/* Header */}
       <div className="bg-black/90 backdrop-blur-xl border-b border-orange-500/30 shadow-xl">
