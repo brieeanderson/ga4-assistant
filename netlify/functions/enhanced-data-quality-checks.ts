@@ -9,6 +9,14 @@ interface SearchPatternConfig {
   category: string;
 }
 
+interface TrafficSourceData {
+  source: string;
+  medium: string;
+  sessions: number;
+  bounceRate: number;
+  avgSessionDuration: number;
+}
+
 async function detectPIIInPagePaths(accessToken: string, propertyId: string) {
   try {
     console.log('🔍 Checking for PII in page paths and query strings...');
@@ -445,13 +453,13 @@ async function analyzeTrafficSources(accessToken: string, propertyId: string) {
     ];
 
     // Detect unwanted referrals (payment processors)
-    const unwantedReferrals = sources.filter(source => 
-      source.medium === 'referral' && 
+    const unwantedReferrals = sources.filter((source: TrafficSourceData) =>
+      source.medium === 'referral' &&
       paymentProcessors.some(processor => source.source.includes(processor))
     );
 
     // Detect potential cross-domain issues (your own domains as referrals)
-    const suspiciousSelfReferrals = sources.filter(source => {
+    const suspiciousSelfReferrals = sources.filter((source: TrafficSourceData) => {
       if (source.medium !== 'referral') return false;
       
       // Look for common patterns that might indicate self-referrals
@@ -466,7 +474,7 @@ async function analyzeTrafficSources(accessToken: string, propertyId: string) {
     });
 
     // Analyze referral patterns for anomalies
-    const referralSources = sources.filter(s => s.medium === 'referral');
+    const referralSources = sources.filter((s: TrafficSourceData) => s.medium === 'referral');
     const totalReferralSessions = referralSources.reduce((sum, s) => sum + s.sessions, 0);
     
     return {
