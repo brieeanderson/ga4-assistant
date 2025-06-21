@@ -83,7 +83,7 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
   };
 
   // Get total count of event create rules
-  const totalEventCreateRules = audit.eventCreateRules.reduce((total, stream) => total + stream.rules.length, 0);
+  const totalEventCreateRules = audit.eventCreateRules?.reduce((total, stream) => total + stream.rules.length, 0) || 0;
 
   // Build the checklist sections based on audit data
   const sections: ChecklistSection[] = [
@@ -199,10 +199,10 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
         {
           id: 'google-ads',
           name: 'Google Ads Integration',
-          status: audit.googleAdsLinks.length > 0 ? 'complete' : 'opportunity',
-          value: audit.googleAdsLinks.length > 0 ? `${audit.googleAdsLinks.length} links` : 'Not linked',
+          status: audit.googleAdsLinks?.length > 0 ? 'complete' : 'opportunity',
+          value: audit.googleAdsLinks?.length > 0 ? `${audit.googleAdsLinks.length} links` : 'Not linked',
           description: 'Enables conversion import and audience sharing',
-          recommendation: audit.googleAdsLinks.length > 0 ? 
+          recommendation: audit.googleAdsLinks?.length > 0 ? 
             'Google Ads is properly linked' : 
             'Link Google Ads for conversion tracking and audience insights',
           priority: 'important',
@@ -211,10 +211,10 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
         {
           id: 'search-console',
           name: 'Search Console Integration',
-          status: audit.searchConsoleDataStatus.isLinked ? 'complete' : 'opportunity',
-          value: audit.searchConsoleDataStatus.isLinked ? 'Linked' : 'Not linked',
+          status: audit.searchConsoleDataStatus?.isLinked ? 'complete' : 'opportunity',
+          value: audit.searchConsoleDataStatus?.isLinked ? 'Linked' : 'Not linked',
           description: 'Provides organic search performance data in GA4',
-          recommendation: audit.searchConsoleDataStatus.isLinked ? 
+          recommendation: audit.searchConsoleDataStatus?.isLinked ? 
             'Search Console is properly linked' : 
             'Link Search Console for organic search insights',
           priority: 'important',
@@ -231,10 +231,10 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
         {
           id: 'custom-definitions',
           name: 'Custom Definitions',
-          status: (audit.customDimensions.length + audit.customMetrics.length) > 0 ? 'complete' : 'opportunity',
-          value: `${audit.customDimensions.length} dimensions, ${audit.customMetrics.length} metrics`,
+          status: (audit.customDimensions?.length + audit.customMetrics?.length) > 0 ? 'complete' : 'opportunity',
+          value: `${audit.customDimensions?.length || 0} dimensions, ${audit.customMetrics?.length || 0} metrics`,
           description: 'Custom dimensions and metrics for business-specific tracking',
-          recommendation: (audit.customDimensions.length + audit.customMetrics.length) > 0 ? 
+          recommendation: (audit.customDimensions?.length + audit.customMetrics?.length) > 0 ? 
             'Custom definitions are configured' : 
             'Consider adding custom dimensions/metrics for business-specific data',
           priority: 'optional',
@@ -329,7 +329,7 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
                               <strong>Location:</strong> {item.adminPath}
                             </p>
                           )}
-                          {item.id === 'data-streams' && scrollToSection && (
+                          {item.id === 'data-streams-count' && scrollToSection && (
                             <button
                               onClick={e => { e.stopPropagation(); scrollToSection('propertyOverview'); }}
                               className="mt-2 text-xs text-orange-400 hover:text-orange-300 underline"
