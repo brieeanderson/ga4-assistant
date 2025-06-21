@@ -502,7 +502,7 @@ async function analyzeTrafficSources(accessToken: string, propertyId: string) {
         sources: suspiciousSelfReferrals,
         totalSessions: suspiciousSelfReferrals.reduce((sum: number, s: TrafficSourceData) => sum + s.sessions, 0),
         recommendation: suspiciousSelfReferrals.length > 0
-          ? `⚠️ Potential cross-domain tracking issues detected. Check if these are your own domains: ${suspiciousSelfReferrals.map(s => s.source).join(', ')}`
+          ? `⚠️ Potential cross-domain tracking issues detected. Check if these are your own domains: ${suspiciousSelfReferrals.map((s: TrafficSourceData) => s.source).join(', ')}`
           : '✅ No obvious cross-domain tracking issues detected'
       },
       referralAnalysis: {
