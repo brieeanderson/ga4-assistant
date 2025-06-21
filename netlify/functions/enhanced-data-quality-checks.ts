@@ -17,6 +17,15 @@ interface TrafficSourceData {
   avgSessionDuration: number;
 }
 
+interface MissedSearchPattern {
+  parameter: string;
+  value: string;
+  url: string;
+  views: number;
+  category: string;
+  source: string;
+}
+
 async function detectPIIInPagePaths(accessToken: string, propertyId: string) {
   try {
     console.log('🔍 Checking for PII in page paths and query strings...');
