@@ -171,15 +171,15 @@ const GA4GTMAssistant = () => {
               <ConnectionStatus
                 isAuthenticated={isAuthenticated}
                 userEmail={userEmail}
+                login={login} 
+                logout={logout} 
                 isAnalyzing={isAnalyzing}
                 ga4Properties={ga4Properties}
                 selectedProperty={selectedProperty}
-                onLogin={login}
-                onLogout={logout}
-                onPropertySelect={setSelectedProperty}
-                onFetchProperties={handleFetchGA4Properties}
-                onRunAudit={handleRunGA4Audit}
-                isLoading={oauthLoading}
+                setSelectedProperty={setSelectedProperty}
+                fetchGA4Properties={handleFetchGA4Properties}
+                runGA4Audit={handleRunGA4Audit}
+                oauthLoading={oauthLoading}
               />
             </div>
 
