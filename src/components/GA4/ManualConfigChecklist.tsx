@@ -372,7 +372,7 @@ export const ManualConfigChecklist: React.FC<ManualConfigChecklistProps> = ({ au
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                               <div>
                                 <h6 className="font-semibold text-gray-400 mb-2">Admin Location</h6>
-                                <div className="mt-4 p-3 bg-blue-900/30 rounded border border-blue-600/50">
+                                <div className="p-3 bg-blue-900/30 rounded border border-blue-600/50">
                                   <p className="text-xs font-medium text-blue-300">
                                     📍 Location: {item.adminPath}
                                   </p>
@@ -414,8 +414,9 @@ export const ManualConfigChecklist: React.FC<ManualConfigChecklistProps> = ({ au
                             </div>
                           </div>
                         </div>
-                      );
-                    })}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
