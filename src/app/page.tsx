@@ -189,7 +189,7 @@ const GA4GTMAssistant = () => {
                 {/* NEW: Data Quality Alerts - Show critical issues first */}
                 <div ref={dataQualityAlertsRef}>
                   <DataQualityAlerts 
-                    audit={ga4Audit}
+                    enhancedChecks={ga4Audit.enhancedChecks}
                     onFixIssues={() => scrollToSection('manualChecklist')}
                   />
                 </div>
