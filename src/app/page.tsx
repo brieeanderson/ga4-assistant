@@ -77,23 +77,23 @@ const GA4GTMAssistant = () => {
 
   // Helper function to scroll to a section
   const scrollToSection = (section: string) => {
-  const refs: Record<string, React.RefObject<HTMLDivElement | null>> = {
-    propertyOverview: propertyOverviewRef,
-    fundamentalsChecklist: fundamentalsChecklistRef,
-    attributionSettings: attributionSettingsRef,
-    enhancedMeasurement: enhancedMeasurementRef,
-    customDefinitions: customDefinitionsRef,
-    keyEventsDetail: keyEventsDetailRef,
-    customMetrics: customMetricsRef,
-    eventCreateRules: eventCreateRulesRef, // ← ADD THIS LINE
-    dataQualityAlerts: dataQualityAlertsRef,
-    manualChecklist: manualChecklistRef,
+    const refs: Record<string, React.RefObject<HTMLDivElement | null>> = {
+      propertyOverview: propertyOverviewRef,
+      fundamentalsChecklist: fundamentalsChecklistRef,
+      attributionSettings: attributionSettingsRef,
+      enhancedMeasurement: enhancedMeasurementRef,
+      customDefinitions: customDefinitionsRef,
+      keyEventsDetail: keyEventsDetailRef,
+      customMetrics: customMetricsRef,
+      // NEW: Add the new component refs
+      dataQualityAlerts: dataQualityAlertsRef,
+      manualChecklist: manualChecklistRef,
+    };
+    const ref = refs[section];
+    if (ref && ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
-  const ref = refs[section];
-  if (ref && ref.current) {
-    ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-};
   
   return (
     <div className="min-h-screen bg-black text-white">
