@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Code, Zap, BookOpen, Search, Sparkles, Download } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useOAuth } from '@/hooks/useOAuth';
 import { useGA4Audit } from '@/hooks/useGA4Audit';
 import { PropertyOverview } from '@/components/GA4/PropertyOverview';
@@ -86,7 +86,6 @@ const GA4GTMAssistant = () => {
       keyEventsDetail: keyEventsDetailRef,
       customMetrics: customMetricsRef,
       eventCreateRules: eventCreateRulesRef,
-      // NEW: Add the new component refs
       dataQualityAlerts: dataQualityAlertsRef,
       manualChecklist: manualChecklistRef,
     };
@@ -144,6 +143,14 @@ const GA4GTMAssistant = () => {
             {/* Show audit results when available */}
             {ga4Audit && (
               <>
+                {/* Data Quality Alerts - Show critical issues first */}
+                <div ref={dataQualityAlertsRef}>
+                  <DataQualityAlerts 
+                    audit={ga4Audit}
+                    onFixIssues={() => scrollToSection('manualChecklist')}
+                  />
+                </div>
+
                 {/* Property Configuration Score */}
                 <PropertyConfigScore audit={ga4Audit} />
 
@@ -157,9 +164,14 @@ const GA4GTMAssistant = () => {
                   <FundamentalsChecklist audit={ga4Audit} scrollToSection={scrollToSection} />
                 </div>
 
-                {/* Enhanced Data Quality Alerts */}
-                <div ref={dataQualityAlertsRef}>
-                  <DataQualityAlerts audit={ga4Audit} />
+                {/* Attribution Settings */}
+                <div ref={attributionSettingsRef}>
+                  <AttributionSettingsDisplay audit={ga4Audit} />
+                </div>
+
+                {/* Enhanced Measurement Analysis */}
+                <div ref={enhancedMeasurementRef}>
+                  <EnhancedMeasurementAnalysis audit={ga4Audit} />
                 </div>
 
                 {/* Custom Definitions Display */}
@@ -169,16 +181,6 @@ const GA4GTMAssistant = () => {
                     keyEventsDetailRef={keyEventsDetailRef}
                     customMetricsRef={customMetricsRef}
                   />
-                </div>
-
-                {/* Attribution Settings */}
-                <div ref={attributionSettingsRef}>
-                  <AttributionSettingsDisplay audit={ga4Audit} />
-                </div>
-
-                {/* Enhanced Measurement Analysis */}
-                <div ref={enhancedMeasurementRef}>
-                  <EnhancedMeasurementAnalysis audit={ga4Audit} />
                 </div>
 
                 {/* Event Create Rules */}
