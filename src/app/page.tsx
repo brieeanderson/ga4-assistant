@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Code, Zap, BookOpen, Search, Sparkles } from 'lucide-react';
+import { Send, Code, Zap, BookOpen, Search, Sparkles, Download } from 'lucide-react';
 import { useOAuth } from '@/hooks/useOAuth';
 import { useGA4Audit } from '@/hooks/useGA4Audit';
 import { PropertyOverview } from '@/components/GA4/PropertyOverview';
@@ -13,6 +13,8 @@ import { EnhancedMeasurementAnalysis } from '@/components/GA4/EnhancedMeasuremen
 import { EventCreateRulesDisplay } from '@/components/GA4/EventCreateRulesDisplay';
 import { ErrorDisplay } from '@/components/common/ErrorDisplay';
 import { PropertyConfigScore } from '@/components/GA4/PropertyConfigScore';
+import { ManualConfigChecklist } from '@/components/GA4/ManualConfigChecklist';
+import { DataQualityAlerts } from '@/components/GA4/DataQualityAlerts';
 
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('audit');
@@ -70,24 +72,28 @@ const GA4GTMAssistant = () => {
   const eventCreateRulesRef = useRef<HTMLDivElement>(null);
   const keyEventsDetailRef = useRef<HTMLDivElement>(null);
   const customMetricsRef = useRef<HTMLDivElement>(null);
+  const dataQualityAlertsRef = useRef<HTMLDivElement>(null);
+  const manualChecklistRef = useRef<HTMLDivElement>(null);
 
   // Helper function to scroll to a section
   const scrollToSection = (section: string) => {
-    const refs: Record<string, React.RefObject<HTMLDivElement | null>> = {
-      propertyOverview: propertyOverviewRef,
-      fundamentalsChecklist: fundamentalsChecklistRef,
-      attributionSettings: attributionSettingsRef,
-      enhancedMeasurement: enhancedMeasurementRef,
-      customDefinitions: customDefinitionsRef,
-      eventCreateRules: eventCreateRulesRef,
-      keyEventsDetail: keyEventsDetailRef,
-      customMetrics: customMetricsRef,
-    };
-    const ref = refs[section];
-    if (ref && ref.current) {
-      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+  const refs: Record<string, React.RefObject<HTMLDivElement | null>> = {
+    propertyOverview: propertyOverviewRef,
+    fundamentalsChecklist: fundamentalsChecklistRef,
+    attributionSettings: attributionSettingsRef,
+    enhancedMeasurement: enhancedMeasurementRef,
+    customDefinitions: customDefinitionsRef,
+    keyEventsDetail: keyEventsDetailRef,
+    customMetrics: customMetricsRef,
+    eventCreateRules: eventCreateRulesRef, // ← ADD THIS LINE
+    dataQualityAlerts: dataQualityAlertsRef,
+    manualChecklist: manualChecklistRef,
   };
+  const ref = refs[section];
+  if (ref && ref.current) {
+    ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
   
   return (
     <div className="min-h-screen bg-black text-white">
@@ -178,44 +184,86 @@ const GA4GTMAssistant = () => {
             />
 
             {/* GA4 Analysis Results */}
-            {ga4Audit && (
-              <>
-                {/* Property Configuration Score and Suggestions */}
-                <PropertyConfigScore audit={ga4Audit} />
-                
-                {/* Property Overview */}
-                <div ref={propertyOverviewRef}>
-                  <PropertyOverview audit={ga4Audit} />
-                </div>
-                
-                {/* Complete Fundamentals Checklist */}
-                <div ref={fundamentalsChecklistRef}>
-                  <FundamentalsChecklist audit={ga4Audit} scrollToSection={scrollToSection} />
-                </div>
+{ga4Audit && (
+  <>
+    {/* NEW: Data Quality Alerts - Show critical issues first */}
+    <div ref={dataQualityAlertsRef}>
+      <DataQualityAlerts 
+        enhancedChecks={ga4Audit.enhancedChecks}
+        onFixIssues={() => scrollToSection('manualChecklist')}
+      />
+    </div>
 
-                {/* Attribution Settings */}
-                <div ref={attributionSettingsRef}>
-                  <AttributionSettingsDisplay audit={ga4Audit} />
-                </div>
+    {/* Property Overview */}
+    <div ref={propertyOverviewRef}>
+      <PropertyOverview audit={ga4Audit} />
+    </div>
 
-                {/* Enhanced Measurement Analysis */}
-                <div ref={enhancedMeasurementRef}>
-                  <EnhancedMeasurementAnalysis audit={ga4Audit} />
-                </div>
+    {/* Property Configuration Score and Suggestions */}
+    <PropertyConfigScore audit={ga4Audit} />
+    
+    {/* Complete Fundamentals Checklist */}
+    <div ref={fundamentalsChecklistRef}>
+      <FundamentalsChecklist audit={ga4Audit} scrollToSection={scrollToSection} />
+    </div>
 
-                {/* Complete Custom Definitions */}
-                <div ref={customDefinitionsRef}>
-                  <CustomDefinitionsDisplay audit={ga4Audit} keyEventsDetailRef={keyEventsDetailRef} customMetricsRef={customMetricsRef} />
-                </div>
+    {/* Attribution Settings */}
+    <div ref={attributionSettingsRef}>
+      <AttributionSettingsDisplay audit={ga4Audit} />
+    </div>
 
-                {/* Event Create Rules Analysis */}
-                <div ref={eventCreateRulesRef}>
-                  <EventCreateRulesDisplay audit={ga4Audit} />
-                </div>
-              </>
-            )}
-          </div>
-        )}
+    {/* Enhanced Measurement Analysis */}
+    <div ref={enhancedMeasurementRef}>
+      <EnhancedMeasurementAnalysis 
+        enhancedMeasurement={ga4Audit.enhancedMeasurement}
+        customDimensions={ga4Audit.customDimensions}
+      />
+    </div>
+
+    {/* Custom Definitions Display */}
+    <div ref={customDefinitionsRef}>
+      <CustomDefinitionsDisplay 
+        customDimensions={ga4Audit.customDimensions}
+        customMetrics={ga4Audit.customMetrics}
+      />
+    </div>
+
+    {/* NEW: Manual Configuration Checklist */}
+    <div ref={manualChecklistRef}>
+      <ManualConfigChecklist 
+        enhancedChecks={ga4Audit.enhancedChecks}
+        onScoreUpdate={(score) => {
+          console.log('Manual checklist score updated:', score);
+          // You can add logic here to update overall audit score
+        }}
+      />
+    </div>
+
+    {/* Data Export Section */}
+    <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
+      <h3 className="text-2xl font-bold text-white mb-6">Export Audit Results</h3>
+      <p className="text-gray-300 mb-6">
+        Save your complete GA4 audit results for future reference or sharing with your team.
+      </p>
+      <button
+        onClick={() => {
+          const dataStr = JSON.stringify(ga4Audit, null, 2);
+          const dataBlob = new Blob([dataStr], { type: 'application/json' });
+          const url = URL.createObjectURL(dataBlob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `ga4-audit-${ga4Audit.property.displayName}-${new Date().toISOString().split('T')[0]}.json`;
+          link.click();
+          URL.revokeObjectURL(url);
+        }}
+        className="inline-flex items-center px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors"
+      >
+        <Download className="w-4 h-4 mr-2" />
+        Download Audit Results
+      </button>
+    </div>
+  </>
+)}
 
         {/* Other tabs with simplified content */}
         {activeTab === 'chat' && (
