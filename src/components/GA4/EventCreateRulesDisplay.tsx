@@ -20,7 +20,7 @@ export const EventCreateRulesDisplay: React.FC<EventCreateRulesDisplayProps> = (
     setExpandedStreams(newExpanded);
   };
 
-  const totalRules = audit.eventCreateRules.reduce((total, stream) => total + stream.rules.length, 0);
+  const totalRules = audit.eventCreateRules?.reduce((total, stream) => total + stream.rules.length, 0) || 0;
 
   const getAuditStatus = () => {
     if (totalRules === 0) {
@@ -113,12 +113,7 @@ export const EventCreateRulesDisplay: React.FC<EventCreateRulesDisplayProps> = (
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center space-x-4">
             <div className={`p-3 rounded-xl ${auditStatus.bgColor} border ${auditStatus.borderColor}`}>
-              {auditStatus.status === 'clean' ? 
-                <CheckCircle className={`w-8 h-8 ${auditStatus.color}`} /> :
-                auditStatus.status === 'review-needed' ?
-                <AlertTriangle className={`w-8 h-8 ${auditStatus.color}`} /> :
-                <XCircle className={`w-8 h-8 ${auditStatus.color}`} />
-              }
+              <IconComponent className={`w-8 h-8 ${auditStatus.color}`} />
             </div>
             <div>
               <h3 className="text-2xl font-bold text-white mb-2">{auditStatus.title}</h3>
@@ -139,7 +134,7 @@ export const EventCreateRulesDisplay: React.FC<EventCreateRulesDisplayProps> = (
           <div className="text-center">
             <div className={`text-6xl font-bold ${auditStatus.color} mb-2`}>{totalRules}</div>
             <div className="text-2xl text-gray-400">Event Create Rules</div>
-            <div className="text-sm text-gray-500 mt-2">Across {audit.eventCreateRules.length} data stream(s)</div>
+            <div className="text-sm text-gray-500 mt-2">Across {audit.eventCreateRules?.length || 0} data stream(s)</div>
           </div>
         </div>
       </div>
@@ -163,7 +158,7 @@ export const EventCreateRulesDisplay: React.FC<EventCreateRulesDisplayProps> = (
       )}
 
       {/* Event Create Rules Details */}
-      {audit.eventCreateRules.length > 0 && (
+      {audit.eventCreateRules && audit.eventCreateRules.length > 0 && (
         <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
           <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
             <Target className="w-7 h-7 mr-3 text-orange-400" />
