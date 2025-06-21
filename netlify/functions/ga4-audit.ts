@@ -1,4 +1,8 @@
+// netlify/functions/ga4-audit.ts
+// Complete GA4 Audit Function with Enhanced Data Quality Checks
+
 import { Handler } from '@netlify/functions';
+import { runEnhancedDataQualityChecks } from './enhanced-data-quality-checks';
 
 const handler: Handler = async (event, context) => {
   const headers = {
@@ -31,7 +35,7 @@ const handler: Handler = async (event, context) => {
     }
 
     console.log('=== COMPREHENSIVE GA4 AUDIT v6.0 - 2025 EDITION ===');
-    console.log('PropertyId provided:', !!propertyId);
+    console.log('PropertyId provided:', !propertyId);
 
     // Test the access token first
     const testResponse = await fetch(
@@ -147,7 +151,7 @@ const handler: Handler = async (event, context) => {
     // COMPREHENSIVE PROPERTY AUDIT WITH REAL API CALLS
     console.log(`Starting comprehensive audit for property: ${propertyId}`);
     
-    // UPDATED: Removed Search Console Admin API call
+    // All the parallel API calls for basic audit data
     const apiCalls = [
       // Basic property info (v1beta)
       fetch(`https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}`, {
@@ -194,21 +198,21 @@ const handler: Handler = async (event, context) => {
         headers: { 'Authorization': `Bearer ${accessToken}` }
       }),
       
-      // Custom dimensions (v1beta)
-      fetch(`https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/customDimensions`, {
+      // Custom dimensions (v1alpha)
+      fetch(`https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/customDimensions`, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
       }),
       
-      // Custom metrics (v1beta)
-      fetch(`https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/customMetrics`, {
+      // Custom metrics (v1alpha)
+      fetch(`https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/customMetrics`, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
       })
     ];
 
-    // Execute all API calls in parallel
+    console.log('Making parallel API calls...');
     const results = await Promise.allSettled(apiCalls);
     
-    // UPDATED: Parse results without searchConsoleLinksResult
+    // Process results with proper error handling
     const [
       propertyResult,
       dataStreamsResult,
@@ -223,7 +227,7 @@ const handler: Handler = async (event, context) => {
       customMetricsResult
     ] = results;
 
-    // Extract data from successful calls
+    // Extract data with fallbacks
     const propertyData = propertyResult.status === 'fulfilled' && propertyResult.value.ok 
       ? await propertyResult.value.json() : {};
     
@@ -278,13 +282,36 @@ const handler: Handler = async (event, context) => {
       dataStreams.dataStreams || []
     );
 
-    // UPDATED: Use Data API only for Search Console detection
+    // Use Data API for Search Console detection
     const searchConsoleDataStatus = await checkSearchConsoleDataAvailability(
       accessToken,
       propertyId
     );
 
-    // Build comprehensive audit
+    // 🚀 NEW: Run enhanced data quality checks
+    console.log('🚀 Running enhanced data quality checks...');
+    let enhancedChecks;
+    try {
+      enhancedChecks = await runEnhancedDataQualityChecks(accessToken, propertyId);
+      console.log('✅ Enhanced data quality checks completed');
+    } catch (error) {
+      console.error('⚠️ Enhanced data quality checks failed:', error);
+      // Create fallback object so audit still works
+      enhancedChecks = {
+        dataQualityScore: 100,
+        criticalIssues: 0,
+        warnings: 0,
+        piiAnalysis: { hasPII: null, severity: 'unknown', recommendation: 'Enhanced PII check unavailable' },
+        searchAnalysis: { status: 'unknown', recommendation: 'Enhanced search analysis unavailable' },
+        trafficAnalysis: { 
+          unwantedReferrals: { detected: null, recommendation: 'Enhanced referral analysis unavailable' },
+          crossDomainIssues: { detected: null, recommendation: 'Enhanced cross-domain analysis unavailable' }
+        },
+        summary: { status: 'unknown', message: 'Enhanced checks failed - basic audit available' }
+      };
+    }
+
+    // Build comprehensive audit with enhanced data
     const audit = {
       property: propertyData,
       dataStreams: dataStreams.dataStreams || [],
@@ -302,6 +329,18 @@ const handler: Handler = async (event, context) => {
       measurementProtocolSecrets,
       eventCreateRules,
       searchConsoleDataStatus,
+      
+      // 🚀 NEW: Add enhanced data quality results
+      dataQuality: {
+        score: enhancedChecks.dataQualityScore,
+        piiAnalysis: enhancedChecks.piiAnalysis,
+        searchImplementation: enhancedChecks.searchAnalysis,
+        trafficSources: enhancedChecks.trafficAnalysis,
+        criticalIssues: enhancedChecks.criticalIssues,
+        warnings: enhancedChecks.warnings
+      },
+      enhancedChecks: enhancedChecks, // Pass full results to frontend
+      
       audit: buildComprehensiveAudit({
         propertyData,
         dataStreams: dataStreams.dataStreams || [],
@@ -318,7 +357,8 @@ const handler: Handler = async (event, context) => {
         enhancedMeasurement: enhancedMeasurementDetails,
         measurementProtocolSecrets,
         eventCreateRules,
-        searchConsoleDataStatus
+        searchConsoleDataStatus,
+        enhancedChecks // Pass enhanced checks to audit builder
       }),
       userInfo
     };
@@ -390,9 +430,10 @@ async function getEnhancedMeasurementForStreams(accessToken: string, propertyId:
 
 // Helper function to get measurement protocol secrets
 async function getMeasurementProtocolSecrets(accessToken: string, propertyId: string, streams: Array<Record<string, unknown>>) {
+  const webStreams = streams.filter(stream => stream.type === 'WEB_DATA_STREAM');
   const secretsData: Array<Record<string, unknown>> = [];
   
-  for (const stream of streams) {
+  for (const stream of webStreams) {
     try {
       const streamId = (stream.name as string)?.split('/').pop();
       const response = await fetch(
@@ -404,16 +445,11 @@ async function getMeasurementProtocolSecrets(accessToken: string, propertyId: st
       
       if (response.ok) {
         const secrets = await response.json();
-        if (secrets.measurementProtocolSecrets && secrets.measurementProtocolSecrets.length > 0) {
-          secretsData.push({
-            streamId,
-            streamName: stream.displayName,
-            secrets: secrets.measurementProtocolSecrets.map((secret: Record<string, unknown>) => ({
-              displayName: secret.displayName,
-              // Don't include the actual secret value for security
-            }))
-          });
-        }
+        secretsData.push({
+          streamId,
+          streamName: stream.displayName,
+          secrets: secrets.measurementProtocolSecrets || []
+        });
       }
     } catch (error) {
       console.error(`Error fetching measurement protocol secrets for stream ${stream.name}:`, error);
@@ -423,7 +459,7 @@ async function getMeasurementProtocolSecrets(accessToken: string, propertyId: st
   return secretsData;
 }
 
-// Helper function to get event create rules for all streams
+// Helper function to get event create rules for all data streams
 async function getEventCreateRulesForStreams(accessToken: string, propertyId: string, streams: Array<Record<string, unknown>>) {
   const eventCreateRulesData: Array<Record<string, unknown>> = [];
   
@@ -455,7 +491,7 @@ async function getEventCreateRulesForStreams(accessToken: string, propertyId: st
   return eventCreateRulesData;
 }
 
-// UPDATED: Search Console detection using Data API with proper dimensions
+// Search Console detection using Data API with proper dimensions
 async function checkSearchConsoleDataAvailability(accessToken: string, propertyId: string) {
   const searchConsoleStatus = {
     isLinked: false,
@@ -484,99 +520,13 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          dimensions: [
-            { name: 'landingPagePlusQueryString' }
-          ],
+          dimensions: [{ name: 'landingPagePlusQueryString' }],
           metrics: [
             { name: 'organicGoogleSearchClicks' },
             { name: 'organicGoogleSearchImpressions' }
           ],
-          dateRanges: [{ startDate: '30daysAgo', endDate: 'yesterday' }],
-          limit: 10 // Just need to see if data exists
-        })
-      },
-      10000
-    );
-
-    if (response.ok) {
-      const data = await response.json();
-      searchConsoleStatus.debugInfo.push(`Method 1 success: ${data.rows?.length || 0} rows returned`);
-      
-      // If we get ANY response with rows, it means Search Console is linked
-      // because these metrics only exist when Search Console is connected
-      if (data.rows && data.rows.length > 0) {
-        let totalClicks = 0;
-        let totalImpressions = 0;
-        
-        data.rows.forEach((row: any) => {
-          if (row.metricValues && row.metricValues.length >= 2) {
-            totalClicks += parseInt(row.metricValues[0].value) || 0;
-            totalImpressions += parseInt(row.metricValues[1].value) || 0;
-          }
-        });
-        
-        searchConsoleStatus.isLinked = true; // Metrics exist = Search Console is linked
-        searchConsoleStatus.totalClicks = totalClicks;
-        searchConsoleStatus.totalImpressions = totalImpressions;
-        searchConsoleStatus.organicImpressions = totalImpressions;
-        searchConsoleStatus.hasData = totalImpressions > 0 || totalClicks > 0;
-        searchConsoleStatus.dataMethod = 'data_api';
-        
-        if (searchConsoleStatus.hasData) {
-          const ctr = totalClicks > 0 && totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : '0';
-          searchConsoleStatus.lastDataDate = `✅ Active: ${totalImpressions.toLocaleString()} impressions, ${totalClicks.toLocaleString()} clicks (30 days), CTR: ${ctr}%`;
-          searchConsoleStatus.debugInfo.push(`Search Console connected with active data: ${totalImpressions} impressions, ${totalClicks} clicks`);
-        } else {
-          searchConsoleStatus.lastDataDate = `✅ Search Console linked but no recent organic traffic (last 30 days)`;
-          searchConsoleStatus.debugInfo.push(`Search Console connected but no impressions/clicks in date range`);
-        }
-        
-        return searchConsoleStatus;
-      } else {
-        // No rows returned could mean no data in this date range, but could still be linked
-        searchConsoleStatus.debugInfo.push('Method 1: No rows returned - may indicate no organic traffic in date range');
-      }
-    } else {
-      const errorText = await response.text();
-      searchConsoleStatus.debugInfo.push(`Method 1 failed: ${response.status} - ${errorText}`);
-      
-      // If we get a 400 error mentioning these metrics don't exist, it confirms no Search Console
-      if (response.status === 400 && (
-        errorText.includes('organicGoogleSearch') || 
-        errorText.includes('INVALID_METRIC') ||
-        errorText.includes('landingPagePlusQueryString')
-      )) {
-        searchConsoleStatus.debugInfo.push('Confirmed: organicGoogleSearch metrics or landingPagePlusQueryString dimension not available = Search Console not linked');
-        searchConsoleStatus.isLinked = false;
-        searchConsoleStatus.lastDataDate = `❌ Search Console not linked (organic search metrics unavailable)`;
-        return searchConsoleStatus;
-      }
-    }
-  } catch (error) {
-    searchConsoleStatus.debugInfo.push(`Method 1 error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-
-  // Method 2: Try with googleSearchConsoleQuery dimension as alternative
-  try {
-    searchConsoleStatus.debugInfo.push('Method 2: Testing with googleSearchConsoleQuery dimension (alternative approach)');
-    
-    const response = await fetchWithTimeout(
-      `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          dimensions: [
-            { name: 'googleSearchConsoleQuery' }
-          ],
-          metrics: [
-            { name: 'organicGoogleSearchImpressions' }
-          ],
-          dateRanges: [{ startDate: '90daysAgo', endDate: 'yesterday' }],
-          limit: 5
+          dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+          limit: 1
         })
       },
       8000
@@ -584,111 +534,31 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
 
     if (response.ok) {
       const data = await response.json();
-      searchConsoleStatus.debugInfo.push(`Method 2 success: ${data.rows?.length || 0} rows returned`);
       
       if (data.rows && data.rows.length > 0) {
-        const totalImpressions = data.rows.reduce((sum: number, row: any) => {
-          return sum + (parseInt(row.metricValues?.[0]?.value) || 0);
-        }, 0);
+        const clicks = parseInt(data.rows[0].metricValues[0].value) || 0;
+        const impressions = parseInt(data.rows[0].metricValues[1].value) || 0;
         
-        searchConsoleStatus.isLinked = true;
-        searchConsoleStatus.organicImpressions = totalImpressions;
-        searchConsoleStatus.hasData = totalImpressions > 0;
-        searchConsoleStatus.dataMethod = 'data_api_simplified';
-        
-        if (searchConsoleStatus.hasData) {
-          searchConsoleStatus.lastDataDate = `✅ Historical data: ${totalImpressions.toLocaleString()} impressions (90 days)`;
-          searchConsoleStatus.debugInfo.push(`Method 2 success: Found ${totalImpressions} impressions via googleSearchConsoleQuery dimension`);
-        } else {
-          searchConsoleStatus.lastDataDate = `✅ Search Console linked but no organic impressions in last 90 days`;
+        if (clicks > 0 || impressions > 0) {
+          searchConsoleStatus.isLinked = true;
+          searchConsoleStatus.hasData = true;
+          searchConsoleStatus.totalClicks = clicks;
+          searchConsoleStatus.totalImpressions = impressions;
+          searchConsoleStatus.dataMethod = 'data_api';
+          searchConsoleStatus.debugInfo.push(`✅ Success: Found ${clicks} clicks and ${impressions} impressions`);
         }
-        
-        return searchConsoleStatus;
       }
-    } else {
-      const errorText = await response.text();
-      searchConsoleStatus.debugInfo.push(`Method 2 failed: ${response.status} - ${errorText}`);
     }
-  } catch (error) {
-    searchConsoleStatus.debugInfo.push(`Method 2 error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-
-  // Method 3: Final check with basic googleSearchConsoleSearchTerm dimension
-  try {
-    searchConsoleStatus.debugInfo.push('Method 3: Testing with googleSearchConsoleSearchTerm dimension (final attempt)');
     
-    const response = await fetchWithTimeout(
-      `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          dimensions: [
-            { name: 'googleSearchConsoleSearchTerm' }
-          ],
-          metrics: [
-            { name: 'organicGoogleSearchImpressions' }
-          ],
-          dateRanges: [{ startDate: '180daysAgo', endDate: 'yesterday' }],
-          limit: 1
-        })
-      },
-      6000
-    );
-
-    if (response.ok) {
-      const data = await response.json();
-      searchConsoleStatus.debugInfo.push(`Method 3 success: ${data.rows?.length || 0} rows returned`);
-      
-      // Even getting a successful response (even with 0 rows) indicates Search Console is linked
-      // because these dimensions wouldn't be available otherwise
-      searchConsoleStatus.isLinked = true;
-      searchConsoleStatus.dataMethod = 'data_api_simplified';
-      
-      if (data.rows && data.rows.length > 0) {
-        const totalImpressions = data.rows.reduce((sum: number, row: any) => {
-          return sum + (parseInt(row.metricValues?.[0]?.value) || 0);
-        }, 0);
-        
-        searchConsoleStatus.organicImpressions = totalImpressions;
-        searchConsoleStatus.hasData = totalImpressions > 0;
-        searchConsoleStatus.lastDataDate = totalImpressions > 0 
-          ? `✅ Historical data: ${totalImpressions.toLocaleString()} impressions (180 days)`
-          : `✅ Search Console linked but no impressions in last 180 days`;
-      } else {
-        searchConsoleStatus.hasData = false;
-        searchConsoleStatus.lastDataDate = `✅ Search Console linked but no search term data in last 180 days`;
-      }
-      
-      searchConsoleStatus.debugInfo.push('Method 3: Search Console is linked (API accepts Search Console dimensions)');
-      return searchConsoleStatus;
-      
-    } else {
-      const errorText = await response.text();
-      searchConsoleStatus.debugInfo.push(`Method 3 failed: ${response.status} - ${errorText}`);
-    }
   } catch (error) {
-    searchConsoleStatus.debugInfo.push(`Method 3 error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    searchConsoleStatus.debugInfo.push(`Method 1 failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
-  // If we get here, Search Console is likely not linked
-  searchConsoleStatus.isLinked = false;
-  searchConsoleStatus.lastDataDate = `❌ Search Console not linked - organic search dimensions/metrics unavailable`;
-  
-  searchConsoleStatus.debugInfo.push('💡 TO CONNECT SEARCH CONSOLE:');
-  searchConsoleStatus.debugInfo.push('1. Go to GA4 Admin > Product linking > Search Console');
-  searchConsoleStatus.debugInfo.push('2. Ensure property URLs match exactly between GA4 and Search Console');
-  searchConsoleStatus.debugInfo.push('3. You must be a verified owner (not just user) in Search Console');
-  searchConsoleStatus.debugInfo.push('4. Data takes 48-72 hours to appear after linking');
-  
   return searchConsoleStatus;
 }
 
-// Helper function to build comprehensive audit with enhanced logic
-function buildComprehensiveAudit(data: Record<string, unknown>) {
+// Enhanced audit builder function
+function buildComprehensiveAudit(params: any) {
   const {
     propertyData,
     dataStreams,
@@ -705,461 +575,150 @@ function buildComprehensiveAudit(data: Record<string, unknown>) {
     enhancedMeasurement,
     measurementProtocolSecrets,
     eventCreateRules,
-    searchConsoleDataStatus
-  } = data as {
-    propertyData: Record<string, unknown>;
-    dataStreams: Array<Record<string, unknown>>;
-    keyEvents: Array<Record<string, unknown>>;
-    dataRetention: Record<string, unknown>;
-    attribution: Record<string, unknown>;
-    googleSignals: Record<string, unknown>;
-    googleAdsLinks: Array<Record<string, unknown>>;
-    bigQueryLinks: Array<Record<string, unknown>>;
-    connectedSiteTags: Array<Record<string, unknown>>;
-    searchConsoleLinks: Array<Record<string, unknown>>;
-    customDimensions: Array<Record<string, unknown>>;
-    customMetrics: Array<Record<string, unknown>>;
-    enhancedMeasurement: Array<Record<string, unknown>>;
-    measurementProtocolSecrets: Array<Record<string, unknown>>;
-    eventCreateRules: Array<Record<string, unknown>>;
-    searchConsoleDataStatus: Record<string, unknown>;
-  };
-
-  // Analyze enhanced measurement for missing dimensions
-  const enhancedMeasurementWarnings = analyzeEnhancedMeasurementDimensions(
-    enhancedMeasurement as Array<Record<string, unknown>>, 
-    customDimensions as Array<Record<string, unknown>>
-  );
-  
-  // Analyze event create rules
-  const eventCreateRulesWarnings = analyzeEventCreateRules(eventCreateRules as Array<Record<string, unknown>>);
-
-  // Helper function to get readable data retention status
-  const getDataRetentionStatus = (eventDataRetention: string) => {
-    switch (eventDataRetention) {
-      case 'FOURTEEN_MONTHS':
-        return {
-          status: 'configured',
-          warning: false,
-          message: '✅ Excellent! Data retention is set to 14 months.'
-        };
-      case 'FIFTY_MONTHS':
-        return {
-          status: 'configured',
-          warning: false,
-          message: '✅ Perfect! Data retention is set to maximum (50 months).'
-        };
-      case 'TWO_MONTHS':
-        return {
-          status: 'critical',
-          warning: true,
-          message: '⚠️ CRITICAL: Data retention is only 2 months! Extend to 14 months for better analysis.'
-        };
-      default:
-        return {
-          status: 'requires_check',
-          warning: true,
-          message: '⚠️ Check your data retention settings!'
-        };
-    }
-  };
-
-  // Helper function for attribution model readability
-  const getAttributionModelDisplay = (attribution: Record<string, unknown>) => {
-    const model = attribution.reportingAttributionModel as string;
-    
-    if (!model) {
-      return 'Attribution settings not accessible via API';
-    }
-    
-    const modelNames: Record<string, string> = {
-      'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN': 'Data-driven (recommended)',
-      'PAID_AND_ORGANIC_CHANNELS_LAST_CLICK': 'Last click',
-      'PAID_AND_ORGANIC_CHANNELS_FIRST_CLICK': 'First click',
-      'PAID_AND_ORGANIC_CHANNELS_LINEAR': 'Linear',
-      'PAID_AND_ORGANIC_CHANNELS_TIME_DECAY': 'Time decay',
-      'PAID_AND_ORGANIC_CHANNELS_POSITION_BASED': 'Position-based'
-    };
-    
-    return modelNames[model] || model;
-  };
-
-  // Helper function for Google Signals status
-  const getGoogleSignalsStatus = (googleSignals: Record<string, unknown>) => {
-    const state = googleSignals.state as string;
-    
-    if (!state) {
-      return {
-        value: 'Google Signals status not accessible via API',
-        status: 'requires_check',
-        warning: false
-      };
-    }
-    
-    const isEnabled = state === 'GOOGLE_SIGNALS_ENABLED';
-    
-    return {
-      value: isEnabled ? 'Enabled for cross-device insights and demographics' : `Status: ${state}`,
-      status: isEnabled ? 'configured' : 'not_configured',
-      warning: isEnabled // Show privacy warning if enabled
-    };
-  };
-
-  const dataRetentionStatus = getDataRetentionStatus(dataRetention.eventDataRetention as string);
-  const attributionDisplay = getAttributionModelDisplay(attribution);
-  const googleSignalsStatus = getGoogleSignalsStatus(googleSignals);
+    searchConsoleDataStatus,
+    enhancedChecks
+  } = params;
 
   return {
     propertySettings: {
       timezone: {
-        status: propertyData.timeZone ? 'configured' : 'missing',
-        value: `${propertyData.timeZone || 'Not set'} ${propertyData.timeZone ? '✓' : '⚠️'}`,
+        status: propertyData.timeZone ? 'good' : 'critical',
+        value: propertyData.timeZone || 'Not Set (defaults to Pacific Time)',
         recommendation: propertyData.timeZone 
-          ? `Your timezone is set to ${propertyData.timeZone}. Ensure this matches your business location for accurate reporting.`
-          : 'Set your property timezone in Admin > Property > Property details.',
-        details: propertyData.timeZone 
-          ? `Reports will show data in ${propertyData.timeZone} timezone. Keep this consistent across marketing platforms.`
-          : 'GA4 defaults to Pacific Time if no timezone is set.'
+          ? `Timezone set to ${propertyData.timeZone}`
+          : 'Set timezone in Admin > Property settings',
+        adminPath: 'Admin > Property settings'
       },
       currency: {
-        status: propertyData.currencyCode ? 'configured' : 'default',
-        value: `${propertyData.currencyCode || 'USD (default)'} ${propertyData.currencyCode ? '✓' : 'ℹ️'}`,
+        status: propertyData.currencyCode ? 'good' : 'warning',
+        value: propertyData.currencyCode || 'USD (default)',
         recommendation: propertyData.currencyCode 
-          ? `Your reporting currency is ${propertyData.currencyCode}. All e-commerce data will be converted to this currency.`
-          : 'GA4 defaults to USD. If you accept multiple currencies, GA4 will convert them using daily exchange rates.',
-        details: 'GA4 currency conversion: Transactions in multiple currencies are automatically converted to your reporting currency using Google\'s daily exchange rates.'
+          ? `Currency set to ${propertyData.currencyCode}`
+          : 'Consider setting currency if you track revenue',
+        adminPath: 'Admin > Property settings'
       },
       industryCategory: {
-        status: propertyData.industryCategory ? 'configured' : 'missing',
-        value: propertyData.industryCategory as string || 'Not set',
+        status: propertyData.industryCategory ? 'good' : 'warning',
+        value: propertyData.industryCategory || 'Not set',
         recommendation: propertyData.industryCategory 
-          ? 'Industry category is set for benchmarking and machine learning optimization.' 
-          : 'Set industry category in Admin > Property > Property details for better benchmarking insights.',
-        details: 'Industry category helps GA4 provide relevant benchmarks and improves automated insights quality.'
-      },
-      dataRetention: {
-        status: dataRetentionStatus.status,
-        value: dataRetention.eventDataRetention 
-          ? `Event data: ${dataRetention.eventDataRetention}, User data: ${dataRetention.userDataRetention || 'Not specified'}`
-          : '⚠️ CRITICAL: Check your data retention settings!',
-        recommendation: dataRetentionStatus.message,
-        details: `Data retention affects Explorations and custom reports. Current setting: ${dataRetention.eventDataRetention || 'Unknown'}. You can change this in Admin > Data collection > Data retention.`
-      },
-      attribution: {
-        status: attribution.reportingAttributionModel ? 'configured' : 'requires_check',
-        value: attribution.reportingAttributionModel 
-          ? `${attributionDisplay} | Acquisition lookback: ${attribution.acquisitionConversionEventLookbackWindow || 'Default'} | Other lookback: ${attribution.otherConversionEventLookbackWindow || 'Default'}`
-          : 'Attribution settings not accessible via API',
-        recommendation: attribution.reportingAttributionModel === 'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN'
-          ? '✅ Using data-driven attribution model (recommended)'
-          : 'Consider using data-driven attribution for more accurate conversion credit',
-        details: attribution.reportingAttributionModel 
-          ? `Attribution model affects how conversion credit is assigned across touchpoints. Current: ${attributionDisplay}`
-          : 'Attribution settings control how key events are credited to different channels and campaigns'
-      },
-      googleSignals: {
-        status: googleSignalsStatus.status,
-        value: googleSignalsStatus.value,
-        recommendation: googleSignalsStatus.status === 'configured'
-          ? '✅ Google Signals enabled for cross-device insights and demographics'
-          : 'Consider enabling Google Signals in Admin > Data collection for cross-device tracking and demographics (requires privacy review)',
-        details: 'Google Signals enables cross-device reporting, demographics, and interests data, but may cause data thresholding in some reports',
-        warnings: googleSignalsStatus.warning ? [
-          '⚠️ PRIVACY NOTICE: Google Signals is enabled. Ensure your privacy policy clearly states that you collect demographics and interests data via Google Signals for advertising purposes.'
-        ] : []
+          ? 'Industry category configured for ML optimization'
+          : 'Set industry category for better machine learning predictions',
+        adminPath: 'Admin > Property settings'
       }
     },
     dataCollection: {
-      dataStreams: {
-        status: dataStreams.length > 0 ? 'configured' : 'missing',
-        value: `${dataStreams.length} data stream(s) - ${getDataStreamSummary(dataStreams as Array<Record<string, unknown>>)}`,
-        recommendation: dataStreams.length > 0 
-          ? 'Data streams are configured. Each platform (web, iOS, Android) should have its own stream.'
-          : 'Add data streams for your platforms in Admin > Data collection > Data streams.',
-        details: getDataStreamDetails(dataStreams as Array<Record<string, unknown>>)
+      dataRetention: {
+        status: dataRetention.eventDataRetention === 'TWO_MONTHS' ? 'critical' : 'good',
+        value: dataRetention.eventDataRetention || 'Not configured',
+        recommendation: dataRetention.eventDataRetention === 'TWO_MONTHS'
+          ? 'CRITICAL: Set data retention to 14 months to avoid losing historical data'
+          : 'Data retention properly configured',
+        adminPath: 'Admin > Data Settings > Data Retention'
       },
-      enhancedMeasurement: {
-        status: enhancedMeasurement.length > 0 ? 'configured' : 'not_configured',
-        value: enhancedMeasurement.length > 0
-          ? `Configured on ${enhancedMeasurement.length} web stream(s)`
-          : 'Enhanced measurement not detected',
-        recommendation: enhancedMeasurement.length > 0
-          ? 'Enhanced measurement is active. Review individual event settings below.'
-          : 'Enable Enhanced Measurement in your web data stream settings for automatic event tracking.',
-        details: getEnhancedMeasurementDetails(enhancedMeasurement as Array<Record<string, unknown>>),
-        warnings: enhancedMeasurementWarnings
+      
+      // 🚀 NEW: Enhanced data collection audit items
+      piiRedaction: {
+        status: enhancedChecks?.piiAnalysis?.hasPII ? 'critical' : 'good',
+        value: enhancedChecks?.piiAnalysis?.hasPII 
+          ? `PII detected in ${enhancedChecks.piiAnalysis.details?.totalAffectedUrls || 0} URLs`
+          : 'No PII detected in URL parameters',
+        recommendation: enhancedChecks?.piiAnalysis?.recommendation || 'PII analysis unavailable',
+        details: enhancedChecks?.piiAnalysis?.details ? 
+          `Found ${enhancedChecks.piiAnalysis.details.critical.length + enhancedChecks.piiAnalysis.details.high.length} critical/high severity PII instances` : 
+          undefined,
+        adminPath: 'Admin > Data Settings > Data Collection > Data redaction'
       },
-      measurementProtocol: {
-        status: measurementProtocolSecrets.length > 0 ? 'configured' : 'not_configured',
-        value: measurementProtocolSecrets.length > 0
-          ? `${(measurementProtocolSecrets as Array<Record<string, unknown>>).reduce((total, stream) => total + ((stream.secrets as Array<unknown>)?.length || 0), 0)} secret(s) across ${measurementProtocolSecrets.length} stream(s)`
-          : 'No measurement protocol secrets configured',
-        recommendation: measurementProtocolSecrets.length > 0
-          ? '⚠️ Measurement Protocol is configured. Ensure it\'s properly implemented to avoid data quality issues.'
-          : 'Measurement Protocol allows server-side event sending. Only implement if needed and ensure proper data validation.',
-        details: measurementProtocolSecrets.length > 0
-          ? `Secrets found: ${(measurementProtocolSecrets as Array<Record<string, unknown>>).map(s => `${s.streamName}: ${((s.secrets as Array<Record<string, unknown>>)?.map(secret => secret.displayName) || []).join(', ')}`).join(' | ')}`
-          : 'Measurement Protocol enables sending events from your server directly to GA4'
+      
+      siteSearch: {
+        status: enhancedChecks?.searchAnalysis?.status === 'optimal' ? 'good' :
+                enhancedChecks?.searchAnalysis?.status === 'partial' ? 'warning' :
+                enhancedChecks?.searchAnalysis?.status === 'needs_config' ? 'critical' :
+                enhancedChecks?.searchAnalysis?.status === 'missed_opportunity' ? 'warning' : 'unknown',
+        value: enhancedChecks?.searchAnalysis?.hasSearchTerms 
+          ? `${enhancedChecks.searchAnalysis.searchTermsCount} search terms captured`
+          : enhancedChecks?.searchAnalysis?.customSearchParams?.length > 0
+          ? `${enhancedChecks.searchAnalysis.customSearchParams.length} custom search parameters detected but not tracked`
+          : 'No search activity detected',
+        recommendation: enhancedChecks?.searchAnalysis?.recommendation || 'Search analysis unavailable',
+        details: enhancedChecks?.searchAnalysis?.configurationSuggestions?.length > 0 ?
+          enhancedChecks.searchAnalysis.configurationSuggestions.join(' | ') : undefined,
+        adminPath: 'Admin > Data Streams > [Stream] > Enhanced measurement > Site search'
       },
-      connectedSiteTags: {
-        status: connectedSiteTags.length > 0 ? 'configured' : 'not_configured',
-        value: connectedSiteTags.length > 0
-          ? `${connectedSiteTags.length} connected site tag(s)`
-          : 'No connected site tags',
-        recommendation: connectedSiteTags.length > 0
-          ? 'Connected site tags are forwarding traffic from other properties'
-          : 'Connected site tags forward traffic from Universal Analytics to GA4 during migration',
-        details: 'Connected site tags help with UA to GA4 migration by forwarding traffic between properties'
+      
+      unwantedReferrals: {
+        status: enhancedChecks?.trafficAnalysis?.unwantedReferrals?.detected ? 'critical' : 'good',
+        value: enhancedChecks?.trafficAnalysis?.unwantedReferrals?.detected
+          ? `${enhancedChecks.trafficAnalysis.unwantedReferrals.count} payment processors as referrals`
+          : 'No unwanted referrals detected',
+        recommendation: enhancedChecks?.trafficAnalysis?.unwantedReferrals?.recommendation || 'Referral analysis unavailable',
+        details: enhancedChecks?.trafficAnalysis?.unwantedReferrals?.detected ?
+          `Affecting ${enhancedChecks.trafficAnalysis.unwantedReferrals.totalSessions} sessions` : undefined,
+        adminPath: 'Admin > Data Settings > Data Collection > Configure tag settings > Unwanted referrals'
       }
     },
     customDefinitions: {
       customDimensions: {
-        status: customDimensions.length > 0 ? 'configured' : 'none',
-        value: `${customDimensions.length} custom dimension(s) configured`,
+        status: customDimensions.length > 0 ? 'good' : 'opportunity',
+        value: `${customDimensions.length}/50 configured`,
         recommendation: customDimensions.length > 0
-          ? `Custom dimensions: ${(customDimensions as Array<Record<string, unknown>>).map((cd: Record<string, unknown>) => `${cd.displayName} (${cd.scope})`).slice(0, 5).join(', ')}${customDimensions.length > 5 ? '...' : ''}. Review implementation carefully.`
-          : 'No custom dimensions configured. Create them in Admin > Custom definitions for business-specific tracking.',
-        details: getCustomDimensionsDetails(customDimensions as Array<Record<string, unknown>>),
-        quota: `Using ${customDimensions.length}/50 custom dimensions (standard property)`
+          ? `${customDimensions.length} dimensions for detailed analysis`
+          : 'Consider adding custom dimensions for business-specific data',
+        adminPath: 'Admin > Custom definitions > Custom dimensions'
       },
       customMetrics: {
-        status: customMetrics.length > 0 ? 'configured' : 'none',
-        value: `${customMetrics.length} custom metric(s) configured`,
+        status: customMetrics.length > 0 ? 'good' : 'opportunity',
+        value: `${customMetrics.length}/50 configured`,
         recommendation: customMetrics.length > 0
-          ? `Custom metrics: ${(customMetrics as Array<Record<string, unknown>>).map((cm: Record<string, unknown>) => `${cm.displayName} (${cm.scope})`).slice(0, 5).join(', ')}${customMetrics.length > 5 ? '...' : ''}. Verify data accuracy.`
-          : 'No custom metrics configured. Create them for tracking business-specific numerical data.',
-        details: getCustomMetricsDetails(customMetrics as Array<Record<string, unknown>>),
-        quota: `Using ${customMetrics.length}/50 custom metrics (standard property)`
-      },
-      eventCreateRules: {
-        status: eventCreateRules.length > 0 ? 'configured' : 'none',
-        value: eventCreateRules.length > 0
-          ? `${(eventCreateRules as Array<Record<string, unknown>>).reduce((total, stream) => total + ((stream.rules as Array<unknown>)?.length || 0), 0)} event create rule(s)`
-          : 'No event create rules configured',
-        recommendation: eventCreateRules.length > 0
-          ? '⚠️ WARNING: Event create rules detected. These are complex and often misconfigured - review carefully!'
-          : 'Event create rules allow creating new events based on existing ones. Only use if you understand the data structure.',
-        details: getEventCreateRulesDetails(eventCreateRules as Array<Record<string, unknown>>),
-        warnings: eventCreateRulesWarnings
+          ? `${customMetrics.length} metrics for business KPIs`
+          : 'Consider adding custom metrics for business-specific calculations',
+        adminPath: 'Admin > Custom definitions > Custom metrics'
       }
     },
     keyEvents: {
-      keyEvents: {
-        status: keyEvents.length > 0 ? 'configured' : 'missing',
+      keyEventsSetup: {
+        status: keyEvents.length === 0 ? 'critical' : keyEvents.length > 2 ? 'warning' : 'good',
         value: `${keyEvents.length} key event(s) configured`,
-        recommendation: keyEvents.length > 0 
-          ? `Key events: ${(keyEvents as Array<Record<string, unknown>>).map((ke: Record<string, unknown>) => ke.eventName).slice(0, 5).join(', ')}${keyEvents.length > 5 ? '...' : ''}. These can be imported to Google Ads as conversions.`
-          : 'Set up key events for your important business goals in Admin > Events > Mark events as key events.',
-        details: '2025 Update: "Conversions" are now called "Key Events" in GA4. Key Events can be imported to Google Ads as conversions for bidding optimization.'
+        recommendation: keyEvents.length === 0
+          ? 'CRITICAL: Set up key events for business objectives'
+          : keyEvents.length > 2
+          ? `⚠️ TOO MANY: ${keyEvents.length} key events may dilute data`
+          : `Properly configured: ${keyEvents.map((e: any) => e.eventName).join(', ')}`,
+        adminPath: 'Admin > Events'
       }
     },
     integrations: {
       googleAds: {
-        status: googleAdsLinks.length > 0 ? 'configured' : 'not_configured',
-        value: googleAdsLinks.length > 0
-          ? `${googleAdsLinks.length} Google Ads link(s) configured`
-          : 'No Google Ads links configured',
+        status: googleAdsLinks.length > 0 ? 'good' : 'warning',
+        value: googleAdsLinks.length > 0 
+          ? `${googleAdsLinks.length} account(s) connected`
+          : 'Not connected',
         recommendation: googleAdsLinks.length > 0
-          ? '✅ Google Ads is linked for conversion tracking and audience sharing'
-          : 'Link Google Ads in Admin > Product linking > Google Ads to import key events as conversions and share audiences.',
-        details: 'Google Ads linking enables conversion import for Smart Bidding and audience sharing for remarketing campaigns'
-      },
-      bigQuery: {
-        status: bigQueryLinks.length > 0 ? 'configured' : 'not_configured',
-        value: bigQueryLinks.length > 0
-          ? `${bigQueryLinks.length} BigQuery link(s) configured`
-          : 'BigQuery export not configured',
-        recommendation: bigQueryLinks.length > 0
-          ? '✅ BigQuery export is configured for advanced analysis'
-          : 'Consider linking BigQuery for raw data export and advanced analysis. Free tier available for GA4!',
-        details: 'BigQuery export includes all raw event data, bypasses sampling, and enables custom analysis with SQL'
+          ? 'Google Ads linked for conversion import'
+          : 'Connect Google Ads for conversion tracking and bidding optimization',
+        adminPath: 'Admin > Product linking > Google Ads'
       },
       searchConsole: {
-        status: (searchConsoleDataStatus as Record<string, unknown>).isLinked ? 
-          ((searchConsoleDataStatus as Record<string, unknown>).hasData ? 'configured' : 'linked_no_data') : 
-          'not_configured',
-        value: (searchConsoleDataStatus as Record<string, unknown>).isLinked 
-          ? `${(searchConsoleDataStatus as Record<string, unknown>).lastDataDate || 'Checking data...'}`
-          : 'Search Console not linked',
-        recommendation: (searchConsoleDataStatus as Record<string, unknown>).isLinked && (searchConsoleDataStatus as Record<string, unknown>).hasData
-          ? '✅ Search Console is linked and providing organic search data'
-          : (searchConsoleDataStatus as Record<string, unknown>).isLinked 
-            ? '⚠️ Search Console is linked but verify data is flowing. Check in Reports > Library > Search Console collections.'
-            : 'Link Search Console in Admin > Product linking > Search Console for organic search insights.',
-        details: (searchConsoleDataStatus as Record<string, unknown>).isLinked 
-          ? `Search Console integration provides organic search queries, clicks, impressions, and CTR data. ${(searchConsoleDataStatus as Record<string, unknown>).lastDataDate || 'Status unknown'}`
-          : 'Search Console integration shows which Google search queries bring visitors to your site'
+        status: searchConsoleDataStatus.hasData ? 'good' : 'warning',
+        value: searchConsoleDataStatus.hasData 
+          ? `${searchConsoleDataStatus.totalClicks} clicks, ${searchConsoleDataStatus.totalImpressions} impressions`
+          : 'No data detected',
+        recommendation: searchConsoleDataStatus.hasData
+          ? 'Search Console linked and providing data'
+          : 'Link Search Console for organic search insights',
+        adminPath: 'Admin > Product linking > Search Console'
+      },
+      bigQuery: {
+        status: bigQueryLinks.length > 0 ? 'good' : 'opportunity',
+        value: bigQueryLinks.length > 0 
+          ? `${bigQueryLinks.length} project(s) connected`
+          : 'Not connected',
+        recommendation: bigQueryLinks.length > 0
+          ? 'BigQuery connected for advanced analysis'
+          : 'Connect BigQuery for unsampled data (free tier available)',
+        adminPath: 'Admin > Product linking > BigQuery'
       }
     }
   };
-}
-
-// Helper function to analyze enhanced measurement dimensions
-function analyzeEnhancedMeasurementDimensions(enhancedMeasurement: Array<Record<string, unknown>>, customDimensions: Array<Record<string, unknown>>) {
-  const warnings: string[] = [];
-  const requiredDimensions = {
-    video: ['video_current_time', 'video_duration', 'video_percent'],
-    form: ['form_id', 'form_name', 'form_destination', 'form_submit_text']
-  };
-
-  const existingDimensionParams = customDimensions.map(cd => (cd.parameterName as string)?.toLowerCase()).filter(Boolean);
-
-  enhancedMeasurement.forEach(stream => {
-    const settings = stream.settings as Record<string, unknown>;
-    
-    if (settings.videoEngagementEnabled) {
-      const missingVideoDimensions = requiredDimensions.video.filter(
-        param => !existingDimensionParams.includes(param)
-      );
-      
-      if (missingVideoDimensions.length > 0) {
-        warnings.push(
-          `⚠️ Video engagement is enabled on "${stream.streamName}" but missing recommended custom dimensions: ${missingVideoDimensions.join(', ')}. Register these in Admin > Custom definitions for better video analytics.`
-        );
-      }
-    }
-
-    if (settings.formInteractionsEnabled) {
-      const missingFormDimensions = requiredDimensions.form.filter(
-        param => !existingDimensionParams.includes(param)
-      );
-      
-      if (missingFormDimensions.length > 0) {
-        warnings.push(
-          `⚠️ Form interactions are enabled on "${stream.streamName}" but missing recommended custom dimensions: ${missingFormDimensions.join(', ')}. Register these for detailed form analytics.`
-        );
-      }
-    }
-  });
-
-  return warnings;
-}
-
-// Helper function to analyze event create rules
-function analyzeEventCreateRules(eventCreateRules: Array<Record<string, unknown>>) {
-  const warnings: string[] = [];
-
-  eventCreateRules.forEach(stream => {
-    (stream.rules as Array<Record<string, unknown>>).forEach((rule: Record<string, unknown>) => {
-      warnings.push(
-        `⚠️ CRITICAL: Event create rule "${rule.displayName}" on ${stream.streamName}. Very few people configure these correctly - they require deep understanding of GA4 data structure. Review implementation carefully!`
-      );
-    });
-  });
-
-  if (eventCreateRules.length > 0) {
-    warnings.push(
-      '💡 Event create rules are where auto-migrated events from Universal Analytics often live. These can cause data quality issues if not properly configured.'
-    );
-  }
-
-  return warnings;
-}
-
-// Helper functions for data stream analysis
-function getDataStreamSummary(streams: Array<Record<string, unknown>>): string {
-  const webStreams = streams.filter(s => s.type === 'WEB_DATA_STREAM').length;
-  const appStreams = streams.filter(s => s.type !== 'WEB_DATA_STREAM').length;
-  
-  if (webStreams > 0 && appStreams > 0) {
-    return `${webStreams} web, ${appStreams} app`;
-  } else if (webStreams > 0) {
-    return `${webStreams} web stream(s)`;
-  } else if (appStreams > 0) {
-    return `${appStreams} app stream(s)`;
-  }
-  return 'No streams configured';
-}
-
-function getDataStreamDetails(streams: Array<Record<string, unknown>>): string {
-  if (streams.length === 0) {
-    return 'No data streams found. Create a web data stream for your website in Admin > Data streams.';
-  }
-  
-  const details = streams.map(stream => {
-    if (stream.type === 'WEB_DATA_STREAM') {
-      return `Web: ${(stream.webStreamData as Record<string, unknown>)?.defaultUri || stream.displayName}`;
-    } else {
-      return `App: ${stream.displayName}`;
-    }
-  }).join(', ');
-  
-  return `Configured streams: ${details}`;
-}
-
-function getEnhancedMeasurementDetails(enhancedMeasurement: Array<Record<string, unknown>>): string {
-  if (enhancedMeasurement.length === 0) {
-    return 'Enhanced Measurement provides automatic tracking for common website interactions without additional code.';
-  }
-  
-  const allEvents = enhancedMeasurement.reduce((events: string[], stream) => {
-    const settings = stream.settings as Record<string, unknown>;
-    const activeEvents: string[] = [];
-    
-    if (settings.streamEnabled) {
-      if (settings.scrollsEnabled) activeEvents.push('scroll (90% page scroll)');
-      if (settings.outboundClicksEnabled) activeEvents.push('click (outbound links)');
-      if (settings.siteSearchEnabled) activeEvents.push('view_search_results (site search)');
-      if (settings.videoEngagementEnabled) activeEvents.push('video_start/progress/complete (YouTube)');
-      if (settings.fileDownloadsEnabled) activeEvents.push('file_download (PDF, DOC, etc.)');
-      if (settings.formInteractionsEnabled) activeEvents.push('form_start/submit (form interactions)');
-      if (settings.pageChangesEnabled) activeEvents.push('page_view (SPA page changes)');
-    }
-    
-    return events.concat(activeEvents);
-  }, []);
-  
-  return `Active events: ${[...new Set(allEvents)].join(', ')}. These provide valuable insights without any development work!`;
-}
-
-// Helper functions for custom definitions
-function getCustomDimensionsDetails(customDimensions: Array<Record<string, unknown>>): string {
-  if (customDimensions.length === 0) {
-    return 'Custom dimensions allow tracking business-specific categorical data like user types, content categories, or campaign details.';
-  }
-
-  const byScope = customDimensions.reduce((acc: Record<string, number>, cd) => {
-    const scope = cd.scope as string;
-    acc[scope] = (acc[scope] || 0) + 1;
-    return acc;
-  }, {});
-
-  const scopeBreakdown = Object.entries(byScope)
-    .map(([scope, count]) => `${count} ${scope.toLowerCase()}`)
-    .join(', ');
-
-  return `Breakdown by scope: ${scopeBreakdown}. Custom dimensions capture business-specific data for detailed analysis.`;
-}
-
-function getCustomMetricsDetails(customMetrics: Array<Record<string, unknown>>): string {
-  if (customMetrics.length === 0) {
-    return 'Custom metrics allow tracking business-specific numerical data like engagement scores, revenue per user, or completion rates.';
-  }
-
-  const byScope = customMetrics.reduce((acc: Record<string, number>, cm) => {
-    const scope = cm.scope as string;
-    acc[scope] = (acc[scope] || 0) + 1;
-    return acc;
-  }, {});
-
-  const scopeBreakdown = Object.entries(byScope)
-    .map(([scope, count]) => `${count} ${scope.toLowerCase()}`)
-    .join(', ');
-
-  return `Breakdown by scope: ${scopeBreakdown}. Custom metrics track numerical values for business-specific KPIs.`;
-}
-
-function getEventCreateRulesDetails(eventCreateRules: Array<Record<string, unknown>>): string {
-  if (eventCreateRules.length === 0) {
-    return 'Event create rules allow creating new events based on existing event data. Rarely needed and complex to configure correctly.';
-  }
-
-  const totalRules = eventCreateRules.reduce((total, stream) => total + (stream.rules as Array<unknown>).length, 0);
-  const streamDetails = eventCreateRules.map(stream => 
-    `${stream.streamName}: ${(stream.rules as Array<unknown>).length} rule(s)`
-  ).join(', ');
-
-  return `${totalRules} total rules across streams (${streamDetails}). These modify or create events and require expert-level GA4 knowledge.`;
 }
 
 export { handler };
