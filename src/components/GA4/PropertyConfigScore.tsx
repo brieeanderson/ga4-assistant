@@ -1,74 +1,93 @@
 import React from 'react';
-import { TrendingUp, Zap, Target, AlertTriangle, CheckCircle, ArrowRight, Lightbulb } from 'lucide-react';
+import { CheckCircle, AlertTriangle, TrendingUp, Target } from 'lucide-react';
 import { GA4Audit } from '@/types/ga4';
 
 interface Suggestion {
   label: string;
   suggestion: string;
-  importance: 'critical' | 'very-important' | 'important' | 'moderate' | 'optional' | 'info';
+  importance: 'critical' | 'very-important' | 'important' | 'moderate' | 'optional';
   points: number;
 }
 
-interface ScoringConfig {
-  id: string;
-  label: string;
-  type: 'system' | 'user-collected';
-  deduction: (audit: GA4Audit) => number;
-  suggestion: string;
-  importance: 'critical' | 'very-important' | 'important' | 'moderate' | 'optional' | 'info';
-}
-
-const GA4_SCORING_CONFIG: ScoringConfig[] = [
+// Configuration scoring logic
+const GA4_SCORING_CONFIG = [
   {
-    id: 'keyEvents',
-    label: 'Key events configuration',
-    type: 'user-collected',
-    deduction: (audit: GA4Audit) => {
-      if (audit.keyEvents.length === 0) return -20;
-      if (audit.keyEvents.length > 2) return -10;
-      return 0;
-    },
-    suggestion: 'Configure 1-2 key events that represent your most important business outcomes.',
+    id: 'timezone',
+    label: 'Timezone configuration',
+    type: 'property-required',
+    deduction: (audit: GA4Audit) => !audit.property.timeZone ? -15 : 0,
+    suggestion: 'Set the correct timezone in Admin > Property Settings for accurate timing.',
     importance: 'critical' as const,
   },
   {
-    id: 'dataRetention',
-    label: 'Data retention period',
-    type: 'system',
-    deduction: (audit: GA4Audit) => audit.dataRetention.eventDataRetention === 'TWO_MONTHS' ? -15 : 0,
-    suggestion: 'Extend data retention to 14 months to maintain year-over-year reporting capabilities.',
+    id: 'currency',
+    label: 'Currency configuration',
+    type: 'property-required',
+    deduction: (audit: GA4Audit) => !audit.property.currencyCode ? -10 : 0,
+    suggestion: 'Set the correct currency in Admin > Property Settings for accurate revenue tracking.',
     importance: 'very-important' as const,
   },
   {
-    id: 'googleAds',
-    label: 'Google Ads integration',
-    type: 'user-collected',
-    deduction: (audit: GA4Audit) => audit.googleAdsLinks.length === 0 ? -20 : 0,
-    suggestion: 'Connect Google Ads to enable advanced attribution and conversion optimization.',
-    importance: 'very-important' as const,
+    id: 'dataRetention',
+    label: 'Data retention settings',
+    type: 'data-management',
+    deduction: (audit: GA4Audit) => audit.dataRetention.eventDataRetention !== 'FOURTEEN_MONTHS' ? -8 : 0,
+    suggestion: 'Set data retention to 14 months for maximum data availability.',
+    importance: 'important' as const,
+  },
+  {
+    id: 'keyEvents',
+    label: 'Key events configuration',
+    type: 'conversion-tracking',
+    deduction: (audit: GA4Audit) => audit.keyEvents.length === 0 ? -20 : audit.keyEvents.length > 2 ? -5 : 0,
+    suggestion: audit.keyEvents.length === 0 ? 'Configure 1-2 key events for conversion tracking.' : 'Consider optimizing to 1-2 primary key events.',
+    importance: 'critical' as const,
+  },
+  {
+    id: 'dataStreams',
+    label: 'Data streams setup',
+    type: 'data-collection',
+    deduction: (audit: GA4Audit) => audit.dataStreams.length === 0 ? -25 : 0,
+    suggestion: 'Configure at least one data stream to collect data.',
+    importance: 'critical' as const,
   },
   {
     id: 'enhancedMeasurement',
     label: 'Enhanced measurement',
-    type: 'user-collected',
+    type: 'data-collection',
     deduction: (audit: GA4Audit) => audit.enhancedMeasurement.length === 0 ? -10 : 0,
-    suggestion: 'Enable Enhanced Measurement for automatic event tracking.',
+    suggestion: 'Enable enhanced measurement for automatic event tracking.',
     importance: 'important' as const,
   },
   {
-    id: 'attribution',
-    label: 'Attribution model',
-    type: 'system',
-    deduction: (audit: GA4Audit) => 
-      audit.attribution.reportingAttributionModel !== 'PAID_AND_ORGANIC_CHANNELS_DATA_DRIVEN' ? -10 : 0,
-    suggestion: 'Upgrade to data-driven attribution for the most accurate conversion credit.',
+    id: 'customDimensions',
+    label: 'Custom dimensions',
+    type: 'advanced-tracking',
+    deduction: (audit: GA4Audit) => audit.customDimensions.length === 0 ? -5 : 0,
+    suggestion: 'Add custom dimensions to track business-specific data.',
+    importance: 'moderate' as const,
+  },
+  {
+    id: 'customMetrics',
+    label: 'Custom metrics',
+    type: 'advanced-tracking',
+    deduction: (audit: GA4Audit) => audit.customMetrics.length === 0 ? -5 : 0,
+    suggestion: 'Add custom metrics to measure business-specific values.',
+    importance: 'moderate' as const,
+  },
+  {
+    id: 'googleAds',
+    label: 'Google Ads integration',
+    type: 'platform-integration',
+    deduction: (audit: GA4Audit) => audit.googleAdsLinks.length === 0 ? -8 : 0,
+    suggestion: 'Link Google Ads for conversion tracking and audience insights.',
     importance: 'important' as const,
   },
   {
     id: 'searchConsole',
     label: 'Search Console integration',
-    type: 'user-collected',
-    deduction: (audit: GA4Audit) => !audit.searchConsoleDataStatus?.hasData ? -5 : 0,
+    type: 'platform-integration',
+    deduction: (audit: GA4Audit) => !audit.searchConsoleDataStatus.isLinked ? -5 : 0,
     suggestion: 'Connect Search Console for organic search performance insights.',
     importance: 'moderate' as const,
   },
@@ -233,11 +252,11 @@ export const PropertyConfigScore: React.FC<{ audit: GA4Audit }> = ({ audit }) =>
           {importantSuggestions.length > 0 && (
             <div className="bg-yellow-500/10 backdrop-blur-xl rounded-2xl p-6 border border-yellow-500/30">
               <div className="flex items-center mb-4">
-                <Zap className="w-6 h-6 mr-3 text-yellow-400" />
-                <h4 className="text-xl font-bold text-yellow-400">High Impact Improvements</h4>
+                <Target className="w-6 h-6 mr-3 text-yellow-400" />
+                <h4 className="text-xl font-bold text-yellow-400">Important Improvements</h4>
                 <div className="ml-auto text-sm text-yellow-300">{importantSuggestions.length} items</div>
               </div>
-              <p className="text-sm text-gray-400 mb-4">Implementing these will significantly improve your data quality and insights</p>
+              <p className="text-sm text-gray-400 mb-4">These improvements will enhance your data quality and reporting capabilities</p>
               <div className="space-y-3">
                 {importantSuggestions.map((s, i) => (
                   <div key={i} className="bg-yellow-500/20 rounded-lg p-4 border border-yellow-500/30">
@@ -252,88 +271,56 @@ export const PropertyConfigScore: React.FC<{ audit: GA4Audit }> = ({ audit }) =>
             </div>
           )}
 
-          {/* Other Suggestions */}
+          {/* Optional Enhancements */}
           {otherSuggestions.length > 0 && (
-            <div className="bg-blue-500/10 backdrop-blur-xl rounded-2xl p-6 border border-blue-500/30 lg:col-span-2">
-              <div className="flex items-center mb-4">
-                <Lightbulb className="w-6 h-6 mr-3 text-blue-400" />
-                <h4 className="text-xl font-bold text-blue-400">Additional Optimizations</h4>
-                <div className="ml-auto text-sm text-blue-300">{otherSuggestions.length} suggestions</div>
-              </div>
-              <p className="text-sm text-gray-400 mb-4">Nice-to-have improvements for advanced reporting and analysis</p>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                {otherSuggestions.map((s, i) => (
-                  <div key={i} className="bg-blue-500/20 rounded-lg p-4 border border-blue-500/30">
-                    <div className="flex items-start justify-between mb-2">
-                      <span className="font-semibold text-blue-300">{s.label}</span>
-                      <span className="text-xs text-blue-400 font-bold">{s.points} pts</span>
+            <div className="lg:col-span-2">
+              <div className="bg-blue-500/10 backdrop-blur-xl rounded-2xl p-6 border border-blue-500/30">
+                <div className="flex items-center mb-4">
+                  <CheckCircle className="w-6 h-6 mr-3 text-blue-400" />
+                  <h4 className="text-xl font-bold text-blue-400">Optional Enhancements</h4>
+                  <div className="ml-auto text-sm text-blue-300">{otherSuggestions.length} items</div>
+                </div>
+                <p className="text-sm text-gray-400 mb-4">These optional features can provide additional insights and capabilities</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {otherSuggestions.map((s, i) => (
+                    <div key={i} className="bg-blue-500/20 rounded-lg p-4 border border-blue-500/30">
+                      <div className="flex items-start justify-between mb-2">
+                        <span className="font-semibold text-blue-300">{s.label}</span>
+                        <span className="text-xs text-blue-400 font-bold">{s.points} pts</span>
+                      </div>
+                      <p className="text-sm text-gray-300">{s.suggestion}</p>
                     </div>
-                    <p className="text-sm text-gray-300">{s.suggestion}</p>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* What This Means for Your Business */}
-      <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30">
-        <div className="flex items-center mb-6">
-          <Target className="w-7 h-7 mr-3 text-orange-400" />
-          <h3 className="text-2xl font-bold text-white">What This Means for Your Business</h3>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div>
-            <h4 className="text-lg font-semibold text-orange-400 mb-3">Data Quality & Insights</h4>
-            <p className="text-gray-300 mb-4">
-              {score >= 90 
-                ? "Excellent setup ensures accurate tracking and reliable reporting for confident decision-making."
-                : score >= 75
-                ? "Good foundation with opportunities to enhance data accuracy and reporting capabilities."
-                : score >= 60
-                ? "Current issues may lead to incomplete data and unreliable insights affecting business decisions."
-                : "Critical problems are significantly impacting data quality and limiting your analytical capabilities."}
-            </p>
-            {score < 90 && (
-              <div className="flex items-center text-sm text-orange-300">
-                <ArrowRight className="w-4 h-4 mr-2" />
-                <span>Address top issues to improve data reliability</span>
-              </div>
-            )}
-          </div>
-          
-          <div>
-            <h4 className="text-lg font-semibold text-orange-400 mb-3">Marketing Performance</h4>
-            <p className="text-gray-300 mb-4">
-              {score >= 90 
-                ? "Optimal attribution and tracking enable precise marketing ROI measurement and campaign optimization."
-                : score >= 75
-                ? "Strong setup supports good marketing measurement with room for attribution improvements."
-                : score >= 60
-                ? "Attribution gaps may lead to suboptimal budget allocation and campaign performance."
-                : "Poor tracking setup is likely causing significant marketing budget waste and missed opportunities."}
-            </p>
-            {audit.googleAdsLinks.length === 0 && (
-              <div className="flex items-center text-sm text-orange-300">
-                <ArrowRight className="w-4 h-4 mr-2" />
-                <span>Connect Google Ads for better conversion tracking</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Perfect Score Message */}
       {suggestions.length === 0 && (
-        <div className="bg-green-500/10 backdrop-blur-xl rounded-2xl p-8 border border-green-500/30 text-center">
+        <div className="bg-green-500/10 backdrop-blur-xl rounded-2xl p-6 border border-green-500/30 text-center">
           <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold text-green-400 mb-2">Perfect Configuration!</h3>
-          <p className="text-gray-300 text-lg">
-            Your GA4 setup follows all best practices. Your data quality is excellent and you're getting 
-            accurate insights to drive business growth.
+          <h4 className="text-xl font-bold text-green-400 mb-2">Perfect Configuration!</h4>
+          <p className="text-gray-300">
+            Your GA4 setup follows all best practices. Your data collection is optimized for accurate reporting and business insights.
           </p>
+        </div>
+      )}
+
+      {/* Implementation Priority */}
+      {suggestions.length > 0 && (
+        <div className="bg-orange-900/20 border border-orange-600/30 rounded-2xl p-6">
+          <h4 className="font-semibold text-orange-300 mb-3 text-lg">🎯 Implementation Priority</h4>
+          <p className="text-sm text-gray-300 mb-4">
+            Focus on implementing improvements in this order for maximum impact:
+          </p>
+          <ol className="text-sm text-gray-300 list-decimal list-inside space-y-2">
+            <li><strong className="text-red-300">Critical Issues</strong> - Fix immediately to prevent data loss</li>
+            <li><strong className="text-yellow-300">Important Improvements</strong> - Enhance data quality and accuracy</li>
+            <li><strong className="text-blue-300">Optional Enhancements</strong> - Add advanced features as needed</li>
+          </ol>
         </div>
       )}
     </div>
