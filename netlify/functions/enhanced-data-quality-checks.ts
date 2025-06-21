@@ -246,7 +246,7 @@ async function analyzeSearchImplementation(accessToken: string, propertyId: stri
 
     // Check URLs for NON-STANDARD search parameters that GA4 might miss
     // GA4 already handles: q, search, query, s, keyword
-    let missedSearchPatterns: any[] = [];
+    let missedSearchPatterns: MissedSearchPattern[] = [];
     let customSearchParams: any[] = [];
     
     const urlResponse = await fetch(
