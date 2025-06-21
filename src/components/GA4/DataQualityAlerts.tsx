@@ -2,84 +2,141 @@ import React from 'react';
 import { AlertTriangle, Shield, Filter, Search, ExternalLink } from 'lucide-react';
 
 interface DataQualityAlertsProps {
-  enhancedChecks: any;
+  audit: any; // Using any since enhanced data types aren't fully defined
   onFixIssues?: () => void;
 }
 
 export const DataQualityAlerts: React.FC<DataQualityAlertsProps> = ({ 
-  enhancedChecks, 
+  audit, 
   onFixIssues 
 }) => {
-  if (!enhancedChecks || enhancedChecks.criticalIssues === 0) {
-    return null;
-  }
-
+  // For now, since enhancedChecks might not be available, let's create alerts based on the basic audit data
   const criticalAlerts = [];
 
-  // PII Detection Alert
-  if (enhancedChecks.piiAnalysis?.hasPII && enhancedChecks.piiAnalysis.severity === 'critical') {
+  // Check for critical configuration issues from basic audit data
+  if (!audit.property.timeZone) {
     criticalAlerts.push({
-      id: 'pii-detected',
+      id: 'missing-timezone',
+      icon: AlertTriangle,
+      title: '🚨 Missing Timezone Configuration',
+      severity: 'critical',
+      description: 'Your GA4 property does not have a timezone set, which affects all time-based reporting.',
+      impact: 'All reports will show incorrect times and date ranges may be misaligned',
+      action: 'Set timezone in Property Settings immediately',
+      adminPath: 'Admin > Property Settings > Property details'
+    });
+  }
+
+  if (audit.keyEvents.length === 0) {
+    criticalAlerts.push({
+      id: 'no-key-events',
+      icon: AlertTriangle,
+      title: '🎯 No Key Events Configured',
+      severity: 'critical',
+      description: 'No key events (conversions) are configured for your property.',
+      impact: 'Cannot measure business goals or optimize for conversions',
+      action: 'Configure at least one key event for your primary business goal',
+      adminPath: 'Admin > Events > Key Events'
+    });
+  }
+
+  if (audit.dataStreams.length === 0) {
+    criticalAlerts.push({
+      id: 'no-data-streams',
+      icon: AlertTriangle,
+      title: '📊 No Data Streams Active',
+      severity: 'critical',
+      description: 'No data streams are configured to collect data.',
+      impact: 'No data collection - your GA4 property is not receiving any data',
+      action: 'Configure at least one data stream',
+      adminPath: 'Admin > Data Streams'
+    });
+  }
+
+  if (audit.dataRetention.eventDataRetention === 'TWO_MONTHS') {
+    criticalAlerts.push({
+      id: 'short-retention',
       icon: Shield,
-      title: '🚨 Personal Information Detected in URLs',
-      severity: 'critical',
-      description: `Found ${enhancedChecks.piiAnalysis.details?.totalAffectedUrls || 0} URLs containing personal information including emails, phone numbers, or other sensitive data.`,
-      impact: 'GDPR compliance risk - potential privacy violations and legal liability',
-      action: 'Configure data redaction immediately',
-      adminPath: 'Admin > Data Settings > Data Collection > Data redaction',
-      details: enhancedChecks.piiAnalysis.details
-    });
-  }
-
-  // Payment Processor Referrals Alert
-  if (enhancedChecks.trafficAnalysis?.unwantedReferrals?.detected) {
-    criticalAlerts.push({
-      id: 'payment-referrals',
-      icon: Filter,
-      title: '💳 Payment Processors Appearing as Referrals',
-      severity: 'critical',
-      description: `Found ${enhancedChecks.trafficAnalysis.unwantedReferrals.count} payment processors (PayPal, Stripe, etc.) showing as referral traffic.`,
-      impact: 'Attribution accuracy compromised - inflates direct traffic and skews conversion paths',
-      action: 'Add payment processors to referral exclusion list',
-      adminPath: 'Admin > Data Settings > Data Collection > Unwanted referrals',
-      details: {
-        sources: enhancedChecks.trafficAnalysis.unwantedReferrals.sources,
-        totalSessions: enhancedChecks.trafficAnalysis.unwantedReferrals.totalSessions
-      }
-    });
-  }
-
-  // Search Tracking Issues Alert
-  if (enhancedChecks.searchAnalysis?.status === 'missed_opportunity') {
-    criticalAlerts.push({
-      id: 'missed-search',
-      icon: Search,
-      title: '🔍 Search Activity Not Being Tracked',
+      title: '📅 Short Data Retention Period',
       severity: 'warning',
-      description: `Found ${enhancedChecks.searchAnalysis.customSearchParams?.length || 0} custom search parameters that aren't being tracked by GA4.`,
-      impact: 'Missing valuable search behavior data and user intent insights',
-      action: 'Configure Enhanced Measurement or custom event tracking',
-      adminPath: 'Admin > Data Streams > Enhanced measurement > Site search',
-      details: {
-        customParams: enhancedChecks.searchAnalysis.customSearchParams,
-        totalActivity: enhancedChecks.searchAnalysis.totalCustomSearchActivity
-      }
+      description: 'Event data retention is set to only 2 months instead of the maximum 14 months.',
+      impact: 'Limited historical data available for analysis and year-over-year comparisons',
+      action: 'Increase retention to 14 months for maximum data availability',
+      adminPath: 'Admin > Data Settings > Data Retention'
     });
   }
 
+  // Enhanced measurement issues
+  const enhancedMeasurementEnabled = audit.enhancedMeasurement.some(stream => 
+    stream.settings.streamEnabled
+  );
+  
+  if (!enhancedMeasurementEnabled) {
+    criticalAlerts.push({
+      id: 'no-enhanced-measurement',
+      icon: AlertTriangle,
+      title: '⚡ Enhanced Measurement Disabled',
+      severity: 'warning',
+      description: 'Enhanced Measurement is disabled, missing automatic tracking of common website interactions.',
+      impact: 'Missing data on scrolls, outbound clicks, site search, video engagement, and file downloads',
+      action: 'Enable Enhanced Measurement for automatic event tracking',
+      adminPath: 'Admin > Data Streams > [Stream] > Enhanced Measurement'
+    });
+  }
+
+  // Event create rules complexity warning
+  const totalEventCreateRules = audit.eventCreateRules.reduce((total, stream) => total + stream.rules.length, 0);
+  
+  if (totalEventCreateRules > 5) {
+    criticalAlerts.push({
+      id: 'complex-event-rules',
+      icon: Filter,
+      title: '⚙️ Complex Event Create Rules Setup',
+      severity: 'warning',
+      description: `${totalEventCreateRules} event create rules detected - complex rule sets often contain configuration errors.`,
+      impact: 'High risk of data quality issues, event conflicts, and processing delays',
+      action: 'Have an expert review rule configuration for errors',
+      adminPath: 'Admin > Events > Create events'
+    });
+  }
+
+  // No custom definitions warning
+  if (audit.customDimensions.length === 0 && audit.customMetrics.length === 0) {
+    criticalAlerts.push({
+      id: 'no-custom-definitions',
+      icon: Search,
+      title: '📐 No Custom Definitions',
+      severity: 'info',
+      description: 'No custom dimensions or metrics are configured to capture business-specific data.',
+      impact: 'Missing opportunities to track business-specific metrics and user attributes',
+      action: 'Consider adding custom dimensions/metrics for business-specific tracking',
+      adminPath: 'Admin > Custom Definitions'
+    });
+  }
+
+  // If no critical alerts, don't render the component
   if (criticalAlerts.length === 0) {
     return null;
   }
+
+  // Count severity levels
+  const criticalCount = criticalAlerts.filter(alert => alert.severity === 'critical').length;
+  const warningCount = criticalAlerts.filter(alert => alert.severity === 'warning').length;
+  const infoCount = criticalAlerts.filter(alert => alert.severity === 'info').length;
 
   return (
     <div className="bg-red-900/20 border border-red-600/30 rounded-xl p-6 mb-8">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-bold text-red-300 flex items-center">
           <AlertTriangle className="w-6 h-6 mr-2" />
-          Critical Data Quality Issues Detected
+          Configuration Issues Detected
         </h3>
         <div className="text-sm text-red-400 font-medium">
-          {enhancedChecks.criticalIssues} Critical • {enhancedChecks.warnings} Warnings
+          {criticalCount > 0 && `${criticalCount} Critical`}
+          {criticalCount > 0 && warningCount > 0 && ' • '}
+          {warningCount > 0 && `${warningCount} Warnings`}
+          {(criticalCount > 0 || warningCount > 0) && infoCount > 0 && ' • '}
+          {infoCount > 0 && `${infoCount} Info`}
         </div>
       </div>
       
@@ -88,82 +145,62 @@ export const DataQualityAlerts: React.FC<DataQualityAlertsProps> = ({
           const IconComponent = alert.icon;
           
           return (
-            <div key={alert.id} className="bg-red-800/30 rounded-lg p-4 border border-red-600/50">
+            <div key={alert.id} className={`rounded-lg p-4 border ${
+              alert.severity === 'critical' ? 'bg-red-800/30 border-red-600/50' :
+              alert.severity === 'warning' ? 'bg-yellow-800/30 border-yellow-600/50' :
+              'bg-blue-800/30 border-blue-600/50'
+            }`}>
               <div className="flex items-start space-x-4">
                 <div className="flex-shrink-0">
-                  <IconComponent className="w-6 h-6 text-red-300" />
+                  <IconComponent className={`w-6 h-6 ${
+                    alert.severity === 'critical' ? 'text-red-300' :
+                    alert.severity === 'warning' ? 'text-yellow-300' :
+                    'text-blue-300'
+                  }`} />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-red-200 mb-2 flex items-center">
+                  <h4 className={`font-semibold mb-2 flex items-center ${
+                    alert.severity === 'critical' ? 'text-red-200' :
+                    alert.severity === 'warning' ? 'text-yellow-200' :
+                    'text-blue-200'
+                  }`}>
                     {alert.title}
                     <span className={`ml-2 px-2 py-1 text-xs rounded ${
                       alert.severity === 'critical' 
-                        ? 'bg-red-600 text-white' 
-                        : 'bg-yellow-600 text-white'
+                        ? 'bg-red-500/30 text-red-300 border border-red-500/50'
+                        : alert.severity === 'warning'
+                        ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50'
+                        : 'bg-blue-500/30 text-blue-300 border border-blue-500/50'
                     }`}>
-                      {alert.severity.toUpperCase()}
+                      {alert.severity}
                     </span>
                   </h4>
-                  <p className="text-sm text-gray-300 mb-3">
-                    {alert.description}
-                  </p>
-                  <div className="bg-red-900/50 rounded p-3 mb-3">
-                    <h5 className="text-xs font-medium text-red-400 mb-1">Business Impact:</h5>
-                    <p className="text-xs text-gray-300">{alert.impact}</p>
+                  
+                  <p className="text-sm text-gray-300 mb-3">{alert.description}</p>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <h5 className="text-xs font-semibold text-gray-400 mb-1">IMPACT:</h5>
+                      <p className="text-xs text-gray-300">{alert.impact}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-semibold text-gray-400 mb-1">ACTION NEEDED:</h5>
+                      <p className="text-xs text-gray-300">{alert.action}</p>
+                    </div>
                   </div>
                   
-                  {/* Action items */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs text-gray-400">Action Required:</span>
-                      <span className="text-sm font-medium text-red-300">{alert.action}</span>
-                    </div>
                     <div className="text-xs text-gray-500">
-                      📍 {alert.adminPath}
+                      <strong>Location:</strong> {alert.adminPath}
                     </div>
+                    
+                    {alert.details && (
+                      <button className="text-xs text-blue-400 hover:text-blue-300 underline flex items-center">
+                        View Details
+                        <ExternalLink className="w-3 h-3 ml-1" />
+                      </button>
+                    )}
                   </div>
-
-                  {/* Details for PII */}
-                  {alert.id === 'pii-detected' && alert.details && (
-                    <div className="mt-3 p-3 bg-black/30 rounded border border-gray-600">
-                      <h6 className="text-xs font-medium text-gray-400 mb-2">Sample Issues Found:</h6>
-                      <div className="space-y-1">
-                        {Object.entries(alert.details.sampleUrls).slice(0, 3).map(([piiType, urls]: [string, any]) => (
-                          <div key={piiType} className="text-xs text-gray-300">
-                            <span className="font-medium text-orange-400">{piiType}:</span> {urls.length} instance(s)
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Details for payment referrals */}
-                  {alert.id === 'payment-referrals' && alert.details && (
-                    <div className="mt-3 p-3 bg-black/30 rounded border border-gray-600">
-                      <h6 className="text-xs font-medium text-gray-400 mb-2">Payment Processors Found:</h6>
-                      <div className="flex flex-wrap gap-2">
-                        {alert.details.sources.slice(0, 5).map((source: any, index: number) => (
-                          <span key={index} className="px-2 py-1 bg-gray-700 rounded text-xs text-gray-300">
-                            {source.source} ({source.sessions} sessions)
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Details for search tracking */}
-                  {alert.id === 'missed-search' && alert.details && (
-                    <div className="mt-3 p-3 bg-black/30 rounded border border-gray-600">
-                      <h6 className="text-xs font-medium text-gray-400 mb-2">Custom Search Parameters Found:</h6>
-                      <div className="flex flex-wrap gap-2">
-                        {alert.details.customParams?.slice(0, 5).map((param: any, index: number) => (
-                          <span key={index} className="px-2 py-1 bg-gray-700 rounded text-xs text-gray-300">
-                            {param.parameter} ({param.totalViews} views)
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -171,29 +208,33 @@ export const DataQualityAlerts: React.FC<DataQualityAlertsProps> = ({
         })}
       </div>
 
-      {/* Action buttons */}
-      <div className="mt-6 flex items-center justify-between pt-4 border-t border-red-600/30">
-        <div className="text-sm text-gray-400">
-          These issues require immediate attention to ensure data quality and compliance.
-        </div>
-        <div className="flex space-x-3">
-          <a
-            href="https://support.google.com/analytics/answer/13544947"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white rounded-lg transition-colors"
+      {/* Action Button */}
+      {onFixIssues && (criticalCount > 0 || warningCount > 0) && (
+        <div className="mt-6 pt-4 border-t border-gray-600/30">
+          <button
+            onClick={onFixIssues}
+            className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-3 rounded-lg hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-semibold text-sm shadow-lg"
           >
-            Documentation
-            <ExternalLink className="w-3 h-3 ml-1" />
-          </a>
-          {onFixIssues && (
-            <button
-              onClick={onFixIssues}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
-            >
-              Fix These Issues →
-            </button>
-          )}
+            View Manual Configuration Checklist →
+          </button>
+        </div>
+      )}
+
+      {/* Summary Stats */}
+      <div className="mt-6 pt-4 border-t border-gray-600/30">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+          <div>
+            <div className="text-2xl font-bold text-red-400">{criticalCount}</div>
+            <div className="text-xs text-gray-400">Critical Issues</div>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-yellow-400">{warningCount}</div>
+            <div className="text-xs text-gray-400">Warnings</div>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-blue-400">{infoCount}</div>
+            <div className="text-xs text-gray-400">Recommendations</div>
+          </div>
         </div>
       </div>
     </div>
