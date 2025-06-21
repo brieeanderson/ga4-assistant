@@ -95,7 +95,7 @@ const GA4_SCORING_CONFIG = [
     id: 'bigQuery',
     label: 'BigQuery integration',
     type: 'user-collected',
-    deduction: (audit: GA4Audit) => audit.bigQueryLinks.length === 0 ? -5 : 0,
+    deduction: (audit: GA4Audit) => audit.bigQueryLinks?.length === 0 ? -5 : 0,
     suggestion: 'Connect BigQuery for advanced analysis and data exports (free tier available).',
     importance: 'optional' as const,
   },
