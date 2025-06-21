@@ -56,28 +56,36 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
           {audit.customDimensions.length > 0 ? (
             <div className="space-y-3">
               {displayedDimensions.map((dimension, index) => (
-                <div key={index} className="bg-black/50 rounded-lg p-4 border border-gray-600/50 hover:border-blue-500/50 transition-colors">
-                  <div className="flex items-start justify-between mb-3">
+                <div key={dimension.parameterName} className="bg-black/50 rounded-xl p-4 border border-gray-600/50">
+                  <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
-                      <h5 className="font-semibold text-white text-lg mb-1">{dimension.displayName}</h5>
+                      <h5 className="font-semibold text-white text-sm mb-1">{dimension.displayName}</h5>
                       <div className="flex items-center space-x-2 mb-2">
-                        <span className={`text-xs px-2 py-1 rounded border ${getScopeColor(dimension.scope)}`}>
-                          {dimension.scope.toUpperCase()}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          Index: {index + 1}
+                        <code className="text-xs bg-gray-800/80 px-2 py-1 rounded text-gray-300 font-mono">
+                          {dimension.parameterName}
+                        </code>
+                        <span className={`px-2 py-1 rounded text-xs font-medium border ${getScopeColor(dimension.scope)}`}>
+                          {dimension.scope}
                         </span>
                       </div>
                     </div>
+                    <div className="text-right">
+                      <div className="text-xs text-gray-500 mb-1">Index</div>
+                      <div className="text-sm font-bold text-white">#{index + 1}</div>
+                    </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-400 min-w-[80px]">Parameter:</span>
-                      <code className="bg-gray-800 px-3 py-1 rounded text-orange-300 text-sm font-mono">
-                        {dimension.parameterName}
-                      </code>
-                    </div>
+                  {dimension.description && (
+                    <p className="text-xs text-gray-400 mb-2">{dimension.description}</p>
+                  )}
+                  
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">
+                      Archive: {dimension.disallowAdsPersonalization ? 
+                        <span className="text-green-400">Disabled</span> : 
+                        <span className="text-yellow-400">Enabled</span>
+                      }
+                    </span>
                   </div>
                 </div>
               ))}
@@ -85,38 +93,34 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
               {audit.customDimensions.length > 5 && (
                 <button
                   onClick={() => setShowAllDimensions(!showAllDimensions)}
-                  className="w-full flex items-center justify-center space-x-2 py-3 text-blue-400 hover:text-blue-300 border border-blue-500/30 rounded-lg hover:border-blue-500/50 transition-all duration-200 bg-blue-500/5 hover:bg-blue-500/10"
+                  className="w-full p-3 bg-gray-800/50 hover:bg-gray-700/50 rounded-xl border border-gray-600/50 text-sm text-gray-300 hover:text-white transition-colors flex items-center justify-center space-x-2"
                 >
                   {showAllDimensions ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   <span>
                     {showAllDimensions 
                       ? 'Show Less' 
-                      : `Show ${audit.customDimensions.length - 5} More Dimensions`
+                      : `Show All ${audit.customDimensions.length} Dimensions`
                     }
                   </span>
-                  {showAllDimensions ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                 </button>
               )}
             </div>
           ) : (
-            <div className="text-center py-8 bg-black/30 rounded-lg border border-gray-700/50">
-              <Database className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-              <h5 className="text-gray-400 font-medium mb-2">No Custom Dimensions</h5>
-              <p className="text-sm text-gray-500 mb-4">
-                Custom dimensions let you register event parameters as reportable dimensions in GA4.
-              </p>
-              <p className="text-xs text-gray-600">
-                Go to Admin &gt; Custom definitions &gt; Custom dimensions to create them
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 text-center">
+              <Database className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+              <p className="text-yellow-300 font-medium mb-1">No Custom Dimensions</p>
+              <p className="text-xs text-gray-400">
+                Custom dimensions help you collect business-specific data that standard GA4 doesn't track.
               </p>
             </div>
           )}
         </div>
 
         {/* Custom Metrics */}
-        <div className="space-y-4 scroll-mt-24" ref={customMetricsRef}>
+        <div className="space-y-4" ref={customMetricsRef}>
           <div className="flex items-center justify-between">
             <h4 className="text-xl font-semibold text-white flex items-center">
-              <BarChart3 className="w-6 h-6 mr-2 text-purple-400" />
+              <BarChart3 className="w-6 h-6 mr-2 text-green-400" />
               Custom Metrics
             </h4>
             <div className="flex items-center space-x-3">
@@ -125,7 +129,7 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
               </div>
               <div className="w-24 bg-gray-700 rounded-full h-2">
                 <div 
-                  className="h-2 rounded-full bg-purple-500 transition-all duration-300"
+                  className="h-2 rounded-full bg-green-500 transition-all duration-300"
                   style={{ width: `${(audit.customMetrics.length / 50) * 100}%` }}
                 />
               </div>
@@ -135,31 +139,36 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
           {audit.customMetrics.length > 0 ? (
             <div className="space-y-3">
               {displayedMetrics.map((metric, index) => (
-                <div key={index} className="bg-black/50 rounded-lg p-4 border border-gray-600/50 hover:border-purple-500/50 transition-colors">
-                  <div className="flex items-start justify-between mb-3">
+                <div key={metric.parameterName} className="bg-black/50 rounded-xl p-4 border border-gray-600/50">
+                  <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
-                      <h5 className="font-semibold text-white text-lg mb-1">{metric.displayName}</h5>
+                      <h5 className="font-semibold text-white text-sm mb-1">{metric.displayName}</h5>
                       <div className="flex items-center space-x-2 mb-2">
-                        <span className={`text-xs px-2 py-1 rounded border ${getScopeColor(metric.scope)}`}>
-                          {metric.scope.toUpperCase()}
-                        </span>
-                        <span className="text-xs px-2 py-1 rounded bg-gray-700 text-gray-300">
-                          {metric.unitOfMeasurement}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          Index: {index + 1}
+                        <code className="text-xs bg-gray-800/80 px-2 py-1 rounded text-gray-300 font-mono">
+                          {metric.parameterName}
+                        </code>
+                        <span className={`px-2 py-1 rounded text-xs font-medium border ${getScopeColor(metric.scope)}`}>
+                          {metric.scope}
                         </span>
                       </div>
                     </div>
+                    <div className="text-right">
+                      <div className="text-xs text-gray-500 mb-1">Index</div>
+                      <div className="text-sm font-bold text-white">#{index + 1}</div>
+                    </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-400 min-w-[80px]">Parameter:</span>
-                      <code className="bg-gray-800 px-3 py-1 rounded text-orange-300 text-sm font-mono">
-                        {metric.parameterName}
-                      </code>
-                    </div>
+                  {metric.description && (
+                    <p className="text-xs text-gray-400 mb-2">{metric.description}</p>
+                  )}
+                  
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">
+                      Unit: {metric.unit || 'Standard'}
+                    </span>
+                    <span className="text-gray-500">
+                      Type: {metric.measurementUnit || 'Numeric'}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -167,63 +176,69 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
               {audit.customMetrics.length > 5 && (
                 <button
                   onClick={() => setShowAllMetrics(!showAllMetrics)}
-                  className="w-full flex items-center justify-center space-x-2 py-3 text-purple-400 hover:text-purple-300 border border-purple-500/30 rounded-lg hover:border-purple-500/50 transition-all duration-200 bg-purple-500/5 hover:bg-purple-500/10"
+                  className="w-full p-3 bg-gray-800/50 hover:bg-gray-700/50 rounded-xl border border-gray-600/50 text-sm text-gray-300 hover:text-white transition-colors flex items-center justify-center space-x-2"
                 >
                   {showAllMetrics ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   <span>
                     {showAllMetrics 
                       ? 'Show Less' 
-                      : `Show ${audit.customMetrics.length - 5} More Metrics`
+                      : `Show All ${audit.customMetrics.length} Metrics`
                     }
                   </span>
-                  {showAllMetrics ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                 </button>
               )}
             </div>
           ) : (
-            <div className="text-center py-8 bg-black/30 rounded-lg border border-gray-700/50">
-              <BarChart3 className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-              <h5 className="text-gray-400 font-medium mb-2">No Custom Metrics</h5>
-              <p className="text-sm text-gray-500 mb-4">
-                Custom metrics let you register numerical event parameters as reportable metrics in GA4.
-              </p>
-              <p className="text-xs text-gray-600">
-                Go to Admin &gt; Custom definitions &gt; Custom metrics to create them
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 text-center">
+              <BarChart3 className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+              <p className="text-yellow-300 font-medium mb-1">No Custom Metrics</p>
+              <p className="text-xs text-gray-400">
+                Custom metrics let you track numeric values that are important to your business goals.
               </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Key Events Section */}
-      <div className="mt-8 pt-8 border-t border-gray-700 scroll-mt-24" ref={keyEventsDetailRef}>
-        <div className="flex items-center justify-between mb-6">
-          <h4 className="text-xl font-semibold text-white flex items-center">
-            <Tag className="w-6 h-6 mr-2 text-green-400" />
-            Key Events (Conversions)
-          </h4>
-          <div className="text-sm text-gray-400">
-            {audit.keyEvents.length} configured
-          </div>
-        </div>
+      {/* Key Events Details Section */}
+      <div className="mt-8" ref={keyEventsDetailRef}>
+        <h4 className="text-xl font-semibold text-white mb-4 flex items-center">
+          <Tag className="w-6 h-6 mr-2 text-orange-400" />
+          Key Events Configuration Details
+        </h4>
         
         {audit.keyEvents.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {audit.keyEvents.map((event, index) => (
-              <div key={index} className="bg-black/50 rounded-lg p-4 border border-gray-600/50 hover:border-green-500/50 transition-colors">
-                <div className="flex items-start justify-between mb-2">
-                  <h5 className="font-semibold text-white">{event.eventName}</h5>
-                  <span className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded">
-                    KEY EVENT
+              <div key={event.eventName} className="bg-black/50 rounded-xl p-4 border border-gray-600/50">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h5 className="font-semibold text-white">{event.eventName}</h5>
+                    <p className="text-xs text-gray-400 mt-1">Key Event #{index + 1}</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    event.countingMethod === 'ONCE_PER_EVENT' 
+                      ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
+                      : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                  }`}>
+                    {event.countingMethod === 'ONCE_PER_EVENT' ? 'Per Event' : 'Per Session'}
                   </span>
                 </div>
-                <div className="space-y-1">
-                  <div className="text-xs text-gray-400">
-                    Created: {new Date(event.createTime).toLocaleDateString()}
+                
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Counting Method:</span>
+                    <span className="text-gray-300">
+                      {event.countingMethod === 'ONCE_PER_EVENT' ? 'Once per event' : 'Once per session'}
+                    </span>
                   </div>
-                  {event.countingMethod && (
-                    <div className="text-xs text-gray-500">
-                      Counting: {event.countingMethod}
+                  
+                  {event.custom !== undefined && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Type:</span>
+                      <span className="text-gray-300">
+                        {event.custom ? 'Custom Event' : 'Standard Event'}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -231,14 +246,38 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 bg-red-500/10 rounded-lg border border-red-500/30">
-            <Tag className="w-12 h-12 text-red-600 mx-auto mb-3" />
-            <h5 className="text-red-300 font-medium mb-2">⚠️ No Key Events Configured</h5>
-            <p className="text-sm text-red-200 mb-4">
-              Key events are critical for conversion tracking and can be imported to Google Ads for Smart Bidding.
+          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-center">
+            <Tag className="w-8 h-8 text-red-400 mx-auto mb-2" />
+            <p className="text-red-300 font-medium mb-1">No Key Events Configured</p>
+            <p className="text-xs text-gray-400">
+              Key events are essential for measuring business-critical actions. Configure at least one key event.
             </p>
-            <p className="text-xs text-red-300">
-              Go to Admin &gt; Events &gt; Mark events as key events
+          </div>
+        )}
+      </div>
+
+      {/* Summary and Recommendations */}
+      <div className="mt-8 p-4 bg-orange-900/20 border border-orange-600/30 rounded-lg">
+        <h4 className="font-semibold text-orange-300 mb-2">📊 Custom Definitions Summary</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div>
+            <span className="text-gray-400">Custom Dimensions:</span>
+            <div className="text-white font-medium">{audit.customDimensions.length}/50 used ({Math.round((audit.customDimensions.length / 50) * 100)}%)</div>
+          </div>
+          <div>
+            <span className="text-gray-400">Custom Metrics:</span>
+            <div className="text-white font-medium">{audit.customMetrics.length}/50 used ({Math.round((audit.customMetrics.length / 50) * 100)}%)</div>
+          </div>
+          <div>
+            <span className="text-gray-400">Key Events:</span>
+            <div className="text-white font-medium">{audit.keyEvents.length} configured</div>
+          </div>
+        </div>
+        
+        {(audit.customDimensions.length === 0 || audit.customMetrics.length === 0 || audit.keyEvents.length === 0) && (
+          <div className="mt-3 p-3 bg-yellow-900/30 border border-yellow-600/30 rounded">
+            <p className="text-xs text-yellow-200">
+              💡 <strong>Recommendation:</strong> Consider setting up custom dimensions and metrics to track business-specific data that standard GA4 doesn't capture.
             </p>
           </div>
         )}
