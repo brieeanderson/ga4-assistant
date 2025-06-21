@@ -97,114 +97,78 @@ const GA4GTMAssistant = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Error Display */}
-      {error && (
-        <ErrorDisplay error={error} onDismiss={clearError} />
-      )}
-
-      {/* Header */}
-      <div className="bg-black/90 backdrop-blur-xl border-b border-orange-500/30 shadow-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/25">
-                <Zap className="w-6 h-6 text-white" />
-              </div>
-              <h1 className="text-2xl font-bold text-white uppercase tracking-wide">GA4 BEAST</h1>
-            </div>
-            <div className="text-sm text-gray-400 flex items-center">
-              <Sparkles className="w-4 h-4 mr-2 text-orange-400" />
-              Make Your Analytics Work 💪
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-black to-gray-900">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <div className="flex space-x-1 rounded-2xl bg-black/50 p-2 border border-gray-700">
+            <button
+              onClick={() => setActiveTab('audit')}
+              className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-all duration-200 ${
+                activeTab === 'audit'
+                  ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+              }`}
+            >
+              <Search className="w-5 h-5" />
+              <span className="font-semibold">GA4 Audit</span>
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Navigation Tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="border-b border-gray-800">
-          <nav className="-mb-px flex space-x-8">
-            {[
-              { id: 'audit', label: 'Analytics Audit', icon: Search },
-              { id: 'chat', label: 'Beast Assistant', icon: Send },
-              { id: 'implement', label: 'Code Generator', icon: Code },
-              { id: 'docs', label: 'The Playbook', icon: BookOpen }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 py-6 px-1 border-b-2 font-bold text-sm transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? 'border-orange-500 text-orange-400'
-                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                }`}
-              >
-                <tab.icon className="w-5 h-5" />
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-      </div>
+        {/* Error Display */}
+        {error && (
+          <ErrorDisplay error={error} onDismiss={clearError} />
+        )}
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* GA4 Audit Tab */}
         {activeTab === 'audit' && (
-          <div className="space-y-12">
-            {/* Hero Section */}
-            <div className="text-center bg-black/80 backdrop-blur-xl rounded-3xl p-12 border border-orange-500/30 shadow-2xl">
-              <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-                Discover the Hidden GA4 Settings<br />
-                <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
-                  Sabotaging Your Data Quality!
-                </span>
-              </h2>
-              <p className="text-xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
-                Our GA4 Beast Audit scans your Google Analytics 4 property for misconfigurations, 
-                missing settings, and optimization opportunities that most analysts never check.
-              </p>
-              <p className="text-lg text-gray-400 mb-8">
-                <strong className="text-orange-400">No More Guessing What's Broken</strong> - Get a detailed roadmap for better data.
-              </p>
-              
-              <ConnectionStatus
-                isAuthenticated={isAuthenticated}
-                userEmail={userEmail}
-                login={login} 
-                logout={logout} 
-                isAnalyzing={isAnalyzing}
-                ga4Properties={ga4Properties}
-                selectedProperty={selectedProperty}
-                setSelectedProperty={setSelectedProperty}
-                fetchGA4Properties={handleFetchGA4Properties}
-                runGA4Audit={handleRunGA4Audit}
-                oauthLoading={oauthLoading}
-              />
-            </div>
+          <div className="space-y-8">
+            
+            {/* Connection Status */}
+            <ConnectionStatus
+              isAuthenticated={isAuthenticated}
+              userEmail={userEmail}
+              login={login}
+              logout={logout}
+              ga4Properties={ga4Properties}
+              selectedProperty={selectedProperty}
+              setSelectedProperty={setSelectedProperty}
+              isAnalyzing={isAnalyzing}
+              fetchGA4Properties={handleFetchGA4Properties}
+              runGA4Audit={handleRunGA4Audit}
+              oauthLoading={oauthLoading}
+            />
 
-            {/* GA4 Analysis Results */}
+            {/* Show audit results when available */}
             {ga4Audit && (
               <>
-                {/* NEW: Data Quality Alerts - Show critical issues first */}
-                <div ref={dataQualityAlertsRef}>
-                  <DataQualityAlerts 
-                    enhancedChecks={ga4Audit.enhancedChecks}
-                    onFixIssues={() => scrollToSection('manualChecklist')}
-                  />
-                </div>
+                {/* Property Configuration Score */}
+                <PropertyConfigScore audit={ga4Audit} />
 
                 {/* Property Overview */}
                 <div ref={propertyOverviewRef}>
                   <PropertyOverview audit={ga4Audit} />
                 </div>
 
-                {/* Property Configuration Score and Suggestions */}
-                <PropertyConfigScore audit={ga4Audit} />
-                
-                {/* Complete Fundamentals Checklist */}
+                {/* Fundamentals Checklist */}
                 <div ref={fundamentalsChecklistRef}>
                   <FundamentalsChecklist audit={ga4Audit} scrollToSection={scrollToSection} />
+                </div>
+
+                {/* Enhanced Data Quality Alerts */}
+                <div ref={dataQualityAlertsRef}>
+                  <DataQualityAlerts audit={ga4Audit} />
+                </div>
+
+                {/* Custom Definitions Display */}
+                <div ref={customDefinitionsRef}>
+                  <CustomDefinitionsDisplay 
+                    audit={ga4Audit} 
+                    keyEventsDetailRef={keyEventsDetailRef}
+                    customMetricsRef={customMetricsRef}
+                  />
                 </div>
 
                 {/* Attribution Settings */}
@@ -217,87 +181,17 @@ const GA4GTMAssistant = () => {
                   <EnhancedMeasurementAnalysis audit={ga4Audit} />
                 </div>
 
-                {/* Custom Definitions Display */}
-                <div ref={customDefinitionsRef}>
-                  <CustomDefinitionsDisplay 
-                    audit={ga4Audit}
-                    keyEventsDetailRef={keyEventsDetailRef}
-                    customMetricsRef={customMetricsRef}
-                  />
-                </div>
-
-                {/* Event Create Rules Display */}
+                {/* Event Create Rules */}
                 <div ref={eventCreateRulesRef}>
                   <EventCreateRulesDisplay audit={ga4Audit} />
                 </div>
 
-                {/* NEW: Manual Configuration Checklist */}
+                {/* Manual Configuration Checklist */}
                 <div ref={manualChecklistRef}>
-                  <ManualConfigChecklist 
-                    audit={ga4Audit}
-                    onScoreUpdate={(score) => {
-                      console.log('Manual checklist score updated:', score);
-                      // You can add logic here to update overall audit score
-                    }}
-                  />
-                </div>
-
-                {/* Data Export Section */}
-                <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
-                  <h3 className="text-2xl font-bold text-white mb-6">Export Audit Results</h3>
-                  <p className="text-gray-300 mb-6">
-                    Save your complete GA4 audit results for future reference or sharing with your team.
-                  </p>
-                  <button
-                    onClick={() => {
-                      const dataStr = JSON.stringify(ga4Audit, null, 2);
-                      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-                      const url = URL.createObjectURL(dataBlob);
-                      const link = document.createElement('a');
-                      link.href = url;
-                      link.download = `ga4-audit-${ga4Audit.property.displayName}-${new Date().toISOString().split('T')[0]}.json`;
-                      link.click();
-                      URL.revokeObjectURL(url);
-                    }}
-                    className="inline-flex items-center px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Audit Results
-                  </button>
+                  <ManualConfigChecklist audit={ga4Audit} />
                 </div>
               </>
             )}
-          </div>
-        )}
-
-        {/* Other tabs with simplified content */}
-        {activeTab === 'chat' && (
-          <div className="bg-black/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-orange-500/30 p-8">
-            <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-              <Send className="w-7 h-7 mr-3 text-orange-400" />
-              Beast Analytics Assistant
-            </h2>
-            <p className="text-gray-400">Chat functionality coming soon...</p>
-          </div>
-        )}
-
-        {activeTab === 'implement' && (
-          <div className="bg-black/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-orange-500/30 p-8">
-            <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-              <Code className="w-7 h-7 mr-3 text-orange-400" />
-              GA4 Code Generator
-            </h2>
-            <p className="text-gray-400">Code generation tools coming soon...</p>
-          </div>
-        )}
-
-        {activeTab === 'docs' && (
-          <div className="bg-black/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-orange-500/30 p-8">
-            <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-              <BookOpen className="w-7 h-7 mr-3 text-orange-400" />
-              The GA4 Playbook
-            </h2>
-            <p className="text-gray-400">Comprehensive guides coming soon...</p>
           </div>
         )}
       </div>
