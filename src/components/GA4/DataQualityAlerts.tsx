@@ -1,8 +1,9 @@
 import React from 'react';
 import { AlertTriangle, Shield, Filter, Search, ExternalLink } from 'lucide-react';
+import { GA4Audit } from '@/types/ga4';
 
 interface DataQualityAlertsProps {
-  audit: any; // Using any since enhanced data types aren't fully defined
+  audit: GA4Audit;
   onFixIssues?: () => void;
 }
 
@@ -14,7 +15,7 @@ export const DataQualityAlerts: React.FC<DataQualityAlertsProps> = ({
   const criticalAlerts = [];
 
   // Check for critical configuration issues from basic audit data
-  if (!audit.property.timeZone) {
+  if (!audit.property?.timeZone) {
     criticalAlerts.push({
       id: 'missing-timezone',
       icon: AlertTriangle,
@@ -27,7 +28,7 @@ export const DataQualityAlerts: React.FC<DataQualityAlertsProps> = ({
     });
   }
 
-  if (audit.keyEvents.length === 0) {
+  if (!audit.keyEvents || audit.keyEvents.length === 0) {
     criticalAlerts.push({
       id: 'no-key-events',
       icon: AlertTriangle,
@@ -40,7 +41,7 @@ export const DataQualityAlerts: React.FC<DataQualityAlertsProps> = ({
     });
   }
 
-  if (audit.dataStreams.length === 0) {
+  if (!audit.dataStreams || audit.dataStreams.length === 0) {
     criticalAlerts.push({
       id: 'no-data-streams',
       icon: AlertTriangle,
@@ -53,7 +54,7 @@ export const DataQualityAlerts: React.FC<DataQualityAlertsProps> = ({
     });
   }
 
-  if (audit.dataRetention.eventDataRetention === 'TWO_MONTHS') {
+  if (audit.dataRetention?.eventDataRetention === 'TWO_MONTHS') {
     criticalAlerts.push({
       id: 'short-retention',
       icon: Shield,
@@ -67,8 +68,8 @@ export const DataQualityAlerts: React.FC<DataQualityAlertsProps> = ({
   }
 
   // Enhanced measurement issues
-  const enhancedMeasurementEnabled = audit.enhancedMeasurement.some(stream => 
-    stream.settings.streamEnabled
+  const enhancedMeasurementEnabled = audit.enhancedMeasurement?.some(stream => 
+    stream.settings?.streamEnabled
   );
   
   if (!enhancedMeasurementEnabled) {
@@ -85,7 +86,7 @@ export const DataQualityAlerts: React.FC<DataQualityAlertsProps> = ({
   }
 
   // Event create rules complexity warning
-  const totalEventCreateRules = audit.eventCreateRules.reduce((total, stream) => total + stream.rules.length, 0);
+  const totalEventCreateRules = audit.eventCreateRules?.reduce((total, stream) => total + stream.rules.length, 0) || 0;
   
   if (totalEventCreateRules > 5) {
     criticalAlerts.push({
@@ -101,7 +102,8 @@ export const DataQualityAlerts: React.FC<DataQualityAlertsProps> = ({
   }
 
   // No custom definitions warning
-  if (audit.customDimensions.length === 0 && audit.customMetrics.length === 0) {
+  if ((!audit.customDimensions || audit.customDimensions.length === 0) && 
+      (!audit.customMetrics || audit.customMetrics.length === 0)) {
     criticalAlerts.push({
       id: 'no-custom-definitions',
       icon: Search,
@@ -193,13 +195,6 @@ export const DataQualityAlerts: React.FC<DataQualityAlertsProps> = ({
                     <div className="text-xs text-gray-500">
                       <strong>Location:</strong> {alert.adminPath}
                     </div>
-                    
-                    {alert.details && (
-                      <button className="text-xs text-blue-400 hover:text-blue-300 underline flex items-center">
-                        View Details
-                        <ExternalLink className="w-3 h-3 ml-1" />
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>
