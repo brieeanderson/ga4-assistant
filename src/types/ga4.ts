@@ -131,6 +131,10 @@ export interface GA4Audit {
     expression: string;
   }>;
   hostnames?: string[];
+  dataQuality?: {
+    piiAnalysis?: any;
+    [key: string]: any;
+  };
   audit: {
     propertySettings: { [key: string]: AuditItem };
     dataCollection: { [key: string]: AuditItem };
