@@ -76,21 +76,6 @@ export const ManualConfigChecklist: React.FC<ManualConfigChecklistProps> = ({ au
   // Manual configuration items
   const manualItems: ManualCheckItem[] = [
     {
-      id: 'enhanced-measurement-review',
-      title: 'Review Enhanced Measurement Settings',
-      description: 'Verify which enhanced measurement events are enabled and configure site search parameters',
-      priority: 'critical',
-      category: 'tracking',
-      adminPath: 'Admin > Data Streams > [Stream] > Enhanced Measurement',
-      docs: [
-        {
-          title: 'Enhanced Measurement Guide',
-          url: 'https://support.google.com/analytics/answer/9216061'
-        }
-      ],
-      warningText: 'Incorrect site search parameters can lead to missed search tracking opportunities.'
-    },
-    {
       id: 'consent-mode',
       title: 'Implement Consent Mode v2',
       description: 'Configure consent mode for GDPR compliance and privacy-first measurement',
@@ -168,36 +153,6 @@ export const ManualConfigChecklist: React.FC<ManualConfigChecklistProps> = ({ au
         }
       ],
       warningText: 'Without cross-domain tracking, users are counted as new visitors on each domain.'
-    },
-    {
-      id: 'ecommerce-events',
-      title: 'Implement Ecommerce Events',
-      description: 'Set up purchase, add_to_cart, and other ecommerce events for revenue tracking',
-      priority: 'critical',
-      category: 'tracking',
-      adminPath: 'Implementation in GTM or site code',
-      docs: [
-        {
-          title: 'Ecommerce Events Guide',
-          url: 'https://developers.google.com/analytics/devguides/collection/ga4/ecommerce'
-        }
-      ],
-      warningText: 'Missing ecommerce events means you cannot track revenue or shopping behavior accurately.'
-    },
-    {
-      id: 'bigquery-export',
-      title: 'Enable BigQuery Export',
-      description: 'Connect GA4 to BigQuery for advanced analysis and data exports (free tier available)',
-      priority: 'optional',
-      category: 'integrations',
-      adminPath: 'Admin > Product Links > BigQuery Links',
-      docs: [
-        {
-          title: 'BigQuery Export Setup',
-          url: 'https://support.google.com/analytics/answer/9823238'
-        }
-      ],
-      successText: 'BigQuery export provides raw event data for advanced analysis and custom reporting.'
     },
     {
       id: 'server-side-tracking',
