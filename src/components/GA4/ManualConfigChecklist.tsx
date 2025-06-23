@@ -76,21 +76,6 @@ export const ManualConfigChecklist: React.FC<ManualConfigChecklistProps> = ({ au
   // Manual configuration items
   const manualItems: ManualCheckItem[] = [
     {
-      id: 'google-signals',
-      title: 'Configure Google Signals',
-      description: 'Enable demographics and interests reporting, but be aware of data thresholding implications',
-      priority: 'important',
-      category: 'privacy',
-      adminPath: 'Admin > Data Settings > Data Collection',
-      docs: [
-        {
-          title: 'Google Signals Setup Guide',
-          url: 'https://support.google.com/analytics/answer/9445345'
-        }
-      ],
-      warningText: 'May cause data thresholding and requires updated privacy policies for demographics data.'
-    },
-    {
       id: 'enhanced-measurement-review',
       title: 'Review Enhanced Measurement Settings',
       description: 'Verify which enhanced measurement events are enabled and configure site search parameters',
@@ -186,7 +171,7 @@ export const ManualConfigChecklist: React.FC<ManualConfigChecklistProps> = ({ au
     },
     {
       id: 'ecommerce-events',
-      title: 'Implement Enhanced Ecommerce Events',
+      title: 'Implement Ecommerce Events',
       description: 'Set up purchase, add_to_cart, and other ecommerce events for revenue tracking',
       priority: 'critical',
       category: 'tracking',
