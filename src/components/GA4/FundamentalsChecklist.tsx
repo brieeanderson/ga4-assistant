@@ -219,6 +219,18 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
             'Link Search Console for organic search insights',
           priority: 'important',
           adminPath: 'Admin > Product Links > Search Console Links'
+        },
+        {
+          id: 'bigquery',
+          name: 'BigQuery Integration',
+          status: audit.bigQueryLinks?.length > 0 ? 'complete' : 'opportunity',
+          value: audit.bigQueryLinks?.length > 0 ? `${audit.bigQueryLinks.length} links` : 'Not linked',
+          description: 'Connect GA4 to BigQuery for advanced analysis and data exports (free tier available)',
+          recommendation: audit.bigQueryLinks?.length > 0 ?
+            'BigQuery is properly linked' :
+            'Enable BigQuery export for advanced analysis',
+          priority: 'optional',
+          adminPath: 'Admin > Product Links > BigQuery Links'
         }
       ]
     },
@@ -241,14 +253,14 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           adminPath: 'Admin > Custom Definitions'
         },
         {
-          id: 'event-create-rules',
-          name: 'Event Create Rules',
-          status: totalEventCreateRules > 0 ? 'complete' : 'opportunity',
+          id: 'custom-ga4-created-events',
+          name: 'Custom GA4 Created Events',
+          status: totalEventCreateRules > 3 ? 'critical' : totalEventCreateRules > 0 ? 'warning' : 'complete',
           value: `${totalEventCreateRules} rules`,
           description: 'Rules to automatically create events from existing data',
           recommendation: totalEventCreateRules > 0 ? 
-            'Event creation rules are configured' : 
-            'Consider event creation rules to automatically track important interactions',
+            'Custom GA4 created events are configured' : 
+            'Consider creating custom events to automatically track important interactions',
           priority: 'optional',
           adminPath: 'Admin > Events > Event Create Rules'
         }
@@ -353,7 +365,7 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
                               View custom definitions
                             </button>
                           )}
-                          {item.id === 'event-create-rules' && scrollToSection && (
+                          {item.id === 'custom-ga4-created-events' && scrollToSection && (
                             <button
                               onClick={e => { e.stopPropagation(); scrollToSection('eventCreateRules'); }}
                               className="mt-2 text-xs text-orange-400 hover:text-orange-300 underline"

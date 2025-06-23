@@ -101,10 +101,10 @@ export const EventCreateRulesDisplay: React.FC<EventCreateRulesDisplayProps> = (
       <div className="text-center mb-8">
         <div className="flex items-center justify-center mb-4">
           <Settings className="w-8 h-8 mr-3 text-orange-400" />
-          <h2 className="text-3xl font-bold text-white">EVENT CREATE RULES AUDIT</h2>
+          <h2 className="text-3xl font-bold text-white">CUSTOM GA4 CREATED EVENTS AUDIT</h2>
         </div>
         <p className="text-lg text-gray-300 max-w-3xl mx-auto">
-          Advanced event modification rules that are often misconfigured and cause data quality issues
+          Custom GA4 created events (event create rules) are often misconfigured and cause data quality issues
         </p>
       </div>
 
@@ -133,7 +133,7 @@ export const EventCreateRulesDisplay: React.FC<EventCreateRulesDisplayProps> = (
         <div className="flex items-center justify-center py-6">
           <div className="text-center">
             <div className={`text-6xl font-bold ${auditStatus.color} mb-2`}>{totalRules}</div>
-            <div className="text-2xl text-gray-400">Event Create Rules</div>
+            <div className="text-2xl text-gray-400">Custom GA4 Created Events</div>
             <div className="text-sm text-gray-500 mt-2">Across {audit.eventCreateRules?.length || 0} data stream(s)</div>
           </div>
         </div>
@@ -144,7 +144,7 @@ export const EventCreateRulesDisplay: React.FC<EventCreateRulesDisplayProps> = (
         <div className="bg-yellow-500/10 backdrop-blur-xl rounded-2xl p-6 border border-yellow-500/30">
           <div className="flex items-center mb-4">
             <AlertTriangle className="w-6 h-6 mr-3 text-yellow-400" />
-            <h4 className="text-xl font-bold text-yellow-400">Configuration Warnings</h4>
+            <h4 className="text-xl font-bold text-yellow-400">Custom Event Configuration Warnings</h4>
           </div>
           <div className="space-y-3">
             {warnings.map((warning, index) => (
@@ -162,7 +162,7 @@ export const EventCreateRulesDisplay: React.FC<EventCreateRulesDisplayProps> = (
         <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
           <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
             <Target className="w-7 h-7 mr-3 text-orange-400" />
-            Event Create Rules Configuration
+            Custom GA4 Created Events Configuration
           </h3>
           
           <div className="space-y-6">

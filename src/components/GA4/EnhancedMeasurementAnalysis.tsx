@@ -174,11 +174,11 @@ export const EnhancedMeasurementAnalysis: React.FC<EnhancedMeasurementAnalysisPr
                   </div>
                 </div>
               </div>
-              <div className="mt-3 p-3 bg-yellow-900/30 border border-yellow-600/30 rounded">
-                <p className="text-xs text-yellow-200">
+                <div className="mt-3 p-3 bg-yellow-900/30 border border-yellow-600/30 rounded">
+                  <p className="text-xs text-yellow-200">
                   <strong>Note:</strong> Site search parameter configuration is not available in this audit.
-                </p>
-              </div>
+                  </p>
+                </div>
             </div>
           )}
 

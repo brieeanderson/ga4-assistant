@@ -64,8 +64,13 @@ export const AttributionSettingsDisplay: React.FC<AttributionSettingsDisplayProp
           borderColor: 'border-blue-500/30'
         };
       default:
+        // Convert all-caps/underscores to Title Case with spaces
+        const readable = (model || 'Unknown')
+          .toLowerCase()
+          .replace(/_/g, ' ')
+          .replace(/\b\w/g, c => c.toUpperCase());
         return {
-          name: model || 'Unknown',
+          name: readable,
           description: 'Attribution model not recognized',
           status: 'unknown',
           color: 'text-gray-400',
@@ -86,7 +91,11 @@ export const AttributionSettingsDisplay: React.FC<AttributionSettingsDisplayProp
       case 'CONVERSION_EVENT_LOOKBACK_WINDOW_90_DAYS':
         return '90 days';
       default:
-        return window || 'Not set';
+        // Convert all-caps/underscores to Title Case with spaces
+        return (window || 'Not set')
+          .toLowerCase()
+          .replace(/_/g, ' ')
+          .replace(/\b\w/g, c => c.toUpperCase());
     }
   };
 
