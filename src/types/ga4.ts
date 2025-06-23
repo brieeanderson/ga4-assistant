@@ -48,6 +48,7 @@ export interface DataStream {
   crossDomainSettings?: {
     domains: string[];
   };
+  sessionTimeout?: number;
 }
 
 export interface KeyEvent {

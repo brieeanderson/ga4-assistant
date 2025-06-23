@@ -335,11 +335,12 @@ const handler: Handler = async (event, context) => {
       return [];
     }
 
-    // Fetch crossDomainSettings for each data stream
+    // Fetch crossDomainSettings and sessionTimeout for each data stream
     async function getDataStreamsWithCrossDomain(accessToken: string, propertyId: string, streams: any[]) {
       return await Promise.all(
         streams.map(async (stream) => {
           let crossDomainSettings = undefined;
+          let sessionTimeout = undefined;
           try {
             const response = await fetch(
               `https://analyticsadmin.googleapis.com/v1alpha/${stream.name}`,
@@ -350,11 +351,26 @@ const handler: Handler = async (event, context) => {
               if (details.crossDomainSettings && details.crossDomainSettings.domains) {
                 crossDomainSettings = { domains: details.crossDomainSettings.domains };
               }
+              // Try to extract session timeout (web streams only)
+              if (stream.type === 'WEB_DATA_STREAM') {
+                // Try common field names
+                if (typeof details.sessionTimeoutDuration === 'number') {
+                  sessionTimeout = details.sessionTimeoutDuration;
+                } else if (typeof details.sessionTimeoutDuration === 'string') {
+                  // Sometimes this is an ISO 8601 duration string, e.g. 'PT30M'
+                  const match = details.sessionTimeoutDuration.match(/PT(\d+)M/);
+                  if (match) sessionTimeout = parseInt(match[1], 10) * 60;
+                } else if (typeof details.sessionTimeout === 'number') {
+                  sessionTimeout = details.sessionTimeout;
+                }
+                // Default to 1800 (30 min) if not found
+                if (!sessionTimeout) sessionTimeout = 1800;
+              }
             }
           } catch (error) {
-            console.error(`Error fetching crossDomainSettings for stream ${stream.name}:`, error);
+            console.error(`Error fetching crossDomainSettings/sessionTimeout for stream ${stream.name}:`, error);
           }
-          return { ...stream, crossDomainSettings };
+          return { ...stream, crossDomainSettings, sessionTimeout };
         })
       );
     }
