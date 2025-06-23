@@ -213,16 +213,12 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
         {
           id: 'cross-domain-tracking',
           name: 'Cross-Domain Tracking',
-          status: audit.dataStreams && audit.dataStreams.some(ds => ds.crossDomainSettings && ds.crossDomainSettings.domains && ds.crossDomainSettings.domains.length > 0)
-            ? 'complete'
-            : 'warning',
-          value: audit.dataStreams && audit.dataStreams.some(ds => ds.crossDomainSettings && ds.crossDomainSettings.domains && ds.crossDomainSettings.domains.length > 0)
-            ? 'Configured'
-            : 'Not configured',
-          description: 'Checks if cross-domain tracking is configured for multiple domains/subdomains.',
-          recommendation: audit.dataStreams && audit.dataStreams.some(ds => ds.crossDomainSettings && ds.crossDomainSettings.domains && ds.crossDomainSettings.domains.length > 0)
-            ? 'Cross-domain tracking is configured. Ensure tagging is implemented on all domains.'
-            : 'No cross-domain tracking domains found. Add domains if your business uses multiple domains/subdomains.',
+          status: 'warning',
+          value: audit.hostnames && audit.hostnames.length > 0
+            ? `Detected hostnames: ${audit.hostnames.join(', ')}`
+            : 'No hostnames detected',
+          description: 'Cross-domain tracking cannot be fully detected via the API. Review the list of detected hostnames and ensure all your domains/subdomains are tracked and properly configured for cross-domain tracking.',
+          recommendation: 'Double check that all of your domains/subdomains are tracked and cross-domain tracking is set up if needed. Use the list above to verify.',
           priority: 'important',
           adminPath: 'Admin > Data Streams > [Stream] > Configure tag settings > Configure your domains'
         }

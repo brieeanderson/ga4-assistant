@@ -375,10 +375,43 @@ const handler: Handler = async (event, context) => {
       );
     }
 
+    // Fetch hostnames from the Data API
+    async function getHostnames(accessToken: string, propertyId: string) {
+      try {
+        const response = await fetchWithTimeout(
+          `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              dimensions: [{ name: 'hostName' }],
+              metrics: [{ name: 'sessions' }],
+              dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+              limit: 100
+            })
+          },
+          8000
+        );
+        if (response.ok) {
+          const data = await response.json();
+          if (data.rows && data.rows.length > 0) {
+            return data.rows.map((row: any) => row.dimensionValues[0].value).filter(Boolean);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching hostnames from Data API:', error);
+      }
+      return [];
+    }
+
     // After fetching dataStreams
     const rawStreams = dataStreams.dataStreams || [];
     const dataFilters = await getDataFilters(accessToken, propertyId);
     const dataStreamsWithCrossDomain = await getDataStreamsWithCrossDomain(accessToken, propertyId, rawStreams);
+    const hostnames = await getHostnames(accessToken, propertyId);
 
     // Build comprehensive audit with enhanced data
     const audit = {
@@ -399,6 +432,7 @@ const handler: Handler = async (event, context) => {
       eventCreateRules,
       searchConsoleDataStatus,
       dataFilters,
+      hostnames,
       
       // 🚀 NEW: Add enhanced data quality results
       dataQuality: {
@@ -429,6 +463,7 @@ const handler: Handler = async (event, context) => {
         eventCreateRules,
         searchConsoleDataStatus,
         dataFilters,
+        hostnames,
         enhancedChecks // Pass enhanced checks to audit builder
       }),
       userInfo
@@ -648,6 +683,7 @@ function buildComprehensiveAudit(params: any) {
     eventCreateRules,
     searchConsoleDataStatus,
     dataFilters,
+    hostnames,
     enhancedChecks
   } = params;
 
