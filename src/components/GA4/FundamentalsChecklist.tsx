@@ -144,6 +144,28 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
             'Consider setting to 14 months for maximum data retention',
           priority: 'important',
           adminPath: 'Admin > Data Settings > Data Retention'
+        },
+        {
+          id: 'session-timeout',
+          name: 'Session Timeout',
+          status: audit.dataStreams?.[0]?.sessionTimeout ? (audit.dataStreams[0].sessionTimeout === 1800 ? 'complete' : 'warning') : 'opportunity',
+          value: audit.dataStreams?.[0]?.sessionTimeout ? `${audit.dataStreams[0].sessionTimeout / 60} min` : 'Default',
+          description: 'Controls how long a session lasts before timing out. Default is 30 minutes.',
+          recommendation: audit.dataStreams?.[0]?.sessionTimeout === 1800 ? 'Session timeout is set to 30 minutes (default)' : 'Review session timeout for your business needs',
+          priority: 'optional',
+          adminPath: 'Admin > Data Streams > [Stream] > More tagging settings > Session timeout'
+        },
+        {
+          id: 'data-filters',
+          name: 'Data Filters',
+          status: audit.dataFilters && audit.dataFilters.length > 0 ? 'complete' : 'warning',
+          value: audit.dataFilters && audit.dataFilters.length > 0 ? `${audit.dataFilters.length} filter(s)` : 'None',
+          description: 'Checks if any data filters (e.g., internal traffic, dev traffic, unwanted referrals) are configured.',
+          recommendation: audit.dataFilters && audit.dataFilters.length > 0
+            ? 'Data filters are present. Review to ensure all necessary filters are configured (internal/dev traffic, unwanted referrals).'
+            : 'No data filters found. Add filters to exclude internal/dev traffic and unwanted referrals.',
+          priority: 'important',
+          adminPath: 'Admin > Data Settings > Data Filters'
         }
       ]
     },
@@ -187,6 +209,22 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
             'Configure at least one data stream to collect data',
           priority: 'critical',
           adminPath: 'Admin > Data Streams'
+        },
+        {
+          id: 'cross-domain-tracking',
+          name: 'Cross-Domain Tracking',
+          status: audit.dataStreams && audit.dataStreams.some(ds => ds.crossDomainSettings && ds.crossDomainSettings.domains && ds.crossDomainSettings.domains.length > 0)
+            ? 'complete'
+            : 'warning',
+          value: audit.dataStreams && audit.dataStreams.some(ds => ds.crossDomainSettings && ds.crossDomainSettings.domains && ds.crossDomainSettings.domains.length > 0)
+            ? 'Configured'
+            : 'Not configured',
+          description: 'Checks if cross-domain tracking is configured for multiple domains/subdomains.',
+          recommendation: audit.dataStreams && audit.dataStreams.some(ds => ds.crossDomainSettings && ds.crossDomainSettings.domains && ds.crossDomainSettings.domains.length > 0)
+            ? 'Cross-domain tracking is configured. Ensure tagging is implemented on all domains.'
+            : 'No cross-domain tracking domains found. Add domains if your business uses multiple domains/subdomains.',
+          priority: 'important',
+          adminPath: 'Admin > Data Streams > [Stream] > Configure tag settings > Configure your domains'
         }
       ]
     },
@@ -231,6 +269,16 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
             'Enable BigQuery export for advanced analysis',
           priority: 'optional',
           adminPath: 'Admin > Product Links > BigQuery Links'
+        },
+        {
+          id: 'measurement-protocol-secrets',
+          name: 'Measurement Protocol Secrets',
+          status: audit.measurementProtocolSecrets && audit.measurementProtocolSecrets.some(s => s.secrets.length > 0) ? 'warning' : 'complete',
+          value: audit.measurementProtocolSecrets && audit.measurementProtocolSecrets.some(s => s.secrets.length > 0) ? 'Present' : 'None',
+          description: 'Checks if any Measurement Protocol secrets are created for your data streams.',
+          recommendation: audit.measurementProtocolSecrets && audit.measurementProtocolSecrets.some(s => s.secrets.length > 0) ? 'Review and secure any Measurement Protocol secrets.' : 'No Measurement Protocol secrets found.',
+          priority: 'important',
+          adminPath: 'Admin > Data Streams > [Stream] > Measurement Protocol API secrets'
         }
       ]
     },
@@ -263,6 +311,26 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
             'Consider creating custom events to automatically track important interactions',
           priority: 'optional',
           adminPath: 'Admin > Events > Event Create Rules'
+        },
+        {
+          id: 'site-search-parameters',
+          name: 'Site Search Parameters',
+          status: audit.enhancedMeasurement && audit.enhancedMeasurement.some(s => s.settings.siteSearchEnabled) ? 'complete' : 'opportunity',
+          value: audit.enhancedMeasurement && audit.enhancedMeasurement.some(s => s.settings.siteSearchEnabled) ? 'Configured' : 'Not configured',
+          description: 'Checks if site search parameters are enabled in enhanced measurement.',
+          recommendation: audit.enhancedMeasurement && audit.enhancedMeasurement.some(s => s.settings.siteSearchEnabled) ? 'Site search is enabled in enhanced measurement.' : 'Enable site search in enhanced measurement for better search insights.',
+          priority: 'important',
+          adminPath: 'Admin > Data Streams > [Stream] > Enhanced Measurement'
+        },
+        {
+          id: 'attribution-settings',
+          name: 'Attribution Settings',
+          status: audit.attribution && audit.attribution.reportingAttributionModel ? 'complete' : 'opportunity',
+          value: audit.attribution && audit.attribution.reportingAttributionModel ? audit.attribution.reportingAttributionModel : 'Not set',
+          description: 'Checks the attribution model and conversion windows for your property.',
+          recommendation: audit.attribution && audit.attribution.reportingAttributionModel ? 'Attribution model is set.' : 'Review and set the attribution model for your business.',
+          priority: 'important',
+          adminPath: 'Admin > Attribution Settings'
         }
       ]
     }

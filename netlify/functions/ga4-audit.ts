@@ -311,10 +311,63 @@ const handler: Handler = async (event, context) => {
       };
     }
 
+    // Fetch Data Filters for the property
+    async function getDataFilters(accessToken: string, propertyId: string) {
+      try {
+        const response = await fetch(
+          `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/dataFilters`,
+          {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+          }
+        );
+        if (response.ok) {
+          const data = await response.json();
+          return (data.dataFilters || []).map((filter: any) => ({
+            id: filter.name,
+            name: filter.displayName,
+            type: filter.filterType,
+            expression: filter.filterExpression?.expressionValue || ''
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching data filters:', error);
+      }
+      return [];
+    }
+
+    // Fetch crossDomainSettings for each data stream
+    async function getDataStreamsWithCrossDomain(accessToken: string, propertyId: string, streams: any[]) {
+      return await Promise.all(
+        streams.map(async (stream) => {
+          let crossDomainSettings = undefined;
+          try {
+            const response = await fetch(
+              `https://analyticsadmin.googleapis.com/v1alpha/${stream.name}`,
+              { headers: { 'Authorization': `Bearer ${accessToken}` } }
+            );
+            if (response.ok) {
+              const details = await response.json();
+              if (details.crossDomainSettings && details.crossDomainSettings.domains) {
+                crossDomainSettings = { domains: details.crossDomainSettings.domains };
+              }
+            }
+          } catch (error) {
+            console.error(`Error fetching crossDomainSettings for stream ${stream.name}:`, error);
+          }
+          return { ...stream, crossDomainSettings };
+        })
+      );
+    }
+
+    // After fetching dataStreams
+    const rawStreams = dataStreams.dataStreams || [];
+    const dataFilters = await getDataFilters(accessToken, propertyId);
+    const dataStreamsWithCrossDomain = await getDataStreamsWithCrossDomain(accessToken, propertyId, rawStreams);
+
     // Build comprehensive audit with enhanced data
     const audit = {
       property: propertyData,
-      dataStreams: dataStreams.dataStreams || [],
+      dataStreams: dataStreamsWithCrossDomain,
       keyEvents: keyEvents.keyEvents || [],
       dataRetention,
       attribution,
@@ -329,6 +382,7 @@ const handler: Handler = async (event, context) => {
       measurementProtocolSecrets,
       eventCreateRules,
       searchConsoleDataStatus,
+      dataFilters,
       
       // 🚀 NEW: Add enhanced data quality results
       dataQuality: {
@@ -343,7 +397,7 @@ const handler: Handler = async (event, context) => {
       
       audit: buildComprehensiveAudit({
         propertyData,
-        dataStreams: dataStreams.dataStreams || [],
+        dataStreams: dataStreamsWithCrossDomain,
         keyEvents: keyEvents.keyEvents || [],
         dataRetention,
         attribution,
@@ -358,6 +412,7 @@ const handler: Handler = async (event, context) => {
         measurementProtocolSecrets,
         eventCreateRules,
         searchConsoleDataStatus,
+        dataFilters,
         enhancedChecks // Pass enhanced checks to audit builder
       }),
       userInfo
@@ -576,6 +631,7 @@ function buildComprehensiveAudit(params: any) {
     measurementProtocolSecrets,
     eventCreateRules,
     searchConsoleDataStatus,
+    dataFilters,
     enhancedChecks
   } = params;
 

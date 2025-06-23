@@ -45,6 +45,9 @@ export interface DataStream {
   webStreamData?: {
     defaultUri: string;
   };
+  crossDomainSettings?: {
+    domains: string[];
+  };
 }
 
 export interface KeyEvent {
@@ -120,6 +123,12 @@ export interface GA4Audit {
     acquisitionConversionEventLookbackWindow?: string;
     otherConversionEventLookbackWindow?: string;
   };
+  dataFilters?: Array<{
+    id: string;
+    name: string;
+    type: string;
+    expression: string;
+  }>;
   audit: {
     propertySettings: { [key: string]: AuditItem };
     dataCollection: { [key: string]: AuditItem };
