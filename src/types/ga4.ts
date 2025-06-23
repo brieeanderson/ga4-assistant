@@ -130,6 +130,7 @@ export interface GA4Audit {
     type: string;
     expression: string;
   }>;
+  hostnames?: string[];
   audit: {
     propertySettings: { [key: string]: AuditItem };
     dataCollection: { [key: string]: AuditItem };

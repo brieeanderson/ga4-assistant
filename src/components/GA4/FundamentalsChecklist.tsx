@@ -166,6 +166,38 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
             : 'No data filters found. Add filters to exclude internal/dev traffic and unwanted referrals.',
           priority: 'important',
           adminPath: 'Admin > Data Settings > Data Filters'
+        },
+        {
+          id: 'pii-redaction',
+          name: 'PII in URLs',
+          status: (() => {
+            const pii = audit.dataQuality?.piiAnalysis;
+            if (!pii) return 'warning';
+            if (pii.severity === 'critical') return 'critical';
+            return 'warning';
+          })(),
+          value: (() => {
+            const pii = audit.dataQuality?.piiAnalysis;
+            if (!pii) return 'Not checked';
+            if (pii.severity === 'critical') {
+              const details = pii.details;
+              const types = [];
+              if (details.critical.length > 0) types.push('Critical');
+              if (details.high.length > 0) types.push('High');
+              if (details.medium.length > 0) types.push('Medium');
+              return `PII detected (${types.join(', ')}): ${details.totalAffectedUrls} URLs`;
+            }
+            return 'No PII detected in URLs';
+          })(),
+          description: 'Checks for names, email addresses, phone numbers, SSNs, usernames, and other PII in page URLs and query parameters. PII in URLs is a major privacy and compliance risk.',
+          recommendation: (() => {
+            const pii = audit.dataQuality?.piiAnalysis;
+            if (!pii) return 'Review your site for PII in URLs. This check is based on the last 30 days of data.';
+            if (pii.severity === 'critical') return pii.recommendation || 'URGENT: Remove PII from URLs and configure data redaction.';
+            return 'No PII detected, but always review your site for privacy risks.';
+          })(),
+          priority: 'critical',
+          adminPath: 'Admin > Data Settings > Data Collection > Data redaction'
         }
       ]
     },
