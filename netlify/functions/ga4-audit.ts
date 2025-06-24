@@ -91,7 +91,7 @@ const handler: Handler = async (event, context) => {
         let allProperties: any[] = [];
         
         if (accountsData.accounts && accountsData.accounts.length > 0) {
-          const accountsToProcess = accountsData.accounts.slice(0, 3);
+          const accountsToProcess = accountsData.accounts;
           
           for (const account of accountsToProcess) {
             try {

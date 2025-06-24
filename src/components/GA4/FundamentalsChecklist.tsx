@@ -41,6 +41,7 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['property-config', 'key-events'])
   );
+  const [showAllHostnames, setShowAllHostnames] = useState(false);
 
   const toggleSection = (sectionId: string) => {
     const newExpanded = new Set(expandedSections);
@@ -247,7 +248,24 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           name: 'Cross-Domain Tracking',
           status: 'warning',
           value: audit.hostnames && audit.hostnames.length > 0
-            ? `Detected hostnames: ${audit.hostnames.join(', ')}`
+            ? (
+                <div>
+                  <div className="font-semibold mb-1">Detected hostnames:</div>
+                  <ul className="ml-4 list-disc">
+                    {(showAllHostnames ? audit.hostnames : audit.hostnames.slice(0, 3)).map((host, i) => (
+                      <li key={host + i} className="break-all">{host}</li>
+                    ))}
+                  </ul>
+                  {audit.hostnames.length > 3 && (
+                    <button
+                      className="mt-2 text-xs text-blue-400 underline hover:text-blue-300"
+                      onClick={e => { e.stopPropagation(); setShowAllHostnames(v => !v); }}
+                    >
+                      {showAllHostnames ? 'Show less' : `Show all (${audit.hostnames.length})`}
+                    </button>
+                  )}
+                </div>
+              )
             : 'No hostnames detected',
           description: 'Cross-domain tracking cannot be fully detected via the API. Review the list of detected hostnames and ensure all your domains/subdomains are tracked and properly configured for cross-domain tracking.',
           recommendation: 'Double check that all of your domains/subdomains are tracked and cross-domain tracking is set up if needed. Use the list above to verify.',
