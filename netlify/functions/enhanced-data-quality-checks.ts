@@ -87,7 +87,7 @@ async function detectPIIInPagePaths(accessToken: string, propertyId: string) {
         description: 'User/Customer IDs in URL parameters'
       },
       names: {
-        pattern: /[?&]([^=]*(?:first[-_]?name|last[-_]?name|full[-_]?name|fname|lname)[^=]*)=([^&]*[a-zA-Z]{2,}[^&]*)/gi,
+        pattern: /[?&]([^=]*(?:name|first[-_]?name|last[-_]?name|full[-_]?name|fname|lname)[^=]*)=([^&]{2,})/gi,
         severity: 'high',
         description: 'Personal names in URL parameters'
       },
