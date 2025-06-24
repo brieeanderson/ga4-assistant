@@ -40,7 +40,7 @@ async function detectPIIInPagePaths(accessToken: string, propertyId: string) {
         },
         body: JSON.stringify({
           dimensions: [
-            { name: 'unifiedPageScreen' } // This gives us full page path + query string
+            { name: 'pagePathPlusQueryString' } // This gives us full page path + query string reliably for web
           ],
           metrics: [{ name: 'screenPageViews' }],
           dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
