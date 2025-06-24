@@ -62,37 +62,37 @@ async function detectPIIInPagePaths(accessToken: string, propertyId: string) {
     // Enhanced PII detection patterns
     const piiPatterns = {
       email: {
-        pattern: /[?&]([^=]*(?:email|e-?mail|user-?email)[^=]*)=([^&]*@[^&]*)/gi,
+        pattern: /(?:[?&]|^)([^=]*(?:email|e-?mail|user-?email)[^=]*)=([^&]*@[^&]*)/gi,
         severity: 'critical',
         description: 'Email addresses in URL parameters'
       },
       phone: {
-        pattern: /[?&]([^=]*(?:phone|tel|mobile|cell)[^=]*)=([^&]*(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}[^&]*)/gi,
+        pattern: /(?:[?&]|^)([^=]*(?:phone|tel|mobile|cell)[^=]*)=([^&]*(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}[^&]*)/gi,
         severity: 'critical',
         description: 'Phone numbers in URL parameters'
       },
       ssn: {
-        pattern: /[?&]([^=]*(?:ssn|social|security)[^=]*)=([^&]*\d{3}-?\d{2}-?\d{4}[^&]*)/gi,
+        pattern: /(?:[?&]|^)([^=]*(?:ssn|social|security)[^=]*)=([^&]*\d{3}-?\d{2}-?\d{4}[^&]*)/gi,
         severity: 'critical',
         description: 'Social Security Numbers in URL parameters'
       },
       creditCard: {
-        pattern: /[?&]([^=]*(?:card|cc|credit)[^=]*)=([^&]*(?:4\d{3}|5[1-5]\d{2}|3[47]\d{2}|6011)[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}[^&]*)/gi,
+        pattern: /(?:[?&]|^)([^=]*(?:card|cc|credit)[^=]*)=([^&]*(?:4\d{3}|5[1-5]\d{2}|3[47]\d{2}|6011)[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}[^&]*)/gi,
         severity: 'critical',
         description: 'Credit card numbers in URL parameters'
       },
       userId: {
-        pattern: /[?&]([^=]*(?:user[-_]?id|customer[-_]?id|member[-_]?id|uid)[^=]*)=([^&]*\d+[^&]*)/gi,
+        pattern: /(?:[?&]|^)([^=]*(?:user[-_]?id|customer[-_]?id|member[-_]?id|uid)[^=]*)=([^&]*\d+[^&]*)/gi,
         severity: 'high',
         description: 'User/Customer IDs in URL parameters'
       },
       names: {
-        pattern: /[?&]([^=]*(?:name|first[-_]?name|last[-_]?name|full[-_]?name|fname|lname)[^=]*)=([^&]{2,})/gi,
+        pattern: /(?:[?&]|^)([^=]*(?:name|first[-_]?name|last[-_]?name|full[-_]?name|fname|lname)[^=]*)=([^&]{2,})/gi,
         severity: 'high',
         description: 'Personal names in URL parameters'
       },
       addresses: {
-        pattern: /[?&]([^=]*(?:address|street|zip|postal|city)[^=]*)=([^&]*[^&]{5,}[^&]*)/gi,
+        pattern: /(?:[?&]|^)([^=]*(?:address|street|zip|postal|city)[^=]*)=([^&]*[^&]{5,}[^&]*)/gi,
         severity: 'medium',
         description: 'Address information in URL parameters'
       }
