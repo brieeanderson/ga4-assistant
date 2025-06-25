@@ -110,14 +110,11 @@ const GA4GTMAssistant = () => {
   
   // GA4 audit state and functions
   const {
-    isAnalyzing,
     ga4Properties,
     selectedProperty,
     ga4Audit,
     error,
-    setSelectedProperty,
     fetchGA4Properties,
-    runGA4Audit,
     clearError
   } = useGA4Audit();
 
@@ -128,19 +125,6 @@ const GA4GTMAssistant = () => {
       fetchGA4Properties(accessToken);
     }
   }, [isAuthenticated, accessToken, ga4Properties.length, fetchGA4Properties]);
-
-  // Wrapper functions for connection status component
-  const handleFetchGA4Properties = () => {
-    if (accessToken) {
-      fetchGA4Properties(accessToken);
-    }
-  };
-
-  const handleRunGA4Audit = () => {
-    if (accessToken && selectedProperty) {
-      runGA4Audit(accessToken, selectedProperty);
-    }
-  };
 
   // Section refs (must be inside the component)
   const propertyOverviewRef = useRef<HTMLDivElement>(null);
@@ -153,26 +137,6 @@ const GA4GTMAssistant = () => {
   const customMetricsRef = useRef<HTMLDivElement>(null);
   const dataQualityAlertsRef = useRef<HTMLDivElement>(null);
   const manualChecklistRef = useRef<HTMLDivElement>(null);
-
-  // Helper function to scroll to a section
-  const scrollToSection = (section: string) => {
-    const refs: Record<string, React.RefObject<HTMLDivElement | null>> = {
-      propertyOverview: propertyOverviewRef,
-      fundamentalsChecklist: fundamentalsChecklistRef,
-      attributionSettings: attributionSettingsRef,
-      enhancedMeasurement: enhancedMeasurementRef,
-      customDefinitions: customDefinitionsRef,
-      keyEventsDetail: keyEventsDetailRef,
-      customMetrics: customMetricsRef,
-      eventCreateRules: eventCreateRulesRef,
-      dataQualityAlerts: dataQualityAlertsRef,
-      manualChecklist: manualChecklistRef,
-    };
-    const ref = refs[section];
-    if (ref && ref.current) {
-      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
