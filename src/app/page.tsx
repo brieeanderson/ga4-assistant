@@ -16,14 +16,6 @@ import { PropertyConfigScore } from '@/components/GA4/PropertyConfigScore';
 import { ManualConfigChecklist } from '@/components/GA4/ManualConfigChecklist';
 import { DataQualityAlerts } from '@/components/GA4/DataQualityAlerts';
 
-const TABS = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'configuration', label: 'Configuration' },
-  { id: 'events', label: 'Events' },
-  { id: 'integrations', label: 'Integrations' },
-  { id: 'manual', label: 'Manual Review' },
-];
-
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('overview');
   
