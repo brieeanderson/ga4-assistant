@@ -575,7 +575,7 @@ const GA4GTMAssistant = () => {
                 <div className="flex items-center justify-between py-4">
                   <div>
                     <div className="font-medium text-gray-900">Google Signals</div>
-                    <div className="text-sm text-gray-600">{formatLabel(ga4Audit.googleSignals?.state) || 'N/A'}</div>
+                    <div className="text-sm text-gray-600">{ga4Audit.googleSignals?.state ? formatLabel(ga4Audit.googleSignals.state) : 'N/A'}</div>
                   </div>
                 </div>
               </div>
@@ -589,13 +589,13 @@ const GA4GTMAssistant = () => {
                 <div className="flex items-center justify-between py-4">
                   <div>
                     <div className="font-medium text-gray-900">Event Data Retention</div>
-                    <div className="text-sm text-gray-600">{formatLabel(ga4Audit.dataRetention?.eventDataRetention) || 'N/A'}</div>
+                    <div className="text-sm text-gray-600">{ga4Audit.dataRetention?.eventDataRetention ? formatLabel(ga4Audit.dataRetention.eventDataRetention) : 'N/A'}</div>
                   </div>
                 </div>
                 <div className="flex items-center justify-between py-4">
                   <div>
                     <div className="font-medium text-gray-900">User Data Retention</div>
-                    <div className="text-sm text-gray-600">{formatLabel(ga4Audit.dataRetention?.userDataRetention) || 'N/A'}</div>
+                    <div className="text-sm text-gray-600">{ga4Audit.dataRetention?.userDataRetention ? formatLabel(ga4Audit.dataRetention.userDataRetention) : 'N/A'}</div>
                   </div>
                 </div>
                 {/* Filters */}
