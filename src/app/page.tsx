@@ -17,7 +17,23 @@ import {
   Link
 } from 'lucide-react';
 
-const MetricCard = ({ title, value, subtitle, icon: Icon, color = "blue" }) => {
+// Add prop types for MetricCard and StatusCard
+interface MetricCardProps {
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  icon: React.ElementType;
+  color?: 'blue' | 'green' | 'purple' | 'orange' | 'red';
+}
+
+interface StatusCardProps {
+  title: string;
+  status: 'good' | 'warning' | 'critical' | string;
+  description: string;
+  severity?: 'critical';
+}
+
+const MetricCard = ({ title, value, subtitle, icon: Icon, color = "blue" }: MetricCardProps) => {
   const colors = {
     blue: "border-blue-200 bg-blue-50",
     green: "border-green-200 bg-green-50",
@@ -46,7 +62,7 @@ const MetricCard = ({ title, value, subtitle, icon: Icon, color = "blue" }) => {
   );
 };
 
-const StatusCard = ({ title, status, description, severity }) => {
+const StatusCard = ({ title, status, description, severity }: StatusCardProps) => {
   const getStatusConfig = () => {
     if (severity === 'critical') {
       return {
