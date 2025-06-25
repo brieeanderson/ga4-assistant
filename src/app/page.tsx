@@ -432,35 +432,31 @@ const GA4GTMAssistant = () => {
         {/* Configuration Tab */}
         {activeTab === 'configuration' && ga4Audit && (
           <div className="bg-white border border-gray-200 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Property Configuration</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between py-3 border-b border-gray-100">
-                <div>
-                  <div className="font-medium text-gray-900">Property Name</div>
-                  <div className="text-sm text-gray-600">{ga4Audit.property?.displayName}</div>
-                </div>
-                <CheckCircle className="w-5 h-5 text-green-600" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Configuration Checklist</h3>
+            <div className="mb-8">
+              <h4 className="font-semibold text-gray-800 mb-2">Property Settings</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Object.entries(ga4Audit.audit.propertySettings).map(([key, item]: [string, any]) => (
+                  <StatusCard
+                    key={key}
+                    title={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                    status={item.status}
+                    description={`${item.value}. ${item.recommendation}`}
+                  />
+                ))}
               </div>
-              <div className="flex items-center justify-between py-3 border-b border-gray-100">
-                <div>
-                  <div className="font-medium text-gray-900">Time Zone</div>
-                  <div className="text-sm text-gray-600">{ga4Audit.property?.timeZone}</div>
-                </div>
-                <CheckCircle className="w-5 h-5 text-green-600" />
-              </div>
-              <div className="flex items-center justify-between py-3 border-b border-gray-100">
-                <div>
-                  <div className="font-medium text-gray-900">Currency</div>
-                  <div className="text-sm text-gray-600">{ga4Audit.property?.currencyCode}</div>
-                </div>
-                <CheckCircle className="w-5 h-5 text-green-600" />
-              </div>
-              <div className="flex items-center justify-between py-3">
-                <div>
-                  <div className="font-medium text-gray-900">Industry Category</div>
-                  <div className="text-sm text-gray-600">{ga4Audit.property?.industryCategory}</div>
-                </div>
-                <CheckCircle className="w-5 h-5 text-green-600" />
+            </div>
+            <div className="mb-8">
+              <h4 className="font-semibold text-gray-800 mb-2">Data Collection</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Object.entries(ga4Audit.audit.dataCollection).map(([key, item]: [string, any]) => (
+                  <StatusCard
+                    key={key}
+                    title={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                    status={item.status}
+                    description={`${item.value}. ${item.recommendation}`}
+                  />
+                ))}
               </div>
             </div>
           </div>
