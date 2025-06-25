@@ -98,21 +98,22 @@ const GA4GTMAssistant = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-black to-gray-900">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        
         {/* Tab Navigation */}
         <div className="mb-8">
           <div className="flex space-x-1 rounded-2xl bg-black/50 p-2 border border-gray-700">
-            <button
-              onClick={() => setActiveTab('audit')}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-all duration-200 ${
-                activeTab === 'audit'
-                  ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-              }`}
-            >
-              <Search className="w-5 h-5" />
-              <span className="font-semibold">GA4 Audit</span>
-            </button>
+            {['overview', 'configuration', 'events', 'integrations', 'manual'].map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-all duration-200 ${
+                  activeTab === tab
+                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                }`}
+              >
+                <span className="font-semibold">{tab.charAt(0).toUpperCase() + tab.slice(1)}</span>
+              </button>
+            ))}
           </div>
         </div>
 
@@ -121,10 +122,9 @@ const GA4GTMAssistant = () => {
           <ErrorDisplay error={error} onDismiss={clearError} />
         )}
 
-        {/* GA4 Audit Tab */}
-        {activeTab === 'audit' && (
+        {/* Overview Tab */}
+        {activeTab === 'overview' && (
           <div className="space-y-8">
-            
             {/* Connection Status */}
             <ConnectionStatus
               isAuthenticated={isAuthenticated}
@@ -139,61 +139,87 @@ const GA4GTMAssistant = () => {
               runGA4Audit={handleRunGA4Audit}
               oauthLoading={oauthLoading}
             />
-
-            {/* Show audit results when available */}
+            {/* Show audit summary when available */}
             {ga4Audit && (
               <>
-                {/* Data Quality Alerts - Show critical issues first */}
-                <div ref={dataQualityAlertsRef}>
-                  <DataQualityAlerts 
-                    audit={ga4Audit}
-                    onFixIssues={() => scrollToSection('manualChecklist')}
-                  />
-                </div>
-
-                {/* Property Configuration Score */}
                 <PropertyConfigScore audit={ga4Audit} />
-
-                {/* Property Overview */}
                 <div ref={propertyOverviewRef}>
                   <PropertyOverview audit={ga4Audit} />
                 </div>
-
-                {/* Fundamentals Checklist */}
-                <div ref={fundamentalsChecklistRef}>
-                  <FundamentalsChecklist audit={ga4Audit} scrollToSection={scrollToSection} />
-                </div>
-
-                {/* Attribution Settings */}
-                <div ref={attributionSettingsRef}>
-                  <AttributionSettingsDisplay audit={ga4Audit} />
-                </div>
-
-                {/* Enhanced Measurement Analysis */}
-                <div ref={enhancedMeasurementRef}>
-                  <EnhancedMeasurementAnalysis audit={ga4Audit} />
-                </div>
-
-                {/* Custom Definitions Display */}
-                <div ref={customDefinitionsRef}>
-                  <CustomDefinitionsDisplay 
-                    audit={ga4Audit} 
-                    keyEventsDetailRef={keyEventsDetailRef}
-                    customMetricsRef={customMetricsRef}
+                <div ref={dataQualityAlertsRef}>
+                  <DataQualityAlerts 
+                    audit={ga4Audit}
+                    onFixIssues={() => setActiveTab('manual')}
                   />
-                </div>
-
-                {/* Event Create Rules */}
-                <div ref={eventCreateRulesRef}>
-                  <EventCreateRulesDisplay audit={ga4Audit} />
-                </div>
-
-                {/* Manual Configuration Checklist */}
-                <div ref={manualChecklistRef}>
-                  <ManualConfigChecklist audit={ga4Audit} />
                 </div>
               </>
             )}
+          </div>
+        )}
+
+        {/* Configuration Tab */}
+        {activeTab === 'configuration' && ga4Audit && (
+          <div className="space-y-8">
+            <div ref={fundamentalsChecklistRef}>
+              <FundamentalsChecklist audit={ga4Audit} scrollToSection={scrollToSection} />
+            </div>
+            <div ref={attributionSettingsRef}>
+              <AttributionSettingsDisplay audit={ga4Audit} />
+            </div>
+            <div ref={enhancedMeasurementRef}>
+              <EnhancedMeasurementAnalysis audit={ga4Audit} />
+            </div>
+          </div>
+        )}
+
+        {/* Events Tab */}
+        {activeTab === 'events' && ga4Audit && (
+          <div className="space-y-8">
+            <div ref={customDefinitionsRef}>
+              <CustomDefinitionsDisplay 
+                audit={ga4Audit} 
+                keyEventsDetailRef={keyEventsDetailRef}
+                customMetricsRef={customMetricsRef}
+              />
+            </div>
+            <div ref={eventCreateRulesRef}>
+              <EventCreateRulesDisplay audit={ga4Audit} />
+            </div>
+          </div>
+        )}
+
+        {/* Integrations Tab */}
+        {activeTab === 'integrations' && ga4Audit && (
+          <div className="bg-gray-800 rounded-lg p-6 text-white mb-6">
+            <h2 className="text-lg font-bold mb-2">Integrations</h2>
+            <ul className="list-disc ml-6">
+              <li>
+                <strong>BigQuery Export:</strong>{' '}
+                {ga4Audit.bigQueryLinks && ga4Audit.bigQueryLinks.length > 0
+                  ? 'Enabled'
+                  : 'Not enabled'}
+              </li>
+              <li>
+                <strong>Search Console Integration:</strong>{' '}
+                {ga4Audit.searchConsoleDataStatus
+                  ? 'Enabled'
+                  : 'Not enabled'}
+              </li>
+              <li>
+                <strong>Measurement Protocol Secrets:</strong>{' '}
+                {ga4Audit.measurementProtocolSecrets &&
+                ga4Audit.measurementProtocolSecrets.length > 0
+                  ? 'Configured'
+                  : 'Not configured'}
+              </li>
+            </ul>
+          </div>
+        )}
+
+        {/* Manual Review Tab */}
+        {activeTab === 'manual' && ga4Audit && (
+          <div ref={manualChecklistRef}>
+            <ManualConfigChecklist audit={ga4Audit} />
           </div>
         )}
       </div>
