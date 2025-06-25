@@ -124,6 +124,7 @@ function formatLabel(value: string) {
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
+  const [showPIIExamples, setShowPIIExamples] = useState(false);
   
   // OAuth state
   const { 
@@ -535,12 +536,44 @@ const GA4GTMAssistant = () => {
               <h3 className="text-xl font-bold text-gray-900 mb-4">Privacy & Identity</h3>
               <div className="divide-y divide-gray-100">
                 {/* PII Check (red if found, yellow otherwise) */}
-                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.audit.dataCollection?.piiRedaction?.status === 'good' ? 'bg-yellow-50' : 'bg-red-50'}`}>
-                  <div className="font-medium text-gray-900">PII Check</div>
-                  <div className="text-right">
-                    <div className="text-gray-900">{ga4Audit.audit.dataCollection?.piiRedaction?.value}</div>
-                    <div className={`text-xs mt-1 ${ga4Audit.audit.dataCollection?.piiRedaction?.status === 'good' ? 'text-yellow-700' : 'text-red-700'}`}>{ga4Audit.audit.dataCollection?.piiRedaction?.status === 'good' ? 'Always monitor URLs for PII to ensure compliance.' : 'PII detected! Remove PII from URLs immediately.'}</div>
+                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.audit.dataCollection?.piiRedaction?.status === 'good' ? 'bg-yellow-50' : 'bg-red-50'}`}
+                  style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                  <div className="flex justify-between items-center w-full">
+                    <div className="font-medium text-gray-900">PII Check</div>
+                    <div className="text-right">
+                      <div className="text-gray-900">{ga4Audit.audit.dataCollection?.piiRedaction?.value}</div>
+                      <div className={`text-xs mt-1 ${ga4Audit.audit.dataCollection?.piiRedaction?.status === 'good' ? 'text-yellow-700' : 'text-red-700'}`}>{ga4Audit.audit.dataCollection?.piiRedaction?.status === 'good' ? 'Always monitor URLs for PII to ensure compliance.' : 'PII detected! Remove PII from URLs immediately.'}</div>
+                      {/* Toggle for examples if PII detected */}
+                      {ga4Audit.audit.dataCollection?.piiRedaction?.status !== 'good' && ga4Audit.audit.dataCollection?.piiRedaction?.details?.sampleUrls && (
+                        <button
+                          className="text-xs text-blue-700 underline mt-2 focus:outline-none"
+                          onClick={() => setShowPIIExamples(v => !v)}
+                        >
+                          {showPIIExamples ? 'Hide examples' : 'Show examples'}
+                        </button>
+                      )}
+                    </div>
                   </div>
+                  {/* Example URLs */}
+                  {showPIIExamples && ga4Audit.audit.dataCollection?.piiRedaction?.details?.sampleUrls && (
+                    <div className="mt-4 bg-white border border-gray-200 rounded p-3 max-h-48 overflow-y-auto">
+                      {Object.entries(ga4Audit.audit.dataCollection.piiRedaction.details.sampleUrls).map(([piiType, urls]: [string, any[]]) => (
+                        <div key={piiType} className="mb-3">
+                          <div className="font-semibold text-xs text-gray-700 mb-1">{formatLabel(piiType)} examples:</div>
+                          <ul className="list-disc pl-5">
+                            {urls.map((item, idx) => (
+                              <li key={idx} className="text-xs text-gray-800 break-all">
+                                <span className="font-mono">{item.url}</span>
+                                {typeof item.pageViews === 'number' && (
+                                  <span className="ml-2 text-gray-400">({item.pageViews} views)</span>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 {/* Google Signals (yellow if on) */}
                 <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.googleSignals?.state === 'GOOGLE_SIGNALS_ENABLED' ? 'bg-yellow-50' : ''}`}>
