@@ -161,6 +161,10 @@ const GA4GTMAssistant = () => {
     }
   }, [selectedProperty, accessToken, runGA4Audit]);
 
+  // Helper for PII details type guard
+  const piiDetails = ga4Audit?.audit?.dataCollection?.piiRedaction?.details;
+  const hasSampleUrls = piiDetails && typeof piiDetails === 'object' && 'sampleUrls' in piiDetails;
+
   // Property Picker UI (grouped by account)
   if (isAuthenticated && ga4Properties.length > 0 && !selectedProperty) {
     // Group properties by accountName
@@ -544,7 +548,7 @@ const GA4GTMAssistant = () => {
                       <div className="text-gray-900">{ga4Audit.audit.dataCollection?.piiRedaction?.value}</div>
                       <div className={`text-xs mt-1 ${ga4Audit.audit.dataCollection?.piiRedaction?.status === 'good' ? 'text-yellow-700' : 'text-red-700'}`}>{ga4Audit.audit.dataCollection?.piiRedaction?.status === 'good' ? 'Always monitor URLs for PII to ensure compliance.' : 'PII detected! Remove PII from URLs immediately.'}</div>
                       {/* Toggle for examples if PII detected */}
-                      {ga4Audit.audit.dataCollection?.piiRedaction?.status !== 'good' && ga4Audit.audit.dataCollection?.piiRedaction?.details?.sampleUrls && (
+                      {ga4Audit.audit.dataCollection?.piiRedaction?.status !== 'good' && hasSampleUrls && (
                         <button
                           className="text-xs text-blue-700 underline mt-2 focus:outline-none"
                           onClick={() => setShowPIIExamples(v => !v)}
@@ -555,9 +559,9 @@ const GA4GTMAssistant = () => {
                     </div>
                   </div>
                   {/* Example URLs */}
-                  {showPIIExamples && ga4Audit.audit.dataCollection?.piiRedaction?.details?.sampleUrls && (
+                  {showPIIExamples && hasSampleUrls && (
                     <div className="mt-4 bg-white border border-gray-200 rounded p-3 max-h-48 overflow-y-auto">
-                      {Object.entries(ga4Audit.audit.dataCollection.piiRedaction.details.sampleUrls).map(([piiType, urls]: [string, any[]]) => (
+                      {Object.entries((piiDetails as any).sampleUrls).map(([piiType, urls]: [string, any[]]) => (
                         <div key={piiType} className="mb-3">
                           <div className="font-semibold text-xs text-gray-700 mb-1">{formatLabel(piiType)} examples:</div>
                           <ul className="list-disc pl-5">
