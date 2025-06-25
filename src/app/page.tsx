@@ -4,18 +4,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search } from 'lucide-react';
 import { useOAuth } from '@/hooks/useOAuth';
 import { useGA4Audit } from '@/hooks/useGA4Audit';
-import { PropertyOverview } from '@/components/GA4/PropertyOverview';
 import { ConnectionStatus } from '@/components/GA4/ConnectionStatus';
-import { FundamentalsChecklist } from '@/components/GA4/FundamentalsChecklist';
-import { CustomDefinitionsDisplay } from '@/components/GA4/CustomDefinitionsDisplay';
-import { AttributionSettingsDisplay } from '@/components/GA4/AttributionSettingsDisplay';
-import { EnhancedMeasurementAnalysis } from '@/components/GA4/EnhancedMeasurementAnalysis';
-import { EventCreateRulesDisplay } from '@/components/GA4/EventCreateRulesDisplay';
-import { ErrorDisplay } from '@/components/common/ErrorDisplay';
-import { PropertyConfigScore } from '@/components/GA4/PropertyConfigScore';
-import { ManualConfigChecklist } from '@/components/GA4/ManualConfigChecklist';
-import { DataQualityAlerts } from '@/components/GA4/DataQualityAlerts';
 import GA4AuditResults from '@/components/GA4/GA4AuditResults';
+import { ErrorDisplay } from '@/components/common/ErrorDisplay';
 
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('audit');
@@ -61,38 +52,6 @@ const GA4GTMAssistant = () => {
   const handleRunGA4Audit = () => {
     if (accessToken && selectedProperty) {
       runGA4Audit(accessToken, selectedProperty);
-    }
-  };
-
-  // Section refs (must be inside the component)
-  const propertyOverviewRef = useRef<HTMLDivElement>(null);
-  const fundamentalsChecklistRef = useRef<HTMLDivElement>(null);
-  const attributionSettingsRef = useRef<HTMLDivElement>(null);
-  const enhancedMeasurementRef = useRef<HTMLDivElement>(null);
-  const customDefinitionsRef = useRef<HTMLDivElement>(null);
-  const eventCreateRulesRef = useRef<HTMLDivElement>(null);
-  const keyEventsDetailRef = useRef<HTMLDivElement>(null);
-  const customMetricsRef = useRef<HTMLDivElement>(null);
-  const dataQualityAlertsRef = useRef<HTMLDivElement>(null);
-  const manualChecklistRef = useRef<HTMLDivElement>(null);
-
-  // Helper function to scroll to a section
-  const scrollToSection = (section: string) => {
-    const refs: Record<string, React.RefObject<HTMLDivElement | null>> = {
-      propertyOverview: propertyOverviewRef,
-      fundamentalsChecklist: fundamentalsChecklistRef,
-      attributionSettings: attributionSettingsRef,
-      enhancedMeasurement: enhancedMeasurementRef,
-      customDefinitions: customDefinitionsRef,
-      keyEventsDetail: keyEventsDetailRef,
-      customMetrics: customMetricsRef,
-      eventCreateRules: eventCreateRulesRef,
-      dataQualityAlerts: dataQualityAlertsRef,
-      manualChecklist: manualChecklistRef,
-    };
-    const ref = refs[section];
-    if (ref && ref.current) {
-      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -147,39 +106,16 @@ const GA4GTMAssistant = () => {
                 {/* New unified audit results UI */}
                 <GA4AuditResults audit={ga4Audit} />
                 {/*
-                // Old UI components (now removed):
-                <div ref={dataQualityAlertsRef}>
-                  <DataQualityAlerts 
-                    audit={ga4Audit}
-                    onFixIssues={() => scrollToSection('manualChecklist')}
-                  />
-                </div>
-                <PropertyConfigScore audit={ga4Audit} />
-                <div ref={propertyOverviewRef}>
-                  <PropertyOverview audit={ga4Audit} />
-                </div>
-                <div ref={fundamentalsChecklistRef}>
-                  <FundamentalsChecklist audit={ga4Audit} scrollToSection={scrollToSection} />
-                </div>
-                <div ref={attributionSettingsRef}>
-                  <AttributionSettingsDisplay audit={ga4Audit} />
-                </div>
-                <div ref={enhancedMeasurementRef}>
-                  <EnhancedMeasurementAnalysis audit={ga4Audit} />
-                </div>
-                <div ref={customDefinitionsRef}>
-                  <CustomDefinitionsDisplay 
-                    audit={ga4Audit} 
-                    keyEventsDetailRef={keyEventsDetailRef}
-                    customMetricsRef={customMetricsRef}
-                  />
-                </div>
-                <div ref={eventCreateRulesRef}>
-                  <EventCreateRulesDisplay audit={ga4Audit} />
-                </div>
-                <div ref={manualChecklistRef}>
-                  <ManualConfigChecklist audit={ga4Audit} />
-                </div>
+                  In the future, add sections for:
+                  - Data Quality Alerts
+                  - Property Configuration Score
+                  - Property Overview
+                  - Fundamentals Checklist
+                  - Attribution Settings
+                  - Enhanced Measurement Analysis
+                  - Custom Definitions Display
+                  - Event Create Rules
+                  - Manual Configuration Checklist
                 */}
               </>
             )}
