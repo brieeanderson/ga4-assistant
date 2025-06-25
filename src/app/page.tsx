@@ -15,6 +15,7 @@ import { ErrorDisplay } from '@/components/common/ErrorDisplay';
 import { PropertyConfigScore } from '@/components/GA4/PropertyConfigScore';
 import { ManualConfigChecklist } from '@/components/GA4/ManualConfigChecklist';
 import { DataQualityAlerts } from '@/components/GA4/DataQualityAlerts';
+import GA4AuditResults from '@/components/GA4/GA4AuditResults';
 
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('audit');
@@ -143,38 +144,29 @@ const GA4GTMAssistant = () => {
             {/* Show audit results when available */}
             {ga4Audit && (
               <>
-                {/* Data Quality Alerts - Show critical issues first */}
+                {/* New unified audit results UI */}
+                <GA4AuditResults audit={ga4Audit} />
+                {/*
+                // Old UI components (now removed):
                 <div ref={dataQualityAlertsRef}>
                   <DataQualityAlerts 
                     audit={ga4Audit}
                     onFixIssues={() => scrollToSection('manualChecklist')}
                   />
                 </div>
-
-                {/* Property Configuration Score */}
                 <PropertyConfigScore audit={ga4Audit} />
-
-                {/* Property Overview */}
                 <div ref={propertyOverviewRef}>
                   <PropertyOverview audit={ga4Audit} />
                 </div>
-
-                {/* Fundamentals Checklist */}
                 <div ref={fundamentalsChecklistRef}>
                   <FundamentalsChecklist audit={ga4Audit} scrollToSection={scrollToSection} />
                 </div>
-
-                {/* Attribution Settings */}
                 <div ref={attributionSettingsRef}>
                   <AttributionSettingsDisplay audit={ga4Audit} />
                 </div>
-
-                {/* Enhanced Measurement Analysis */}
                 <div ref={enhancedMeasurementRef}>
                   <EnhancedMeasurementAnalysis audit={ga4Audit} />
                 </div>
-
-                {/* Custom Definitions Display */}
                 <div ref={customDefinitionsRef}>
                   <CustomDefinitionsDisplay 
                     audit={ga4Audit} 
@@ -182,16 +174,13 @@ const GA4GTMAssistant = () => {
                     customMetricsRef={customMetricsRef}
                   />
                 </div>
-
-                {/* Event Create Rules */}
                 <div ref={eventCreateRulesRef}>
                   <EventCreateRulesDisplay audit={ga4Audit} />
                 </div>
-
-                {/* Manual Configuration Checklist */}
                 <div ref={manualChecklistRef}>
                   <ManualConfigChecklist audit={ga4Audit} />
                 </div>
+                */}
               </>
             )}
           </div>
