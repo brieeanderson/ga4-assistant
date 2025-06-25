@@ -443,6 +443,7 @@ const handler: Handler = async (event, context) => {
         criticalIssues: enhancedChecks.criticalIssues,
         warnings: enhancedChecks.warnings
       },
+      configScore: enhancedChecks.dataQualityScore,
       enhancedChecks: enhancedChecks, // Pass full results to frontend
       
       audit: buildComprehensiveAudit({
