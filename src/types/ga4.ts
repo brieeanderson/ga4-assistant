@@ -146,7 +146,7 @@ export interface GA4Audit {
     email: string;
     name: string;
   };
-  configScore?: number;
+  configScore: number;
 }
 
 export interface AuditItem {
