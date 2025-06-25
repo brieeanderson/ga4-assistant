@@ -113,6 +113,7 @@ const StatusCard = ({ title, status, description, severity }: StatusCardProps) =
 
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedProperty, setSelectedProperty] = useState<any>(null);
   
   // OAuth state
   const { 
@@ -130,6 +131,7 @@ const GA4GTMAssistant = () => {
     ga4Audit,
     error,
     fetchGA4Properties,
+    fetchGA4Audit,
     clearError
   } = useGA4Audit();
 
@@ -140,6 +142,38 @@ const GA4GTMAssistant = () => {
       fetchGA4Properties(accessToken);
     }
   }, [isAuthenticated, accessToken, ga4Properties.length, fetchGA4Properties]);
+
+  // When a property is selected, fetch its audit
+  useEffect(() => {
+    if (selectedProperty && accessToken) {
+      fetchGA4Audit(selectedProperty.propertyId, accessToken);
+    }
+  }, [selectedProperty, accessToken, fetchGA4Audit]);
+
+  // Property Picker UI
+  if (isAuthenticated && ga4Properties.length > 0 && !selectedProperty) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
+        <div className="bg-white border border-gray-200 rounded-xl p-8 max-w-xl w-full">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Select a GA4 Property</h3>
+          <ul className="space-y-2">
+            {ga4Properties.map((property: any) => (
+              <li key={property.propertyId}>
+                <button
+                  className="w-full text-left px-4 py-2 rounded hover:bg-blue-50 border border-gray-100"
+                  onClick={() => setSelectedProperty(property)}
+                >
+                  <span className="font-medium">{property.displayName}</span>
+                  <span className="ml-2 text-xs text-gray-500">{property.propertyId}</span>
+                  <span className="ml-2 text-xs text-gray-400">{property.timeZone}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
