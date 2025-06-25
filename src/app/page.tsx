@@ -111,6 +111,16 @@ const StatusCard = ({ title, status, description, severity }: StatusCardProps) =
   );
 };
 
+// Utility to format ALL_UPPERCASE_UNDERSCORE_TEXT to Title Case
+function formatLabel(value: string) {
+  if (!value) return '';
+  return value
+    .toLowerCase()
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
@@ -470,6 +480,7 @@ const GA4GTMAssistant = () => {
                   <div>
                     <div className="font-medium text-gray-900">Time Zone</div>
                     <div className="text-sm text-gray-600">{ga4Audit.property?.timeZone}</div>
+                    <div className="text-xs text-gray-500 mt-1">Determines how data is reported and when sessions start/end. Should match your business's operating hours.</div>
                   </div>
                   {ga4Audit.property?.timeZone ? <CheckCircle className="w-5 h-5 text-green-600" /> : <XCircle className="w-5 h-5 text-red-600" />}
                 </div>
@@ -477,6 +488,7 @@ const GA4GTMAssistant = () => {
                   <div>
                     <div className="font-medium text-gray-900">Currency</div>
                     <div className="text-sm text-gray-600">{ga4Audit.property?.currencyCode}</div>
+                    <div className="text-xs text-gray-500 mt-1">Sets the default currency for all revenue reporting. Transactions in other currencies are converted using the daily exchange rate.</div>
                   </div>
                   {ga4Audit.property?.currencyCode ? <CheckCircle className="w-5 h-5 text-green-600" /> : <XCircle className="w-5 h-5 text-red-600" />}
                 </div>
@@ -484,6 +496,7 @@ const GA4GTMAssistant = () => {
                   <div>
                     <div className="font-medium text-gray-900">Industry Category</div>
                     <div className="text-sm text-gray-600">{ga4Audit.property?.industryCategory}</div>
+                    <div className="text-xs text-gray-500 mt-1">Used by GA4 to provide relevant industry benchmarks and insights.</div>
                   </div>
                   {ga4Audit.property?.industryCategory ? <CheckCircle className="w-5 h-5 text-green-600" /> : <XCircle className="w-5 h-5 text-red-600" />}
                 </div>
@@ -558,18 +571,11 @@ const GA4GTMAssistant = () => {
                     ? <CheckCircle className="w-5 h-5 text-green-600" />
                     : <XCircle className="w-5 h-5 text-red-600" />}
                 </div>
-                {/* Reporting Identity */}
-                <div className="flex items-center justify-between py-4">
-                  <div>
-                    <div className="font-medium text-gray-900">Reporting Identity</div>
-                    <div className="text-sm text-gray-600">{ga4Audit.attribution?.reportingAttributionModel || 'N/A'}</div>
-                  </div>
-                </div>
                 {/* Google Signals */}
                 <div className="flex items-center justify-between py-4">
                   <div>
                     <div className="font-medium text-gray-900">Google Signals</div>
-                    <div className="text-sm text-gray-600">{ga4Audit.googleSignals?.state || 'N/A'}</div>
+                    <div className="text-sm text-gray-600">{formatLabel(ga4Audit.googleSignals?.state) || 'N/A'}</div>
                   </div>
                 </div>
               </div>
@@ -583,13 +589,13 @@ const GA4GTMAssistant = () => {
                 <div className="flex items-center justify-between py-4">
                   <div>
                     <div className="font-medium text-gray-900">Event Data Retention</div>
-                    <div className="text-sm text-gray-600">{ga4Audit.dataRetention?.eventDataRetention || 'N/A'}</div>
+                    <div className="text-sm text-gray-600">{formatLabel(ga4Audit.dataRetention?.eventDataRetention) || 'N/A'}</div>
                   </div>
                 </div>
                 <div className="flex items-center justify-between py-4">
                   <div>
                     <div className="font-medium text-gray-900">User Data Retention</div>
-                    <div className="text-sm text-gray-600">{ga4Audit.dataRetention?.userDataRetention || 'N/A'}</div>
+                    <div className="text-sm text-gray-600">{formatLabel(ga4Audit.dataRetention?.userDataRetention) || 'N/A'}</div>
                   </div>
                 </div>
                 {/* Filters */}
