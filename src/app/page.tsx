@@ -111,7 +111,6 @@ const GA4GTMAssistant = () => {
   // GA4 audit state and functions
   const {
     ga4Properties,
-    selectedProperty,
     ga4Audit,
     error,
     fetchGA4Properties,
@@ -125,18 +124,6 @@ const GA4GTMAssistant = () => {
       fetchGA4Properties(accessToken);
     }
   }, [isAuthenticated, accessToken, ga4Properties.length, fetchGA4Properties]);
-
-  // Section refs (must be inside the component)
-  const propertyOverviewRef = useRef<HTMLDivElement>(null);
-  const fundamentalsChecklistRef = useRef<HTMLDivElement>(null);
-  const attributionSettingsRef = useRef<HTMLDivElement>(null);
-  const enhancedMeasurementRef = useRef<HTMLDivElement>(null);
-  const customDefinitionsRef = useRef<HTMLDivElement>(null);
-  const eventCreateRulesRef = useRef<HTMLDivElement>(null);
-  const keyEventsDetailRef = useRef<HTMLDivElement>(null);
-  const customMetricsRef = useRef<HTMLDivElement>(null);
-  const dataQualityAlertsRef = useRef<HTMLDivElement>(null);
-  const manualChecklistRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className="min-h-screen bg-gray-50">
