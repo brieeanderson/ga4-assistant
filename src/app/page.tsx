@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search } from 'lucide-react';
 import { useOAuth } from '@/hooks/useOAuth';
 import { useGA4Audit } from '@/hooks/useGA4Audit';
 import { PropertyOverview } from '@/components/GA4/PropertyOverview';
