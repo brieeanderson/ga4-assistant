@@ -161,9 +161,9 @@ const GA4GTMAssistant = () => {
                 <div className="text-right">
                   <div className={`text-3xl font-bold ${ga4Audit.configScore < 50 ? 'text-red-600' : ga4Audit.configScore < 80 ? 'text-yellow-600' : 'text-green-600'}`}>{ga4Audit.configScore}</div>
                   <div className="text-sm text-gray-600">Configuration Score</div>
-                  {ga4Audit.criticalIssues && ga4Audit.criticalIssues.length > 0 && (
+                  {ga4Audit.dataQuality?.criticalIssues && ga4Audit.dataQuality?.criticalIssues.length > 0 && (
                     <div className="text-xs text-red-600 mt-1">
-                      {ga4Audit.criticalIssues.length} Critical Issues
+                      {ga4Audit.dataQuality?.criticalIssues.length} Critical Issues
                     </div>
                   )}
                 </div>
@@ -260,17 +260,17 @@ const GA4GTMAssistant = () => {
             </div>
 
             {/* Critical Issues Alert */}
-            {ga4Audit && ga4Audit.criticalIssues && ga4Audit.criticalIssues.length > 0 && (
+            {ga4Audit && ga4Audit.dataQuality?.criticalIssues && ga4Audit.dataQuality?.criticalIssues.length > 0 && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-6">
                 <div className="flex items-center mb-3">
                   <XCircle className="w-6 h-6 text-red-600 mr-3" />
                   <h3 className="text-lg font-bold text-red-900">Critical Issues Detected</h3>
                 </div>
                 <p className="text-red-800 mb-4">
-                  Your GA4 setup has {ga4Audit.criticalIssues.length} critical issues that need immediate attention.
+                  Your GA4 setup has {ga4Audit.dataQuality?.criticalIssues.length} critical issues that need immediate attention.
                 </p>
                 <div className="space-y-2">
-                  {ga4Audit.criticalIssues.map((issue, idx) => (
+                  {ga4Audit.dataQuality?.criticalIssues.map((issue, idx) => (
                     <div key={idx} className="flex items-center justify-between bg-red-100 p-3 rounded-lg">
                       <span className="text-red-900 font-medium">{issue.title}</span>
                       <span className="text-red-700">{issue.detail}</span>
