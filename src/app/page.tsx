@@ -432,31 +432,189 @@ const GA4GTMAssistant = () => {
         {/* Configuration Tab */}
         {activeTab === 'configuration' && ga4Audit && (
           <div className="bg-white border border-gray-200 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Configuration Checklist</h3>
+            {/* Immediate Action Required (Critical Issues) */}
+            {ga4Audit.dataQuality?.criticalIssues && ga4Audit.dataQuality.criticalIssues.length > 0 && (
+              <div className="mb-8 p-6 rounded-xl border border-red-200 bg-red-50">
+                <h4 className="text-lg font-bold text-red-800 mb-2">Immediate Action Required</h4>
+                <ul className="space-y-2">
+                  {ga4Audit.dataQuality.criticalIssues.map((issue: { title: string; detail: string }, idx: number) => (
+                    <li key={idx} className="flex items-start">
+                      <XCircle className="w-5 h-5 text-red-600 mt-1 mr-2" />
+                      <div>
+                        <span className="font-semibold text-red-900">{issue.title}</span>
+                        <div className="text-red-700 text-sm">{issue.detail}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Property Configuration */}
             <div className="mb-8">
-              <h4 className="font-semibold text-gray-800 mb-2">Property Settings</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Object.entries(ga4Audit.audit.propertySettings).map(([key, item]: [string, any]) => (
-                  <StatusCard
-                    key={key}
-                    title={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                    status={item.status}
-                    description={`${item.value}. ${item.recommendation}`}
-                  />
-                ))}
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Property Configuration</h3>
+              <div className="divide-y divide-gray-100">
+                <div className="flex items-center justify-between py-4">
+                  <div>
+                    <div className="font-medium text-gray-900">Property Name</div>
+                    <div className="text-sm text-gray-600">{ga4Audit.property?.displayName}</div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-4">
+                  <div>
+                    <div className="font-medium text-gray-900">Property ID</div>
+                    <div className="text-sm text-gray-600">{ga4Audit.property?.name}</div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-4">
+                  <div>
+                    <div className="font-medium text-gray-900">Time Zone</div>
+                    <div className="text-sm text-gray-600">{ga4Audit.property?.timeZone}</div>
+                  </div>
+                  {ga4Audit.property?.timeZone ? <CheckCircle className="w-5 h-5 text-green-600" /> : <XCircle className="w-5 h-5 text-red-600" />}
+                </div>
+                <div className="flex items-center justify-between py-4">
+                  <div>
+                    <div className="font-medium text-gray-900">Currency</div>
+                    <div className="text-sm text-gray-600">{ga4Audit.property?.currencyCode}</div>
+                  </div>
+                  {ga4Audit.property?.currencyCode ? <CheckCircle className="w-5 h-5 text-green-600" /> : <XCircle className="w-5 h-5 text-red-600" />}
+                </div>
+                <div className="flex items-center justify-between py-4">
+                  <div>
+                    <div className="font-medium text-gray-900">Industry Category</div>
+                    <div className="text-sm text-gray-600">{ga4Audit.property?.industryCategory}</div>
+                  </div>
+                  {ga4Audit.property?.industryCategory ? <CheckCircle className="w-5 h-5 text-green-600" /> : <XCircle className="w-5 h-5 text-red-600" />}
+                </div>
               </div>
             </div>
+
+            {/* Data Streams */}
             <div className="mb-8">
-              <h4 className="font-semibold text-gray-800 mb-2">Data Collection</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Object.entries(ga4Audit.audit.dataCollection).map(([key, item]: [string, any]) => (
-                  <StatusCard
-                    key={key}
-                    title={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                    status={item.status}
-                    description={`${item.value}. ${item.recommendation}`}
-                  />
-                ))}
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Data Streams</h3>
+              <div className="divide-y divide-gray-100">
+                <div className="flex items-center justify-between py-4">
+                  <div>
+                    <div className="font-medium text-gray-900">Number of Data Streams</div>
+                    <div className="text-sm text-gray-600">{ga4Audit.dataStreams?.length || 0}</div>
+                  </div>
+                </div>
+                {/* Cross-domain tracking (show enabled/disabled and domains) */}
+                <div className="flex items-center justify-between py-4">
+                  <div>
+                    <div className="font-medium text-gray-900">Cross-domain Tracking</div>
+                    <div className="text-sm text-gray-600">
+                      {ga4Audit.dataStreams?.some((s: any) => s.crossDomainSettings && s.crossDomainSettings.domains && s.crossDomainSettings.domains.length > 0)
+                        ? ga4Audit.dataStreams.filter((s: any) => s.crossDomainSettings && s.crossDomainSettings.domains && s.crossDomainSettings.domains.length > 0).map((s: any) => s.crossDomainSettings.domains.join(', ')).join('; ')
+                        : 'Not enabled'}
+                    </div>
+                  </div>
+                  {ga4Audit.dataStreams?.some((s: any) => s.crossDomainSettings && s.crossDomainSettings.domains && s.crossDomainSettings.domains.length > 0)
+                    ? <CheckCircle className="w-5 h-5 text-green-600" />
+                    : <XCircle className="w-5 h-5 text-red-600" />}
+                </div>
+                {/* Session timeout (show max or all) */}
+                <div className="flex items-center justify-between py-4">
+                  <div>
+                    <div className="font-medium text-gray-900">Session Timeout</div>
+                    <div className="text-sm text-gray-600">
+                      {ga4Audit.dataStreams && ga4Audit.dataStreams.length > 0
+                        ? ga4Audit.dataStreams.map((s: any) => `${s.displayName || s.name}: ${s.sessionTimeout || 1800}s`).join('; ')
+                        : 'N/A'}
+                    </div>
+                  </div>
+                </div>
+                {/* Measurement Protocol setup */}
+                <div className="flex items-center justify-between py-4">
+                  <div>
+                    <div className="font-medium text-gray-900">Measurement Protocol Setup</div>
+                    <div className="text-sm text-gray-600">
+                      {ga4Audit.measurementProtocolSecrets && ga4Audit.measurementProtocolSecrets.length > 0
+                        ? ga4Audit.measurementProtocolSecrets.map((s: any) => `${s.streamName}: ${s.secrets.length} secret(s)`).join('; ')
+                        : 'Not set up'}
+                    </div>
+                  </div>
+                  {ga4Audit.measurementProtocolSecrets && ga4Audit.measurementProtocolSecrets.some((s: any) => s.secrets.length > 0)
+                    ? <CheckCircle className="w-5 h-5 text-green-600" />
+                    : <XCircle className="w-5 h-5 text-red-600" />}
+                </div>
+              </div>
+            </div>
+
+            {/* Privacy & Identity */}
+            <div className="mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Privacy & Identity</h3>
+              <div className="divide-y divide-gray-100">
+                {/* PII Check */}
+                <div className="flex items-center justify-between py-4">
+                  <div>
+                    <div className="font-medium text-gray-900">PII Check</div>
+                    <div className="text-sm text-gray-600">
+                      {ga4Audit.audit.dataCollection?.piiRedaction?.value}
+                    </div>
+                  </div>
+                  {ga4Audit.audit.dataCollection?.piiRedaction?.status === 'good'
+                    ? <CheckCircle className="w-5 h-5 text-green-600" />
+                    : <XCircle className="w-5 h-5 text-red-600" />}
+                </div>
+                {/* Reporting Identity */}
+                <div className="flex items-center justify-between py-4">
+                  <div>
+                    <div className="font-medium text-gray-900">Reporting Identity</div>
+                    <div className="text-sm text-gray-600">{ga4Audit.attribution?.reportingAttributionModel || 'N/A'}</div>
+                  </div>
+                </div>
+                {/* Google Signals */}
+                <div className="flex items-center justify-between py-4">
+                  <div>
+                    <div className="font-medium text-gray-900">Google Signals</div>
+                    <div className="text-sm text-gray-600">{ga4Audit.googleSignals?.state || 'N/A'}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Data Retention & Filters */}
+            <div className="mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Data Retention & Filters</h3>
+              <div className="divide-y divide-gray-100">
+                {/* Data Retention */}
+                <div className="flex items-center justify-between py-4">
+                  <div>
+                    <div className="font-medium text-gray-900">Event Data Retention</div>
+                    <div className="text-sm text-gray-600">{ga4Audit.dataRetention?.eventDataRetention || 'N/A'}</div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-4">
+                  <div>
+                    <div className="font-medium text-gray-900">User Data Retention</div>
+                    <div className="text-sm text-gray-600">{ga4Audit.dataRetention?.userDataRetention || 'N/A'}</div>
+                  </div>
+                </div>
+                {/* Filters */}
+                <div className="flex items-center justify-between py-4">
+                  <div>
+                    <div className="font-medium text-gray-900">Filters</div>
+                    <div className="text-sm text-gray-600">
+                      {ga4Audit.dataFilters && ga4Audit.dataFilters.length > 0
+                        ? ga4Audit.dataFilters.map((f: any) => `${f.name} (${f.type})`).join('; ')
+                        : 'No filters set'}
+                    </div>
+                  </div>
+                </div>
+                {/* Unwanted Referrers */}
+                <div className="flex items-center justify-between py-4">
+                  <div>
+                    <div className="font-medium text-gray-900">Potential Unwanted Referrers</div>
+                    <div className="text-sm text-gray-600">
+                      {ga4Audit.audit.dataCollection?.unwantedReferrals?.value || 'None detected'}
+                    </div>
+                  </div>
+                  {ga4Audit.audit.dataCollection?.unwantedReferrals?.status === 'good'
+                    ? <CheckCircle className="w-5 h-5 text-green-600" />
+                    : <XCircle className="w-5 h-5 text-red-600" />}
+                </div>
               </div>
             </div>
           </div>
