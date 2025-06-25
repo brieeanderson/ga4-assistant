@@ -164,7 +164,7 @@ const GA4GTMAssistant = () => {
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
         <div className="bg-white border border-gray-200 rounded-xl p-8 max-w-2xl w-full">
           <h3 className="text-xl font-bold text-gray-900 mb-6">Select a GA4 Property to Audit</h3>
-          {Object.entries(propertiesByAccount).map(([accountName, properties]: [string, any[]]) => (
+          {(Object.entries(propertiesByAccount) as [string, any[]][]).map(([accountName, properties]) => (
             <div key={accountName} className="mb-8">
               <div className="text-lg font-semibold text-blue-800 mb-2">{accountName}</div>
               <ul className="space-y-3">
