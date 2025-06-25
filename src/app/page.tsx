@@ -150,26 +150,44 @@ const GA4GTMAssistant = () => {
     }
   }, [selectedProperty, accessToken, runGA4Audit]);
 
-  // Property Picker UI
+  // Property Picker UI (grouped by account)
   if (isAuthenticated && ga4Properties.length > 0 && !selectedProperty) {
+    // Group properties by accountName
+    const propertiesByAccount = ga4Properties.reduce((acc: any, prop: any) => {
+      const account = prop.accountName || 'Unknown Account';
+      if (!acc[account]) acc[account] = [];
+      acc[account].push(prop);
+      return acc;
+    }, {});
+
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-        <div className="bg-white border border-gray-200 rounded-xl p-8 max-w-xl w-full">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Select a GA4 Property</h3>
-          <ul className="space-y-2">
-            {ga4Properties.map((property: any) => (
-              <li key={property.propertyId}>
-                <button
-                  className="w-full text-left px-4 py-2 rounded hover:bg-blue-50 border border-gray-100"
-                  onClick={() => setSelectedProperty(property)}
-                >
-                  <span className="font-medium">{property.displayName}</span>
-                  <span className="ml-2 text-xs text-gray-500">{property.propertyId}</span>
-                  <span className="ml-2 text-xs text-gray-400">{property.timeZone}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+        <div className="bg-white border border-gray-200 rounded-xl p-8 max-w-2xl w-full">
+          <h3 className="text-xl font-bold text-gray-900 mb-6">Select a GA4 Property to Audit</h3>
+          {Object.entries(propertiesByAccount).map(([accountName, properties]: [string, any[]]) => (
+            <div key={accountName} className="mb-8">
+              <div className="text-lg font-semibold text-blue-800 mb-2">{accountName}</div>
+              <ul className="space-y-3">
+                {properties.map((property) => (
+                  <li key={property.propertyId} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                    <div>
+                      <div className="font-medium text-gray-900">{property.displayName || property.propertyId}</div>
+                      <div className="text-xs text-gray-500">
+                        {/* Show Measurement ID if available, else propertyId */}
+                        {property.measurementId ? `Measurement ID: ${property.measurementId}` : `Property ID: ${property.propertyId}`}
+                      </div>
+                    </div>
+                    <button
+                      className="ml-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-semibold"
+                      onClick={() => setSelectedProperty(property)}
+                    >
+                      Audit
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -229,6 +247,18 @@ const GA4GTMAssistant = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Change Property Button */}
+        {selectedProperty && (
+          <div className="mb-6 flex justify-end">
+            <button
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 text-sm font-medium shadow"
+              onClick={() => setSelectedProperty(null)}
+            >
+              Change Property
+            </button>
+          </div>
+        )}
+
         {/* Tab Navigation */}
         <div className="mb-8">
           <div className="border-b border-gray-200 bg-white rounded-t-xl">
