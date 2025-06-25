@@ -131,7 +131,7 @@ const GA4GTMAssistant = () => {
     ga4Audit,
     error,
     fetchGA4Properties,
-    fetchGA4Audit,
+    runGA4Audit,
     clearError
   } = useGA4Audit();
 
@@ -146,9 +146,9 @@ const GA4GTMAssistant = () => {
   // When a property is selected, fetch its audit
   useEffect(() => {
     if (selectedProperty && accessToken) {
-      fetchGA4Audit(selectedProperty.propertyId, accessToken);
+      runGA4Audit(accessToken, selectedProperty.propertyId);
     }
-  }, [selectedProperty, accessToken, fetchGA4Audit]);
+  }, [selectedProperty, accessToken, runGA4Audit]);
 
   // Property Picker UI
   if (isAuthenticated && ga4Properties.length > 0 && !selectedProperty) {
