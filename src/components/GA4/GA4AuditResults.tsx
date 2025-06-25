@@ -10,8 +10,7 @@ import {
   Target,
   Globe,
   Shield,
-  Link,
-  ArrowUpRight
+  Link
 } from 'lucide-react';
 import { GA4Audit } from '@/types/ga4';
 
