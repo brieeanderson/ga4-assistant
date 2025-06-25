@@ -232,7 +232,11 @@ const GA4GTMAssistant = () => {
             <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl p-4">
               <div className="flex items-center">
                 <XCircle className="w-5 h-5 mr-2 text-red-600" />
-                <span>{error.message || error.toString()}</span>
+                <span>{
+                  typeof error === 'object' && error !== null && 'message' in error
+                    ? (error as { message: string }).message
+                    : error?.toString()
+                }</span>
                 <button className="ml-auto text-xs underline" onClick={clearError}>Dismiss</button>
               </div>
             </div>
@@ -270,7 +274,7 @@ const GA4GTMAssistant = () => {
                   Your GA4 setup has {ga4Audit.dataQuality?.criticalIssues.length} critical issues that need immediate attention.
                 </p>
                 <div className="space-y-2">
-                  {ga4Audit.dataQuality?.criticalIssues.map((issue, idx) => (
+                  {ga4Audit.dataQuality?.criticalIssues.map((issue: { title: string; detail: string }, idx: number) => (
                     <div key={idx} className="flex items-center justify-between bg-red-100 p-3 rounded-lg">
                       <span className="text-red-900 font-medium">{issue.title}</span>
                       <span className="text-red-700">{issue.detail}</span>
@@ -406,8 +410,8 @@ const GA4GTMAssistant = () => {
               {ga4Audit.keyEvents?.map((event, idx) => (
                 <div key={idx} className="flex items-center justify-between py-3 border-b border-gray-100">
                   <div>
-                    <div className="font-medium text-gray-900">{event.name}</div>
-                    <div className="text-sm text-gray-500">{event.description || 'Conversion event'}</div>
+                    <div className="font-medium text-gray-900">{event.eventName}</div>
+                    <div className="text-sm text-gray-500">Conversion event</div>
                   </div>
                   <CheckCircle className="w-5 h-5 text-green-600" />
                 </div>
@@ -426,8 +430,8 @@ const GA4GTMAssistant = () => {
             />
             <StatusCard
               title="Google Ads"
-              status={ga4Audit.googleAdsAccounts && ga4Audit.googleAdsAccounts.length > 0 ? 'good' : 'warning'}
-              description={ga4Audit.googleAdsAccounts && ga4Audit.googleAdsAccounts.length > 0 ? `${ga4Audit.googleAdsAccounts.length} Google Ads accounts linked for conversion tracking and optimization.` : 'No Google Ads accounts linked.'}
+              status={ga4Audit.googleAdsLinks && ga4Audit.googleAdsLinks.length > 0 ? 'good' : 'warning'}
+              description={ga4Audit.googleAdsLinks && ga4Audit.googleAdsLinks.length > 0 ? `${ga4Audit.googleAdsLinks.length} Google Ads accounts linked for conversion tracking and optimization.` : 'No Google Ads accounts linked.'}
             />
             <StatusCard
               title="BigQuery"
