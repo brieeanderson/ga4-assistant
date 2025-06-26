@@ -389,6 +389,46 @@ const GA4GTMAssistant = () => {
             </div>
           </div>
         )}
+
+        {activeTab === 'events' && ga4Audit && (
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Events ({ga4Audit.keyEvents?.length || 0})</h3>
+            <div className="space-y-3">
+              {ga4Audit.keyEvents?.map((event, idx) => (
+                <div key={idx} className="flex items-center justify-between py-3 border-b border-gray-100">
+                  <div>
+                    <div className="font-medium text-gray-900">{event.eventName}</div>
+                    <div className="text-sm text-gray-500">Conversion event</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'integrations' && ga4Audit && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Search Console</h3>
+              <div className="text-gray-900">{ga4Audit.searchConsoleDataStatus ? `${ga4Audit.searchConsoleDataStatus.totalClicks} clicks and ${ga4Audit.searchConsoleDataStatus.totalImpressions} impressions tracked from organic search.` : 'Not linked'}</div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Google Ads</h3>
+              <div className="text-gray-900">{ga4Audit.googleAdsLinks && ga4Audit.googleAdsLinks.length > 0 ? `${ga4Audit.googleAdsLinks.length} Google Ads accounts linked for conversion tracking and optimization.` : 'No Google Ads accounts linked.'}</div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">BigQuery</h3>
+              <div className="text-gray-900">{ga4Audit.bigQueryLinks && ga4Audit.bigQueryLinks.length > 0 ? 'BigQuery export is enabled.' : 'Not enabled - consider for advanced analysis and custom reporting needs.'}</div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'manual' && ga4Audit && (
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Manual Review</h3>
+            <div className="text-gray-700">Some configuration items require manual review. Please check your GA4 property settings for advanced or custom configurations.</div>
+          </div>
+        )}
       </div>
     </div>
   );
