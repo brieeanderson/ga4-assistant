@@ -12,6 +12,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { GA4Audit } from '@/types/ga4';
+import { formatLabel } from '../../app/page';
 
 interface FundamentalsChecklistProps {
   audit: GA4Audit;

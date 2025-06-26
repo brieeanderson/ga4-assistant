@@ -112,7 +112,7 @@ const StatusCard = ({ title, status, description, severity }: StatusCardProps) =
 };
 
 // Utility to format ALL_UPPERCASE_UNDERSCORE_TEXT to Title Case
-function formatLabel(value: string) {
+export function formatLabel(value: string) {
   if (!value) return '';
   return value
     .toLowerCase()
