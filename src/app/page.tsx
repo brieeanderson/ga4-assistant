@@ -8,110 +8,13 @@ import {
   AlertTriangle,
   XCircle,
   TrendingUp,
-  Database,
   Settings,
-  BarChart3,
   Target,
-  Globe,
   Shield,
   Link
 } from 'lucide-react';
 import { formatLabel } from '../lib/formatLabel';
 import { PropertyConfigScore } from '../components/GA4/PropertyConfigScore';
-
-// Add prop types for MetricCard and StatusCard
-interface MetricCardProps {
-  title: string;
-  value: string | number;
-  subtitle?: string;
-  icon: React.ElementType;
-  color?: 'blue' | 'green' | 'purple' | 'orange' | 'red';
-}
-
-interface StatusCardProps {
-  title: string;
-  status: 'good' | 'warning' | 'critical' | string;
-  description: string;
-  severity?: 'critical';
-}
-
-const MetricCard = ({ title, value, subtitle, icon: Icon, color = "blue" }: MetricCardProps) => {
-  const colors = {
-    blue: "border-blue-200 bg-blue-50",
-    green: "border-green-200 bg-green-50",
-    purple: "border-purple-200 bg-purple-50",
-    orange: "border-orange-200 bg-orange-50",
-    red: "border-red-200 bg-red-50"
-  };
-  const iconColors = {
-    blue: "text-blue-600",
-    green: "text-green-600",
-    purple: "text-purple-600",
-    orange: "text-orange-600",
-    red: "text-red-600"
-  };
-  return (
-    <div className={`border ${colors[color]} rounded-xl p-6 hover:shadow-md transition-shadow`}>
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-2 rounded-lg ${colors[color]} border`}>
-          <Icon className={`w-5 h-5 ${iconColors[color]}`} />
-        </div>
-      </div>
-      <div className="text-2xl font-bold text-gray-900 mb-1">{value}</div>
-      <div className="text-sm text-gray-600">{title}</div>
-      {subtitle && <div className="text-xs text-gray-500 mt-1">{subtitle}</div>}
-    </div>
-  );
-};
-
-const StatusCard = ({ title, status, description, severity }: StatusCardProps) => {
-  const getStatusConfig = () => {
-    if (severity === 'critical') {
-      return {
-        icon: XCircle,
-        color: 'text-red-600',
-        bg: 'bg-red-50 border-red-200'
-      };
-    }
-    switch (status) {
-      case 'good':
-        return {
-          icon: CheckCircle,
-          color: 'text-green-600',
-          bg: 'bg-green-50 border-green-200'
-        };
-      case 'warning':
-        return {
-          icon: AlertTriangle,
-          color: 'text-yellow-600',
-          bg: 'bg-yellow-50 border-yellow-200'
-        };
-      case 'critical':
-        return {
-          icon: XCircle,
-          color: 'text-red-600',
-          bg: 'bg-red-50 border-red-200'
-        };
-      default:
-        return {
-          icon: CheckCircle,
-          color: 'text-gray-600',
-          bg: 'bg-gray-50 border-gray-200'
-        };
-    }
-  };
-  const config = getStatusConfig();
-  const Icon = config.icon;
-  return (
-    <div className={`border ${config.bg} rounded-xl p-6 hover:shadow-md transition-shadow`}>
-      <div className="flex items-start justify-between mb-3">
-        <Icon className={`w-5 h-5 ${config.color} mt-1`} />
-      </div>
-      <h4 className="font-semibold text-gray-900 mb-2">{title}</h4>
-      <p className="text-sm text-gray-600">{description}</p>
-    </div>
-  );
-};
 
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -161,12 +64,6 @@ const GA4GTMAssistant = () => {
       console.log('sampleUrls:', (piiDetails as any).sampleUrls);
     }
   }
-
-  // Helper for Search Console status
-  const searchConsoleStatus = ga4Audit?.searchConsoleDataStatus;
-  const hasSearchConsoleData = searchConsoleStatus && (
-    (searchConsoleStatus.totalClicks > 0) || (searchConsoleStatus.totalImpressions > 0)
-  );
 
   // Property Picker UI (grouped by account)
   if (isAuthenticated && ga4Properties.length > 0 && !selectedProperty) {
