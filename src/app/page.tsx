@@ -463,44 +463,44 @@ const GA4GTMAssistant = () => {
                         const definitions: Record<string, { label: string; description: string; events: string[]; dimensions: string[]; metrics?: string[] }> = {
                           streamEnabled: {
                             label: 'Page Changes',
-                            description: 'Tracks each time a page loads or the URL changes (history events). Useful for single-page applications.',
+                            description: 'Tracks each time a page loads or the URL changes (history events). This is essential for single-page applications and ensures every page view is counted, even when the URL changes without a full reload.',
                             events: ['page_view'],
                             dimensions: ['page_location', 'page_referrer', 'page_title'],
                           },
                           scrollsEnabled: {
                             label: 'Scrolls',
-                            description: 'Tracks when a user scrolls to the bottom of a page (90% vertical depth).',
+                            description: 'Tracks when a user reaches the bottom of a page (90% vertical depth). Useful for measuring engagement with long-form content.',
                             events: ['scroll'],
                             dimensions: ['percent_scrolled'],
                           },
                           outboundClicksEnabled: {
                             label: 'Outbound Clicks',
-                            description: 'Tracks clicks that lead users away from your domain (external links).',
+                            description: 'Tracks clicks on links that lead users away from your domain (external links). Helps you understand what destinations are most popular with your visitors.',
                             events: ['click'],
                             dimensions: ['link_url', 'link_domain'],
                           },
                           siteSearchEnabled: {
                             label: 'Site Search',
-                            description: 'Tracks searches performed on your website using common query parameters. Default parameters: s, q, search, query, keyword, k.',
+                            description: 'Tracks when a user performs a search on your website by detecting common search query parameters in the URL (such as s, q, search, query, keyword, k). This helps you understand what visitors are looking for on your site.',
                             events: ['view_search_results'],
                             dimensions: ['search_term'],
                           },
                           videoEngagementEnabled: {
                             label: 'Video Engagement',
-                            description: 'Tracks interactions with embedded YouTube videos (requires JS API enabled). Available events: video_start, video_progress (at 10, 25, 50, 75%), video_complete. Dimensions: video_title, video_url, video_provider.',
+                            description: 'Tracks interactions with embedded YouTube videos (requires JS API enabled). Events include video start, progress (at 10, 25, 50, 75%), and completion. Useful for measuring how users engage with video content.',
                             events: ['video_start', 'video_progress', 'video_complete'],
                             dimensions: ['video_title', 'video_url', 'video_provider'],
                             metrics: ['video_percent', 'video_current_time', 'video_duration'],
                           },
                           fileDownloadsEnabled: {
                             label: 'File Downloads',
-                            description: 'Tracks clicks on links to downloadable files (e.g., PDF, DOCX, XLSX, ZIP, etc).',
+                            description: 'Tracks when a user clicks a link to download a file (such as PDF, DOCX, XLSX, ZIP, MP4, MP3, etc). This helps you measure interest in downloadable resources on your site.',
                             events: ['file_download'],
                             dimensions: ['file_name', 'file_extension', 'file_url'],
                           },
                           formInteractionsEnabled: {
                             label: 'Form Interactions',
-                            description: 'Tracks when users interact with forms, including form_start and form_submit events. Dimensions: form_id, form_name, form_destination, form_submit_text.',
+                            description: 'Tracks when users start filling out a form and when they submit it. This helps you see how many users begin forms versus how many complete them, so you can identify and fix drop-off points in your forms.',
                             events: ['form_start', 'form_submit'],
                             dimensions: ['form_id', 'form_name', 'form_destination', 'form_submit_text'],
                           },
@@ -509,12 +509,15 @@ const GA4GTMAssistant = () => {
                         const keyMap: Record<string, string> = {
                           searchQueryParameterEnabled: 'siteSearchEnabled',
                           formInteractionsEnabled: 'formInteractionsEnabled',
+                          fileDownloadEnabled: 'fileDownloadsEnabled',
                         };
-                        const def = definitions[setting] || definitions[keyMap[setting]];
+                        // Always use the mapped key if present
+                        const mappedKey = keyMap[setting] || setting;
+                        const def = definitions[mappedKey];
                         return (
                           <li key={setting} className="flex flex-col py-2 border-b last:border-b-0">
                             <div className="flex items-center justify-between">
-                              <span className="capitalize font-medium text-gray-900">{def ? def.label : setting.replace('Enabled', '').replace(/([A-Z])/g, ' $1').trim()}</span>
+                              <span className="capitalize font-medium text-gray-900">{def ? def.label : mappedKey.replace('Enabled', '').replace(/([A-Z])/g, ' $1').trim()}</span>
                               <span className={enabled ? 'text-green-600 font-semibold' : 'text-gray-400'}>
                                 {enabled ? 'On' : 'Off'}
                               </span>
