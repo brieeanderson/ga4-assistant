@@ -188,9 +188,9 @@ export const PropertyConfigScore: React.FC<{ audit: GA4Audit }> = ({ audit }) =>
       <div className="text-center mb-8">
         <div className="flex items-center justify-center mb-4">
           <TrendingUp className="w-8 h-8 mr-3 text-orange-400" />
-          <h2 className="text-3xl font-bold text-white">GA4 CONFIGURATION AUDIT</h2>
+          <h2 className="text-3xl font-bold text-black">GA4 CONFIGURATION AUDIT</h2>
         </div>
-        <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+        <p className="text-lg text-gray-900 max-w-3xl mx-auto">
           Comprehensive analysis of your Google Analytics 4 setup for optimal data collection and business insights
         </p>
       </div>
@@ -203,8 +203,8 @@ export const PropertyConfigScore: React.FC<{ audit: GA4Audit }> = ({ audit }) =>
               <IconComponent className={`w-8 h-8 ${scoreStatus.color}`} />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-white mb-2">{scoreStatus.title}</h3>
-              <p className="text-gray-300 text-lg max-w-2xl">{scoreStatus.description}</p>
+              <h3 className="text-2xl font-bold text-black mb-2">{scoreStatus.title}</h3>
+              <p className="text-gray-900 text-lg max-w-2xl">{scoreStatus.description}</p>
             </div>
           </div>
           <div className={`px-4 py-2 rounded-lg border text-sm font-semibold ${scoreStatus.badge}`}>
@@ -215,9 +215,9 @@ export const PropertyConfigScore: React.FC<{ audit: GA4Audit }> = ({ audit }) =>
         {/* Score Display */}
         <div className="flex items-center justify-center py-6">
           <div className="text-center">
-            <div className={`text-6xl font-bold ${scoreStatus.color} mb-2`}>{score}</div>
-            <div className="text-2xl text-gray-400">/100</div>
-            <div className="text-sm text-gray-500 mt-2">Configuration Score</div>
+            <div className={`text-6xl font-bold text-black mb-2`}>{score}</div>
+            <div className="text-2xl text-gray-700">/100</div>
+            <div className="text-sm text-gray-700 mt-2">Configuration Score</div>
           </div>
         </div>
       </div>
@@ -233,15 +233,15 @@ export const PropertyConfigScore: React.FC<{ audit: GA4Audit }> = ({ audit }) =>
                 <h4 className="text-xl font-bold text-red-400">Critical Issues</h4>
                 <div className="ml-auto text-sm text-red-300">{criticalSuggestions.length} issues</div>
               </div>
-              <p className="text-sm text-gray-400 mb-4">These issues significantly impact data quality and must be addressed immediately</p>
+              <p className="text-sm text-gray-900 mb-4">These issues significantly impact data quality and must be addressed immediately</p>
               <div className="space-y-3">
                 {criticalSuggestions.map((s, i) => (
                   <div key={i} className="bg-red-500/20 rounded-lg p-4 border border-red-500/30">
                     <div className="flex items-start justify-between mb-2">
-                      <span className="font-semibold text-red-300">{s.label}</span>
-                      <span className="text-xs text-red-400 font-bold">{s.points} pts</span>
+                      <span className="font-semibold text-black">{s.label}</span>
+                      <span className="text-xs text-black font-bold">{s.points} pts</span>
                     </div>
-                    <p className="text-sm text-gray-300">{s.suggestion}</p>
+                    <p className="text-sm text-gray-900">{s.suggestion}</p>
                   </div>
                 ))}
               </div>
@@ -256,15 +256,15 @@ export const PropertyConfigScore: React.FC<{ audit: GA4Audit }> = ({ audit }) =>
                 <h4 className="text-xl font-bold text-yellow-400">Important Improvements</h4>
                 <div className="ml-auto text-sm text-yellow-300">{importantSuggestions.length} items</div>
               </div>
-              <p className="text-sm text-gray-400 mb-4">These improvements will enhance your data quality and reporting capabilities</p>
+              <p className="text-sm text-gray-900 mb-4">These improvements will enhance your data quality and reporting capabilities</p>
               <div className="space-y-3">
                 {importantSuggestions.map((s, i) => (
                   <div key={i} className="bg-yellow-500/20 rounded-lg p-4 border border-yellow-500/30">
                     <div className="flex items-start justify-between mb-2">
-                      <span className="font-semibold text-yellow-300">{s.label}</span>
-                      <span className="text-xs text-yellow-400 font-bold">{s.points} pts</span>
+                      <span className="font-semibold text-black">{s.label}</span>
+                      <span className="text-xs text-black font-bold">{s.points} pts</span>
                     </div>
-                    <p className="text-sm text-gray-300">{s.suggestion}</p>
+                    <p className="text-sm text-gray-900">{s.suggestion}</p>
                   </div>
                 ))}
               </div>
@@ -280,15 +280,15 @@ export const PropertyConfigScore: React.FC<{ audit: GA4Audit }> = ({ audit }) =>
                   <h4 className="text-xl font-bold text-blue-400">Optional Enhancements</h4>
                   <div className="ml-auto text-sm text-blue-300">{otherSuggestions.length} items</div>
                 </div>
-                <p className="text-sm text-gray-400 mb-4">These optional features can provide additional insights and capabilities</p>
+                <p className="text-sm text-gray-900 mb-4">These optional features can provide additional insights and capabilities</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {otherSuggestions.map((s, i) => (
                     <div key={i} className="bg-blue-500/20 rounded-lg p-4 border border-blue-500/30">
                       <div className="flex items-start justify-between mb-2">
-                        <span className="font-semibold text-blue-300">{s.label}</span>
-                        <span className="text-xs text-blue-400 font-bold">{s.points} pts</span>
+                        <span className="font-semibold text-black">{s.label}</span>
+                        <span className="text-xs text-black font-bold">{s.points} pts</span>
                       </div>
-                      <p className="text-sm text-gray-300">{s.suggestion}</p>
+                      <p className="text-sm text-gray-900">{s.suggestion}</p>
                     </div>
                   ))}
                 </div>
@@ -303,7 +303,7 @@ export const PropertyConfigScore: React.FC<{ audit: GA4Audit }> = ({ audit }) =>
         <div className="bg-green-500/10 backdrop-blur-xl rounded-2xl p-6 border border-green-500/30 text-center">
           <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
           <h4 className="text-xl font-bold text-green-400 mb-2">Perfect Configuration!</h4>
-          <p className="text-gray-300">
+          <p className="text-gray-900">
             Your GA4 setup follows all best practices. Your data collection is optimized for accurate reporting and business insights.
           </p>
         </div>
@@ -313,10 +313,10 @@ export const PropertyConfigScore: React.FC<{ audit: GA4Audit }> = ({ audit }) =>
       {suggestions.length > 0 && (
         <div className="bg-orange-900/20 border border-orange-600/30 rounded-2xl p-6">
           <h4 className="font-semibold text-orange-300 mb-3 text-lg">🎯 Implementation Priority</h4>
-          <p className="text-sm text-gray-300 mb-4">
+          <p className="text-sm text-gray-900 mb-4">
             Focus on implementing improvements in this order for maximum impact:
           </p>
-          <ol className="text-sm text-gray-300 list-decimal list-inside space-y-2">
+          <ol className="text-sm text-gray-900 list-decimal list-inside space-y-2">
             <li><strong className="text-red-300">Critical Issues</strong> - Fix immediately to prevent data loss</li>
             <li><strong className="text-yellow-300">Important Improvements</strong> - Enhance data quality and accuracy</li>
             <li><strong className="text-blue-300">Optional Enhancements</strong> - Add advanced features as needed</li>
