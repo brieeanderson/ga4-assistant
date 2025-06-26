@@ -17,6 +17,7 @@ import {
   Link
 } from 'lucide-react';
 import { formatLabel } from '../lib/formatLabel';
+import { PropertyConfigScore } from '../components/GA4/PropertyConfigScore';
 
 // Add prop types for MetricCard and StatusCard
 interface MetricCardProps {
@@ -320,127 +321,130 @@ const GA4GTMAssistant = () => {
 
         {/* Overview Tab */}
         {activeTab === 'overview' && ga4Audit && (
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Property Overview</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {/* Data Streams Card - link to Configuration tab */}
-              <div
-                className="cursor-pointer"
-                onClick={() => setActiveTab('configuration')}
-              >
-                <MetricCard
-                  title="Data Streams"
-                  value={ga4Audit.dataStreams?.length || 0}
-                  subtitle="Web & Mobile streams"
-                  icon={Globe}
-                  color="blue"
-                />
-              </div>
-              {/* Key Events Card - link to Events tab */}
-              <div
-                className="cursor-pointer"
-                onClick={() => setActiveTab('events')}
-              >
-                <MetricCard
-                  title="Key Events"
-                  value={ga4Audit.keyEvents?.length || 0}
-                  subtitle="Conversion tracking events"
-                  icon={Target}
-                  color="green"
-                />
-              </div>
-            </div>
-
-            {/* Critical Issues Alert */}
-            {ga4Audit && ga4Audit.dataQuality?.criticalIssues && ga4Audit.dataQuality?.criticalIssues.length > 0 && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-                <div className="flex items-center mb-3">
-                  <XCircle className="w-6 h-6 text-red-600 mr-3" />
-                  <h3 className="text-lg font-bold text-red-900">Critical Issues Detected</h3>
+          <>
+            <PropertyConfigScore audit={ga4Audit} />
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Property Overview</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {/* Data Streams Card - link to Configuration tab */}
+                <div
+                  className="cursor-pointer"
+                  onClick={() => setActiveTab('configuration')}
+                >
+                  <MetricCard
+                    title="Data Streams"
+                    value={ga4Audit.dataStreams?.length || 0}
+                    subtitle="Web & Mobile streams"
+                    icon={Globe}
+                    color="blue"
+                  />
                 </div>
-                <p className="text-red-800 mb-4">
-                  Your GA4 setup has {ga4Audit.dataQuality?.criticalIssues.length} critical issues that need immediate attention.
-                </p>
-                <div className="space-y-2">
-                  {ga4Audit.dataQuality?.criticalIssues.map((issue: { title: string; detail: string }, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between bg-red-100 p-3 rounded-lg">
-                      <span className="text-red-900 font-medium">{issue.title}</span>
-                      <span className="text-red-700">{issue.detail}</span>
+                {/* Key Events Card - link to Events tab */}
+                <div
+                  className="cursor-pointer"
+                  onClick={() => setActiveTab('events')}
+                >
+                  <MetricCard
+                    title="Key Events"
+                    value={ga4Audit.keyEvents?.length || 0}
+                    subtitle="Conversion tracking events"
+                    icon={Target}
+                    color="green"
+                  />
+                </div>
+              </div>
+
+              {/* Critical Issues Alert */}
+              {ga4Audit && ga4Audit.dataQuality?.criticalIssues && ga4Audit.dataQuality?.criticalIssues.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+                  <div className="flex items-center mb-3">
+                    <XCircle className="w-6 h-6 text-red-600 mr-3" />
+                    <h3 className="text-lg font-bold text-red-900">Critical Issues Detected</h3>
+                  </div>
+                  <p className="text-red-800 mb-4">
+                    Your GA4 setup has {ga4Audit.dataQuality?.criticalIssues.length} critical issues that need immediate attention.
+                  </p>
+                  <div className="space-y-2">
+                    {ga4Audit.dataQuality?.criticalIssues.map((issue: { title: string; detail: string }, idx: number) => (
+                      <div key={idx} className="flex items-center justify-between bg-red-100 p-3 rounded-lg">
+                        <span className="text-red-900 font-medium">{issue.title}</span>
+                        <span className="text-red-700">{issue.detail}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Key Metrics */}
+              {ga4Audit && (
+                <section>
+                  <div className="mb-6">
+                    <div className="flex items-center mb-3">
+                      <BarChart3 className="w-6 h-6 text-blue-600 mr-3" />
+                      <h2 className="text-xl font-bold text-gray-900">Property Overview</h2>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Key Metrics */}
-            {ga4Audit && (
-              <section>
-                <div className="mb-6">
-                  <div className="flex items-center mb-3">
-                    <BarChart3 className="w-6 h-6 text-blue-600 mr-3" />
-                    <h2 className="text-xl font-bold text-gray-900">Property Overview</h2>
+                    <p className="text-gray-600">Key configuration metrics for your GA4 property</p>
                   </div>
-                  <p className="text-gray-600">Key configuration metrics for your GA4 property</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                  <MetricCard
-                    title="Custom Dimensions"
-                    value={`${ga4Audit.customDimensions?.length || 0}/50`}
-                    subtitle={`${50 - (ga4Audit.customDimensions?.length || 0)} remaining`}
-                    icon={Database}
-                    color="purple"
-                  />
-                  <MetricCard
-                    title="Custom Metrics"
-                    value={`${ga4Audit.customMetrics?.length || 0}/50`}
-                    subtitle={`${50 - (ga4Audit.customMetrics?.length || 0)} remaining`}
-                    icon={BarChart3}
-                    color="orange"
-                  />
-                </div>
-              </section>
-            )}
-
-            {/* Configuration Status */}
-            {ga4Audit && (
-              <section>
-                <div className="mb-6">
-                  <div className="flex items-center mb-3">
-                    <Shield className="w-6 h-6 text-blue-600 mr-3" />
-                    <h2 className="text-xl font-bold text-gray-900">Configuration Status</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <MetricCard
+                      title="Custom Dimensions"
+                      value={`${ga4Audit.customDimensions?.length || 0}/50`}
+                      subtitle={`${50 - (ga4Audit.customDimensions?.length || 0)} remaining`}
+                      icon={Database}
+                      color="purple"
+                    />
+                    <MetricCard
+                      title="Custom Metrics"
+                      value={`${ga4Audit.customMetrics?.length || 0}/50`}
+                      subtitle={`${50 - (ga4Audit.customMetrics?.length || 0)} remaining`}
+                      icon={BarChart3}
+                      color="orange"
+                    />
                   </div>
-                  <p className="text-gray-600">Critical settings that affect your data quality</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <StatusCard
-                    title="Property Settings"
-                    status="good"
-                    description={`Timezone (${ga4Audit.property?.timeZone}) and currency (${ga4Audit.property?.currencyCode}) properly configured.`}
-                  />
-                  <StatusCard
-                    title="Enhanced Measurement"
-                    status="good"
-                    description="Page views, scrolls, outbound clicks, and file downloads are enabled."
-                  />
-                  <StatusCard
-                    title="Search Console Integration"
-                    status={hasSearchConsoleData ? "good" : "warning"}
-                    description={
-                      hasSearchConsoleData
-                        ? `${searchConsoleStatus.totalClicks} clicks and ${searchConsoleStatus.totalImpressions} impressions tracked from organic search.`
-                        : "Not linked"
-                    }
-                  />
-                  {/* Add more status cards as needed, e.g. Data Privacy, Traffic Attribution, BigQuery Export, etc. */}
-                  <StatusCard
-                    title="BigQuery Export"
-                    status={ga4Audit.bigQueryLinks && ga4Audit.bigQueryLinks.length > 0 ? 'good' : 'warning'}
-                    description={ga4Audit.bigQueryLinks && ga4Audit.bigQueryLinks.length > 0 ? 'BigQuery export is enabled.' : 'Not enabled - consider for advanced analysis and data exports.'}
-                  />
-                </div>
-              </section>
-            )}
-          </div>
+                </section>
+              )}
+
+              {/* Configuration Status */}
+              {ga4Audit && (
+                <section>
+                  <div className="mb-6">
+                    <div className="flex items-center mb-3">
+                      <Shield className="w-6 h-6 text-blue-600 mr-3" />
+                      <h2 className="text-xl font-bold text-gray-900">Configuration Status</h2>
+                    </div>
+                    <p className="text-gray-600">Critical settings that affect your data quality</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <StatusCard
+                      title="Property Settings"
+                      status="good"
+                      description={`Timezone (${ga4Audit.property?.timeZone}) and currency (${ga4Audit.property?.currencyCode}) properly configured.`}
+                    />
+                    <StatusCard
+                      title="Enhanced Measurement"
+                      status="good"
+                      description="Page views, scrolls, outbound clicks, and file downloads are enabled."
+                    />
+                    <StatusCard
+                      title="Search Console Integration"
+                      status={hasSearchConsoleData ? "good" : "warning"}
+                      description={
+                        hasSearchConsoleData
+                          ? `${searchConsoleStatus.totalClicks} clicks and ${searchConsoleStatus.totalImpressions} impressions tracked from organic search.`
+                          : "Not linked"
+                      }
+                    />
+                    {/* Add more status cards as needed, e.g. Data Privacy, Traffic Attribution, BigQuery Export, etc. */}
+                    <StatusCard
+                      title="BigQuery Export"
+                      status={ga4Audit.bigQueryLinks && ga4Audit.bigQueryLinks.length > 0 ? 'good' : 'warning'}
+                      description={ga4Audit.bigQueryLinks && ga4Audit.bigQueryLinks.length > 0 ? 'BigQuery export is enabled.' : 'Not enabled - consider for advanced analysis and data exports.'}
+                    />
+                  </div>
+                </section>
+              )}
+            </div>
+          </>
         )}
 
         {/* Configuration Tab */}
@@ -609,128 +613,4 @@ const GA4GTMAssistant = () => {
               <h3 className="text-xl font-bold text-gray-900 mb-4">Data Retention & Filters</h3>
               <div className="divide-y divide-gray-100">
                 {/* Event Data Retention (red if less than 14 months) */}
-                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.dataRetention?.eventDataRetention === 'TWO_MONTHS' ? 'bg-red-50' : ''}`}>
-                  <div className="font-medium text-gray-900">Event Data Retention</div>
-                  <div className="text-right">
-                    <div className="text-gray-900">{ga4Audit.dataRetention?.eventDataRetention === 'FOURTEEN_MONTHS' ? '14 months' : ga4Audit.dataRetention?.eventDataRetention === 'TWO_MONTHS' ? '2 months' : 'N/A'}</div>
-                    {ga4Audit.dataRetention?.eventDataRetention === 'TWO_MONTHS' && (
-                      <div className="text-xs text-red-700 mt-1">Set retention to 14 months or higher to avoid data loss.</div>
-                    )}
-                  </div>
-                </div>
-                {/* User Data Retention (red if less than 14 months) */}
-                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.dataRetention?.userDataRetention === 'TWO_MONTHS' ? 'bg-red-50' : ''}`}>
-                  <div className="font-medium text-gray-900">User Data Retention</div>
-                  <div className="text-right">
-                    <div className="text-gray-900">{ga4Audit.dataRetention?.userDataRetention === 'FOURTEEN_MONTHS' ? '14 months' : ga4Audit.dataRetention?.userDataRetention === 'TWO_MONTHS' ? '2 months' : 'N/A'}</div>
-                    {ga4Audit.dataRetention?.userDataRetention === 'TWO_MONTHS' && (
-                      <div className="text-xs text-red-700 mt-1">Set retention to 14 months or higher to avoid data loss.</div>
-                    )}
-                  </div>
-                </div>
-                {/* Filters */}
-                <div className="flex justify-between items-center py-4 px-2">
-                  <div className="font-medium text-gray-900">Filters</div>
-                  <div className="text-right text-gray-900">
-                    {ga4Audit.dataFilters && ga4Audit.dataFilters.length > 0
-                      ? ga4Audit.dataFilters.map((f: any) => `${f.name} (${f.type})`).join('; ')
-                      : 'No filters set'}
-                  </div>
-                </div>
-                {/* Unwanted Referrers (yellow with reminder, red if payment processors found) */}
-                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.audit.dataCollection?.unwantedReferrals?.status === 'critical' ? 'bg-red-50' : 'bg-yellow-50'}`}
-                  style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-                  <div className="flex justify-between items-center w-full">
-                    <div className="font-medium text-gray-900">Potential Unwanted Referrers</div>
-                    <div className="text-right">
-                      <div className="text-gray-900">{ga4Audit.audit.dataCollection?.unwantedReferrals?.value || 'None detected'}</div>
-                      <div className={`text-xs mt-1 ${ga4Audit.audit.dataCollection?.unwantedReferrals?.status === 'critical' ? 'text-red-700' : 'text-yellow-700'}`}>{ga4Audit.audit.dataCollection?.unwantedReferrals?.status === 'critical' ? 'Payment processors found in referrals! Remove them to avoid data pollution.' : 'Check for payment processors or self-referrers in session source dimension.'}</div>
-                      {/* Show View Details button if unwanted referrers exist */}
-                      {typeof ga4Audit.audit.dataCollection?.unwantedReferrals === 'object' &&
-                        ga4Audit.audit.dataCollection.unwantedReferrals !== null &&
-                        'referrers' in ga4Audit.audit.dataCollection.unwantedReferrals &&
-                        Array.isArray((ga4Audit.audit.dataCollection.unwantedReferrals as { referrers: any[] }).referrers) &&
-                        (ga4Audit.audit.dataCollection.unwantedReferrals as { referrers: any[] }).referrers.length > 0 && (
-                          <button
-                            className="mt-2 text-xs text-blue-700 underline focus:outline-none"
-                            onClick={() => setShowUnwantedReferrers(v => !v)}
-                          >
-                            {showUnwantedReferrers ? 'Hide details' : 'View details'}
-                          </button>
-                        )}
-                    </div>
-                  </div>
-                  {/* Expandable unwanted referrers list */}
-                  {showUnwantedReferrers &&
-                    typeof ga4Audit.audit.dataCollection?.unwantedReferrals === 'object' &&
-                    ga4Audit.audit.dataCollection.unwantedReferrals !== null &&
-                    'referrers' in ga4Audit.audit.dataCollection.unwantedReferrals &&
-                    Array.isArray((ga4Audit.audit.dataCollection.unwantedReferrals as { referrers: any[] }).referrers) &&
-                    (ga4Audit.audit.dataCollection.unwantedReferrals as { referrers: any[] }).referrers.length > 0 && (
-                    <div className="mt-4 bg-white border border-gray-200 rounded p-3 max-h-48 overflow-y-auto">
-                      <div className="font-semibold text-xs text-gray-700 mb-1">Unwanted Referrers:</div>
-                      <ul className="list-disc pl-5">
-                        {(ga4Audit.audit.dataCollection.unwantedReferrals as { referrers: any[] }).referrers.map((ref: string, idx: number) => (
-                          <li key={idx} className="text-xs text-gray-800 break-all">{ref}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Events Tab */}
-        {activeTab === 'events' && ga4Audit && (
-          <div className="bg-white border border-gray-200 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Events ({ga4Audit.keyEvents?.length || 0})</h3>
-            <div className="space-y-3">
-              {ga4Audit.keyEvents?.map((event, idx) => (
-                <div key={idx} className="flex items-center justify-between py-3 border-b border-gray-100">
-                  <div>
-                    <div className="font-medium text-gray-900">{event.eventName}</div>
-                    <div className="text-sm text-gray-500">Conversion event</div>
-                  </div>
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                </div>
-              ))}
-            </div>
-          </div>
-            )}
-
-        {/* Integrations Tab */}
-        {activeTab === 'integrations' && ga4Audit && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <StatusCard
-              title="Search Console"
-              status={hasSearchConsoleData ? 'good' : 'warning'}
-              description={hasSearchConsoleData ? `${searchConsoleStatus.totalClicks} clicks and ${searchConsoleStatus.totalImpressions} impressions tracked from organic search.` : 'Not linked'}
-            />
-            <StatusCard
-              title="Google Ads"
-              status={ga4Audit.googleAdsLinks && ga4Audit.googleAdsLinks.length > 0 ? 'good' : 'warning'}
-              description={ga4Audit.googleAdsLinks && ga4Audit.googleAdsLinks.length > 0 ? `${ga4Audit.googleAdsLinks.length} Google Ads accounts linked for conversion tracking and optimization.` : 'No Google Ads accounts linked.'}
-            />
-            <StatusCard
-              title="BigQuery"
-              status={ga4Audit.bigQueryLinks && ga4Audit.bigQueryLinks.length > 0 ? 'good' : 'warning'}
-              description={ga4Audit.bigQueryLinks && ga4Audit.bigQueryLinks.length > 0 ? 'BigQuery export is enabled.' : 'Not enabled - consider for advanced analysis and custom reporting needs.'}
-            />
-          </div>
-        )}
-
-        {/* Manual Tab */}
-        {activeTab === 'manual' && ga4Audit && (
-          <div className="bg-white border border-gray-200 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Manual Review</h3>
-            <div className="text-gray-700">Some configuration items require manual review. Please check your GA4 property settings for advanced or custom configurations.</div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default GA4GTMAssistant;
+                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.dataRetention?.eventDataRetention === 'TWO_MONTHS' ? 'bg-red-50' : ''}`
