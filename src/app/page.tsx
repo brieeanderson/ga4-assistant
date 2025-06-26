@@ -121,7 +121,8 @@ const GA4GTMAssistant = () => {
   // OAuth state
   const { 
     isAuthenticated, 
-    accessToken 
+    accessToken, 
+    login 
   } = useOAuth();
   
   // GA4 audit state and functions
@@ -294,6 +295,17 @@ const GA4GTMAssistant = () => {
                     ? (error as { message: string }).message
                     : error?.toString()
                 }</span>
+                {(
+                  (typeof error === 'string' && error.includes('Invalid or expired access token')) ||
+                  (typeof error === 'object' && error !== null && 'message' in error && (error as { message: string }).message.includes('Invalid or expired access token'))
+                ) && (
+                  <button
+                    className="ml-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-semibold"
+                    onClick={login}
+                  >
+                    Reconnect to Google
+                  </button>
+                )}
                 <button className="ml-auto text-xs underline" onClick={clearError}>Dismiss</button>
               </div>
             </div>
