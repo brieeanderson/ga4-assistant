@@ -613,4 +613,14 @@ const GA4GTMAssistant = () => {
               <h3 className="text-xl font-bold text-gray-900 mb-4">Data Retention & Filters</h3>
               <div className="divide-y divide-gray-100">
                 {/* Event Data Retention (red if less than 14 months) */}
-                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.dataRetention?.eventDataRetention === 'TWO_MONTHS' ? 'bg-red-50' : ''}`
+                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.dataRetention?.eventDataRetention === 'TWO_MONTHS' ? 'bg-red-50' : ''}`}></div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default GA4GTMAssistant;
