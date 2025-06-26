@@ -129,10 +129,6 @@ const GA4GTMAssistant = () => {
   // OAuth state
   const { 
     isAuthenticated, 
-    userEmail, 
-    login, 
-    logout, 
-    isLoading: oauthLoading, 
     accessToken 
   } = useOAuth();
   
