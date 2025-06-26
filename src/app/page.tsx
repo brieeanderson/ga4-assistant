@@ -608,22 +608,22 @@ const GA4GTMAssistant = () => {
             <div className="mb-8">
               <h3 className="text-xl font-bold text-gray-900 mb-4">Data Retention & Filters</h3>
               <div className="divide-y divide-gray-100">
-                {/* Event Data Retention (red if not 14 months or higher) */}
-                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.dataRetention?.eventDataRetention && formatLabel(ga4Audit.dataRetention.eventDataRetention) !== '14 months' ? 'bg-red-50' : ''}`}>
+                {/* Event Data Retention (red if less than 14 months) */}
+                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.dataRetention?.eventDataRetention === 'TWO_MONTHS' ? 'bg-red-50' : ''}`}>
                   <div className="font-medium text-gray-900">Event Data Retention</div>
                   <div className="text-right">
                     <div className="text-gray-900">{ga4Audit.dataRetention?.eventDataRetention === 'FOURTEEN_MONTHS' ? '14 months' : ga4Audit.dataRetention?.eventDataRetention === 'TWO_MONTHS' ? '2 months' : 'N/A'}</div>
-                    {ga4Audit.dataRetention?.eventDataRetention && ga4Audit.dataRetention.eventDataRetention !== 'FOURTEEN_MONTHS' && (
+                    {ga4Audit.dataRetention?.eventDataRetention === 'TWO_MONTHS' && (
                       <div className="text-xs text-red-700 mt-1">Set retention to 14 months or higher to avoid data loss.</div>
                     )}
                   </div>
                 </div>
-                {/* User Data Retention (red if not 14 months or higher) */}
-                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.dataRetention?.userDataRetention && formatLabel(ga4Audit.dataRetention.userDataRetention) !== '14 months' ? 'bg-red-50' : ''}`}>
+                {/* User Data Retention (red if less than 14 months) */}
+                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.dataRetention?.userDataRetention === 'TWO_MONTHS' ? 'bg-red-50' : ''}`}>
                   <div className="font-medium text-gray-900">User Data Retention</div>
                   <div className="text-right">
                     <div className="text-gray-900">{ga4Audit.dataRetention?.userDataRetention === 'FOURTEEN_MONTHS' ? '14 months' : ga4Audit.dataRetention?.userDataRetention === 'TWO_MONTHS' ? '2 months' : 'N/A'}</div>
-                    {ga4Audit.dataRetention?.userDataRetention && ga4Audit.dataRetention.userDataRetention !== 'FOURTEEN_MONTHS' && (
+                    {ga4Audit.dataRetention?.userDataRetention === 'TWO_MONTHS' && (
                       <div className="text-xs text-red-700 mt-1">Set retention to 14 months or higher to avoid data loss.</div>
                     )}
                   </div>
