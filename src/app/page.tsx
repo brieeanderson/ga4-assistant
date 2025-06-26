@@ -16,6 +16,7 @@ import {
   Shield,
   Link
 } from 'lucide-react';
+import { formatLabel } from '../lib/formatLabel';
 
 // Add prop types for MetricCard and StatusCard
 interface MetricCardProps {
@@ -110,16 +111,6 @@ const StatusCard = ({ title, status, description, severity }: StatusCardProps) =
     </div>
   );
 };
-
-// Utility to format ALL_UPPERCASE_UNDERSCORE_TEXT to Title Case
-export function formatLabel(value: string) {
-  if (!value) return '';
-  return value
-    .toLowerCase()
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
 
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('overview');
