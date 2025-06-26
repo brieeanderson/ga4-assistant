@@ -164,6 +164,14 @@ const GA4GTMAssistant = () => {
   // Helper for PII details type guard
   const piiDetails = ga4Audit?.audit?.dataCollection?.piiRedaction?.details;
   const hasSampleUrls = piiDetails && typeof piiDetails === 'object' && 'sampleUrls' in piiDetails;
+  if (typeof window !== 'undefined') {
+    // Debugging: log PII details and sampleUrls
+    console.log('PII details:', piiDetails);
+    console.log('hasSampleUrls:', hasSampleUrls);
+    if (hasSampleUrls) {
+      console.log('sampleUrls:', (piiDetails as any).sampleUrls);
+    }
+  }
 
   // Property Picker UI (grouped by account)
   if (isAuthenticated && ga4Properties.length > 0 && !selectedProperty) {
@@ -223,40 +231,22 @@ const GA4GTMAssistant = () => {
                 </span>
               </div>
             </div>
-            {ga4Audit && (
-              <div className="flex items-center space-x-6">
-                <div className="text-right">
-                  <div className={`text-3xl font-bold ${ga4Audit.configScore < 50 ? 'text-red-600' : ga4Audit.configScore < 80 ? 'text-yellow-600' : 'text-green-600'}`}>{ga4Audit.configScore}</div>
-                  <div className="text-sm text-gray-600">Configuration Score</div>
-                  {ga4Audit.dataQuality?.criticalIssues && ga4Audit.dataQuality?.criticalIssues.length > 0 && (
-                    <div className="text-xs text-red-600 mt-1">
-                      {ga4Audit.dataQuality?.criticalIssues.length} Critical Issues
-                    </div>
-                  )}
+            <div className="flex items-center space-x-4">
+              {/* Account Name Badge */}
+              {selectedProperty?.accountName && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                  {selectedProperty.accountName}
+                </span>
+              )}
+              <div className="flex flex-col items-end">
+                <span className="text-3xl font-bold text-yellow-700">{ga4Audit?.configScore ?? '--'}</span>
+                <span className="text-sm text-gray-500 font-medium">Configuration Score</span>
+                <div className="w-16 h-2 bg-gray-200 rounded-full mt-1">
+                  <div className="h-2 bg-yellow-500 rounded-full" style={{ width: `${ga4Audit?.configScore || 0}%` }}></div>
                 </div>
-                <div className="w-20 h-20 relative">
-                  <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
-                    <path
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="#E5E7EB"
-                      strokeWidth="2"
-                    />
-                    <path
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke={ga4Audit.configScore < 50 ? "#DC2626" : ga4Audit.configScore < 80 ? "#D97706" : "#10B981"}
-                      strokeWidth="2"
-                      strokeDasharray={`${ga4Audit.configScore}, 100`}
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-sm font-medium text-gray-600">{ga4Audit.configScore}%</span>
-                  </div>
-                </div>
+                <span className="text-xs text-gray-500 mt-1">{ga4Audit?.configScore ? `${ga4Audit.configScore}%` : '--'}</span>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
@@ -323,23 +313,36 @@ const GA4GTMAssistant = () => {
         )}
 
         {/* Overview Tab */}
-        {activeTab === 'overview' && (
-          <div className="space-y-8">
-            {/* Connection Status */}
-            <div className="mb-6">
-              {/* You can keep your ConnectionStatus component here if needed */}
-              {/* <ConnectionStatus ... /> */}
-              {/* For demo, just show login state */}
-              {!isAuthenticated ? (
-                <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold" onClick={login} disabled={oauthLoading}>
-                  {oauthLoading ? 'Connecting...' : 'Sign in with Google'}
-                </button>
-              ) : (
-                <div className="flex items-center space-x-4">
-                  <span className="text-green-700 font-medium">Connected as {userEmail}</span>
-                  <button className="text-blue-600 underline text-sm" onClick={logout}>Logout</button>
-                </div>
-              )}
+        {activeTab === 'overview' && ga4Audit && (
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Property Overview</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              {/* Data Streams Card - link to Configuration tab */}
+              <div
+                className="cursor-pointer"
+                onClick={() => setActiveTab('configuration')}
+              >
+                <MetricCard
+                  title="Data Streams"
+                  value={ga4Audit.dataStreams?.length || 0}
+                  subtitle="Web & Mobile streams"
+                  icon={Globe}
+                  color="blue"
+                />
+              </div>
+              {/* Key Events Card - link to Events tab */}
+              <div
+                className="cursor-pointer"
+                onClick={() => setActiveTab('events')}
+              >
+                <MetricCard
+                  title="Key Events"
+                  value={ga4Audit.keyEvents?.length || 0}
+                  subtitle="Conversion tracking events"
+                  icon={Target}
+                  color="green"
+                />
+              </div>
             </div>
 
             {/* Critical Issues Alert */}
@@ -374,20 +377,6 @@ const GA4GTMAssistant = () => {
                   <p className="text-gray-600">Key configuration metrics for your GA4 property</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                  <MetricCard
-                    title="Data Streams"
-                    value={ga4Audit.dataStreams?.length || 0}
-                    subtitle="Web & Mobile streams"
-                    icon={Globe}
-                    color="blue"
-                  />
-                  <MetricCard
-                    title="Key Events"
-                    value={ga4Audit.keyEvents?.length || 0}
-                    subtitle="Conversion tracking events"
-                    icon={Target}
-                    color="green"
-                  />
                   <MetricCard
                     title="Custom Dimensions"
                     value={`${ga4Audit.customDimensions?.length || 0}/50`}
