@@ -458,14 +458,73 @@ const GA4GTMAssistant = () => {
                   <div key={stream.streamId || idx} className="mb-4 p-4 border rounded-lg">
                     <div className="font-semibold text-gray-800 mb-2">{stream.streamName}</div>
                     <ul className="space-y-1">
-                      {Object.entries(stream.settings).map(([setting, enabled]) => (
-                        <li key={setting} className="flex items-center justify-between">
-                          <span className="capitalize">{setting.replace('Enabled', '').replace(/([A-Z])/g, ' $1').trim()}</span>
-                          <span className={enabled ? 'text-green-600 font-semibold' : 'text-gray-400'}>
-                            {enabled ? 'On' : 'Off'}
-                          </span>
-                        </li>
-                      ))}
+                      {Object.entries(stream.settings).map(([setting, enabled]) => {
+                        // Enhanced Measurement event definitions
+                        const definitions: Record<string, { label: string; description: string; events: string[]; dimensions: string[]; metrics?: string[] }> = {
+                          streamEnabled: {
+                            label: 'Page Views',
+                            description: 'Tracks each time a page loads or the URL changes (history events).',
+                            events: ['page_view'],
+                            dimensions: ['page_location', 'page_referrer', 'page_title'],
+                          },
+                          scrollsEnabled: {
+                            label: 'Scrolls',
+                            description: 'Tracks when a user scrolls to the bottom of a page (90% vertical depth).',
+                            events: ['scroll'],
+                            dimensions: ['percent_scrolled'],
+                          },
+                          outboundClicksEnabled: {
+                            label: 'Outbound Clicks',
+                            description: 'Tracks clicks that lead users away from your domain (external links).',
+                            events: ['click'],
+                            dimensions: ['link_url', 'link_domain'],
+                          },
+                          siteSearchEnabled: {
+                            label: 'Site Search',
+                            description: 'Tracks searches performed on your website using common query parameters.',
+                            events: ['view_search_results'],
+                            dimensions: ['search_term'],
+                          },
+                          videoEngagementEnabled: {
+                            label: 'Video Engagement',
+                            description: 'Tracks interactions with embedded YouTube videos (requires JS API enabled).',
+                            events: ['video_start', 'video_progress', 'video_complete'],
+                            dimensions: ['video_title', 'video_url', 'video_provider'],
+                            metrics: ['video_percent', 'video_current_time', 'video_duration'],
+                          },
+                          fileDownloadsEnabled: {
+                            label: 'File Downloads',
+                            description: 'Tracks clicks on links to downloadable files (e.g., PDF, DOCX, XLSX, ZIP, etc).',
+                            events: ['file_download'],
+                            dimensions: ['file_name', 'file_extension', 'file_url'],
+                          },
+                        };
+                        const def = definitions[setting];
+                        return (
+                          <li key={setting} className="flex flex-col py-2 border-b last:border-b-0">
+                            <div className="flex items-center justify-between">
+                              <span className="capitalize font-medium text-gray-900">{def ? def.label : setting.replace('Enabled', '').replace(/([A-Z])/g, ' $1').trim()}</span>
+                              <span className={enabled ? 'text-green-600 font-semibold' : 'text-gray-400'}>
+                                {enabled ? 'On' : 'Off'}
+                              </span>
+                            </div>
+                            {def && (
+                              <div className="text-xs text-gray-700 mt-1">
+                                <div>{def.description}</div>
+                                <div className="mt-1">
+                                  <span className="font-semibold">Events:</span> {def.events.join(', ')}
+                                </div>
+                                <div>
+                                  <span className="font-semibold">Dimensions:</span> {def.dimensions.join(', ')}
+                                </div>
+                                {def.metrics && (
+                                  <div><span className="font-semibold">Metrics:</span> {def.metrics.join(', ')}</div>
+                                )}
+                              </div>
+                            )}
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 ))
