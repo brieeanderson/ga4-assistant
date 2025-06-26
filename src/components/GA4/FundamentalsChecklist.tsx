@@ -150,7 +150,7 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           id: 'session-timeout',
           name: 'Session Timeout',
           status: audit.dataStreams?.[0]?.sessionTimeout ? (audit.dataStreams[0].sessionTimeout === 1800 ? 'complete' : 'warning') : 'opportunity',
-          value: audit.dataStreams?.[0]?.sessionTimeout ? `${audit.dataStreams[0].sessionTimeout / 60} min` : 'Default',
+          value: audit.dataStreams?.[0]?.sessionTimeout ? `${Math.round(audit.dataStreams[0].sessionTimeout / 60)} min` : 'Default',
           description: 'Controls how long a session lasts before timing out. Default is 30 minutes.',
           recommendation: audit.dataStreams?.[0]?.sessionTimeout === 1800 ? 'Session timeout is set to 30 minutes (default)' : 'Review session timeout for your business needs',
           priority: 'optional',
@@ -308,6 +308,18 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           recommendation: audit.measurementProtocolSecrets && audit.measurementProtocolSecrets.some(s => s.secrets.length > 0) ? 'Review and secure any Measurement Protocol secrets.' : 'No Measurement Protocol secrets found.',
           priority: 'important',
           adminPath: 'Admin > Data Streams > [Stream] > Measurement Protocol API secrets'
+        },
+        {
+          id: 'google-signals',
+          name: 'Google Signals',
+          status: audit.googleSignals?.state ? 'complete' : 'warning',
+          value: audit.googleSignals?.state ? formatLabel(audit.googleSignals.state) : 'N/A',
+          description: audit.googleSignals?.state !== 'GOOGLE_SIGNALS_ENABLED'
+            ? 'You will not see demographic data in your reports unless Google Signals is enabled.'
+            : 'If enabled, ensure your privacy policy is updated to reflect Google Signals usage.',
+          recommendation: audit.googleSignals?.state ? 'Google Signals is enabled' : 'Enable Google Signals for demographic data',
+          priority: 'important',
+          adminPath: 'Admin > Data Streams > [Stream] > Google Signals'
         }
       ]
     },

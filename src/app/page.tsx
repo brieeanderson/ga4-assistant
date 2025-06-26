@@ -125,6 +125,8 @@ const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
   const [showPIIExamples, setShowPIIExamples] = useState(false);
+  const [showUnwantedReferrers, setShowUnwantedReferrers] = useState(false);
+  const [showPIIDetails, setShowPIIDetails] = useState(false);
   
   // OAuth state
   const { 
@@ -229,9 +231,9 @@ const GA4GTMAssistant = () => {
             </div>
             <div className="flex items-center space-x-4">
               {/* Account Name Badge */}
-              {selectedProperty?.accountName && (
+              {selectedProperty?.displayName && (
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">
-                  {selectedProperty.accountName}
+                  {selectedProperty.displayName}
                 </span>
               )}
               <div className="flex flex-col items-end">
@@ -499,7 +501,7 @@ const GA4GTMAssistant = () => {
                   <div className="font-medium text-gray-900">Session Timeout</div>
                   <div className="text-right text-gray-900">
                     {ga4Audit.dataStreams && ga4Audit.dataStreams.length > 0
-                      ? ga4Audit.dataStreams.map((s: any) => `${s.displayName || s.name}: ${s.sessionTimeout || 1800}s`).join('; ')
+                      ? ga4Audit.dataStreams.map((s: any) => `${s.displayName || s.name}: ${s.sessionTimeout ? Math.round(s.sessionTimeout / 60) + ' min' : '30 min'}`).join('; ')
                       : 'N/A'}
                   </div>
                 </div>
@@ -509,7 +511,10 @@ const GA4GTMAssistant = () => {
                   <div className="text-right">
                     <div className="text-gray-900">
                       {ga4Audit.measurementProtocolSecrets && ga4Audit.measurementProtocolSecrets.length > 0
-                        ? ga4Audit.measurementProtocolSecrets.map((s: any) => `${s.streamName}: ${s.secrets.length} secret(s)`).join('; ')
+                        ? (() => {
+                            const totalSecrets = ga4Audit.measurementProtocolSecrets.reduce((sum: number, s: any) => sum + (s.secrets?.length || 0), 0);
+                            return totalSecrets > 0 ? `${totalSecrets} secret(s)` : 'None';
+                          })()
                         : 'Not set up'}
                     </div>
                     {ga4Audit.measurementProtocolSecrets && ga4Audit.measurementProtocolSecrets.some((s: any) => s.secrets.length > 0) && (
@@ -532,25 +537,25 @@ const GA4GTMAssistant = () => {
                     <div className="text-right">
                       <div className="text-gray-900">{ga4Audit.audit.dataCollection?.piiRedaction?.value}</div>
                       <div className={`text-xs mt-1 ${ga4Audit.audit.dataCollection?.piiRedaction?.status === 'good' ? 'text-yellow-700' : 'text-red-700'}`}>{ga4Audit.audit.dataCollection?.piiRedaction?.status === 'good' ? 'Always monitor URLs for PII to ensure compliance.' : 'PII detected! Remove PII from URLs immediately.'}</div>
-                      {/* Toggle for examples if PII detected */}
-                      {ga4Audit.audit.dataCollection?.piiRedaction?.status !== 'good' && hasSampleUrls && (
+                      {/* Show View Details button if sampleUrls exist */}
+                      {ga4Audit.audit.dataCollection?.piiRedaction?.details?.sampleUrls && Object.keys(ga4Audit.audit.dataCollection.piiRedaction.details.sampleUrls).length > 0 && (
                         <button
                           className="text-xs text-blue-700 underline mt-2 focus:outline-none"
-                          onClick={() => setShowPIIExamples(v => !v)}
+                          onClick={() => setShowPIIDetails(v => !v)}
                         >
-                          {showPIIExamples ? 'Hide examples' : 'Show examples'}
+                          {showPIIDetails ? 'Hide details' : 'View details'}
                         </button>
                       )}
                     </div>
                   </div>
-                  {/* Example URLs */}
-                  {showPIIExamples && hasSampleUrls && (
+                  {/* Expandable PII URLs list */}
+                  {showPIIDetails && ga4Audit.audit.dataCollection?.piiRedaction?.details?.sampleUrls && Object.keys(ga4Audit.audit.dataCollection.piiRedaction.details.sampleUrls).length > 0 && (
                     <div className="mt-4 bg-white border border-gray-200 rounded p-3 max-h-48 overflow-y-auto">
-                      {Object.entries((piiDetails as any).sampleUrls as Record<string, any[]>).map(([piiType, urls]) => (
+                      {Object.entries(ga4Audit.audit.dataCollection.piiRedaction.details.sampleUrls).map(([piiType, urls]) => (
                         <div key={piiType} className="mb-3">
-                          <div className="font-semibold text-xs text-gray-700 mb-1">{formatLabel(piiType)} examples:</div>
+                          <div className="font-semibold text-xs text-gray-700 mb-1">{piiType.replace(/_/g, ' ')} examples:</div>
                           <ul className="list-disc pl-5">
-                            {urls.map((item, idx) => (
+                            {Array.isArray(urls) && urls.map((item: any, idx: number) => (
                               <li key={idx} className="text-xs text-gray-800 break-all">
                                 <span className="font-mono">{item.url}</span>
                                 {typeof item.pageViews === 'number' && (
@@ -572,6 +577,9 @@ const GA4GTMAssistant = () => {
                     {ga4Audit.googleSignals?.state === 'GOOGLE_SIGNALS_ENABLED' && (
                       <div className="text-xs text-yellow-700 mt-1">If enabled, ensure your privacy policy is updated to reflect Google Signals usage.</div>
                     )}
+                    {ga4Audit.googleSignals?.state !== 'GOOGLE_SIGNALS_ENABLED' && (
+                      <div className="text-xs text-yellow-700 mt-1">You will not see demographic data in your reports unless Google Signals is enabled.</div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -582,21 +590,21 @@ const GA4GTMAssistant = () => {
               <h3 className="text-xl font-bold text-gray-900 mb-4">Data Retention & Filters</h3>
               <div className="divide-y divide-gray-100">
                 {/* Event Data Retention (red if not 14 months or higher) */}
-                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.dataRetention?.eventDataRetention && formatLabel(ga4Audit.dataRetention.eventDataRetention) !== 'Fourteen Months' ? 'bg-red-50' : ''}`}>
+                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.dataRetention?.eventDataRetention && formatLabel(ga4Audit.dataRetention.eventDataRetention) !== '14 months' ? 'bg-red-50' : ''}`}>
                   <div className="font-medium text-gray-900">Event Data Retention</div>
                   <div className="text-right">
-                    <div className="text-gray-900">{ga4Audit.dataRetention?.eventDataRetention ? formatLabel(ga4Audit.dataRetention.eventDataRetention) : 'N/A'}</div>
-                    {ga4Audit.dataRetention?.eventDataRetention && formatLabel(ga4Audit.dataRetention.eventDataRetention) !== 'Fourteen Months' && (
+                    <div className="text-gray-900">{ga4Audit.dataRetention?.eventDataRetention === 'FOURTEEN_MONTHS' ? '14 months' : ga4Audit.dataRetention?.eventDataRetention === 'TWO_MONTHS' ? '2 months' : 'N/A'}</div>
+                    {ga4Audit.dataRetention?.eventDataRetention && ga4Audit.dataRetention.eventDataRetention !== 'FOURTEEN_MONTHS' && (
                       <div className="text-xs text-red-700 mt-1">Set retention to 14 months or higher to avoid data loss.</div>
                     )}
                   </div>
                 </div>
                 {/* User Data Retention (red if not 14 months or higher) */}
-                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.dataRetention?.userDataRetention && formatLabel(ga4Audit.dataRetention.userDataRetention) !== 'Fourteen Months' ? 'bg-red-50' : ''}`}>
+                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.dataRetention?.userDataRetention && formatLabel(ga4Audit.dataRetention.userDataRetention) !== '14 months' ? 'bg-red-50' : ''}`}>
                   <div className="font-medium text-gray-900">User Data Retention</div>
                   <div className="text-right">
-                    <div className="text-gray-900">{ga4Audit.dataRetention?.userDataRetention ? formatLabel(ga4Audit.dataRetention.userDataRetention) : 'N/A'}</div>
-                    {ga4Audit.dataRetention?.userDataRetention && formatLabel(ga4Audit.dataRetention.userDataRetention) !== 'Fourteen Months' && (
+                    <div className="text-gray-900">{ga4Audit.dataRetention?.userDataRetention === 'FOURTEEN_MONTHS' ? '14 months' : ga4Audit.dataRetention?.userDataRetention === 'TWO_MONTHS' ? '2 months' : 'N/A'}</div>
+                    {ga4Audit.dataRetention?.userDataRetention && ga4Audit.dataRetention.userDataRetention !== 'FOURTEEN_MONTHS' && (
                       <div className="text-xs text-red-700 mt-1">Set retention to 14 months or higher to avoid data loss.</div>
                     )}
                   </div>
@@ -611,12 +619,35 @@ const GA4GTMAssistant = () => {
                   </div>
                 </div>
                 {/* Unwanted Referrers (yellow with reminder, red if payment processors found) */}
-                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.audit.dataCollection?.unwantedReferrals?.status === 'critical' ? 'bg-red-50' : 'bg-yellow-50'}`}>
-                  <div className="font-medium text-gray-900">Potential Unwanted Referrers</div>
-                  <div className="text-right">
-                    <div className="text-gray-900">{ga4Audit.audit.dataCollection?.unwantedReferrals?.value || 'None detected'}</div>
-                    <div className={`text-xs mt-1 ${ga4Audit.audit.dataCollection?.unwantedReferrals?.status === 'critical' ? 'text-red-700' : 'text-yellow-700'}`}>{ga4Audit.audit.dataCollection?.unwantedReferrals?.status === 'critical' ? 'Payment processors found in referrals! Remove them to avoid data pollution.' : 'Check for payment processors or self-referrers in session source dimension.'}</div>
+                <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.audit.dataCollection?.unwantedReferrals?.status === 'critical' ? 'bg-red-50' : 'bg-yellow-50'}`}
+                  style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                  <div className="flex justify-between items-center w-full">
+                    <div className="font-medium text-gray-900">Potential Unwanted Referrers</div>
+                    <div className="text-right">
+                      <div className="text-gray-900">{ga4Audit.audit.dataCollection?.unwantedReferrals?.value || 'None detected'}</div>
+                      <div className={`text-xs mt-1 ${ga4Audit.audit.dataCollection?.unwantedReferrals?.status === 'critical' ? 'text-red-700' : 'text-yellow-700'}`}>{ga4Audit.audit.dataCollection?.unwantedReferrals?.status === 'critical' ? 'Payment processors found in referrals! Remove them to avoid data pollution.' : 'Check for payment processors or self-referrers in session source dimension.'}</div>
+                      {/* Show View Details button if unwanted referrers exist */}
+                      {Array.isArray(ga4Audit.audit.dataCollection?.unwantedReferrals?.referrers) && ga4Audit.audit.dataCollection.unwantedReferrals.referrers.length > 0 && (
+                        <button
+                          className="mt-2 text-xs text-blue-700 underline focus:outline-none"
+                          onClick={() => setShowUnwantedReferrers(v => !v)}
+                        >
+                          {showUnwantedReferrers ? 'Hide details' : 'View details'}
+                        </button>
+                      )}
+                    </div>
                   </div>
+                  {/* Expandable unwanted referrers list */}
+                  {showUnwantedReferrers && Array.isArray(ga4Audit.audit.dataCollection?.unwantedReferrals?.referrers) && ga4Audit.audit.dataCollection.unwantedReferrals.referrers.length > 0 && (
+                    <div className="mt-4 bg-white border border-gray-200 rounded p-3 max-h-48 overflow-y-auto">
+                      <div className="font-semibold text-xs text-gray-700 mb-1">Unwanted Referrers:</div>
+                      <ul className="list-disc pl-5">
+                        {ga4Audit.audit.dataCollection.unwantedReferrals.referrers.map((ref: string, idx: number) => (
+                          <li key={idx} className="text-xs text-gray-800 break-all">{ref}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
