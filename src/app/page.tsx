@@ -124,8 +124,6 @@ function formatLabel(value: string) {
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
-  const [showPIIExamples, setShowPIIExamples] = useState(false);
-  const [showUnwantedReferrers, setShowUnwantedReferrers] = useState(false);
   const [showPIIDetails, setShowPIIDetails] = useState(false);
   
   // OAuth state
