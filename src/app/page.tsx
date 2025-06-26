@@ -561,7 +561,7 @@ const GA4GTMAssistant = () => {
                   {/* Example URLs */}
                   {showPIIExamples && hasSampleUrls && (
                     <div className="mt-4 bg-white border border-gray-200 rounded p-3 max-h-48 overflow-y-auto">
-                      {Object.entries((piiDetails as any).sampleUrls).map(([piiType, urls]: [string, any[]]) => (
+                      {Object.entries((piiDetails as any).sampleUrls as Record<string, any[]>).map(([piiType, urls]) => (
                         <div key={piiType} className="mb-3">
                           <div className="font-semibold text-xs text-gray-700 mb-1">{formatLabel(piiType)} examples:</div>
                           <ul className="list-disc pl-5">
