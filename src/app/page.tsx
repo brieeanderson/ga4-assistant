@@ -462,8 +462,8 @@ const GA4GTMAssistant = () => {
                         // Enhanced Measurement event definitions
                         const definitions: Record<string, { label: string; description: string; events: string[]; dimensions: string[]; metrics?: string[] }> = {
                           streamEnabled: {
-                            label: 'Page Views',
-                            description: 'Tracks each time a page loads or the URL changes (history events).',
+                            label: 'Page Changes',
+                            description: 'Tracks each time a page loads or the URL changes (history events). Useful for single-page applications.',
                             events: ['page_view'],
                             dimensions: ['page_location', 'page_referrer', 'page_title'],
                           },
@@ -481,13 +481,13 @@ const GA4GTMAssistant = () => {
                           },
                           siteSearchEnabled: {
                             label: 'Site Search',
-                            description: 'Tracks searches performed on your website using common query parameters.',
+                            description: 'Tracks searches performed on your website using common query parameters. Default parameters: s, q, search, query, keyword, k.',
                             events: ['view_search_results'],
                             dimensions: ['search_term'],
                           },
                           videoEngagementEnabled: {
                             label: 'Video Engagement',
-                            description: 'Tracks interactions with embedded YouTube videos (requires JS API enabled).',
+                            description: 'Tracks interactions with embedded YouTube videos (requires JS API enabled). Available events: video_start, video_progress (at 10, 25, 50, 75%), video_complete. Dimensions: video_title, video_url, video_provider.',
                             events: ['video_start', 'video_progress', 'video_complete'],
                             dimensions: ['video_title', 'video_url', 'video_provider'],
                             metrics: ['video_percent', 'video_current_time', 'video_duration'],
@@ -498,8 +498,19 @@ const GA4GTMAssistant = () => {
                             events: ['file_download'],
                             dimensions: ['file_name', 'file_extension', 'file_url'],
                           },
+                          formInteractionsEnabled: {
+                            label: 'Form Interactions',
+                            description: 'Tracks when users interact with forms, including form_start and form_submit events. Dimensions: form_id, form_name, form_destination, form_submit_text.',
+                            events: ['form_start', 'form_submit'],
+                            dimensions: ['form_id', 'form_name', 'form_destination', 'form_submit_text'],
+                          },
                         };
-                        const def = definitions[setting];
+                        // Map legacy/variant keys to new ones if needed
+                        const keyMap: Record<string, string> = {
+                          searchQueryParameterEnabled: 'siteSearchEnabled',
+                          formInteractionsEnabled: 'formInteractionsEnabled',
+                        };
+                        const def = definitions[setting] || definitions[keyMap[setting]];
                         return (
                           <li key={setting} className="flex flex-col py-2 border-b last:border-b-0">
                             <div className="flex items-center justify-between">
