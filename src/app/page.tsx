@@ -536,36 +536,43 @@ const GA4GTMAssistant = () => {
                       <div className="text-gray-900">{ga4Audit.audit.dataCollection?.piiRedaction?.value}</div>
                       <div className={`text-xs mt-1 ${ga4Audit.audit.dataCollection?.piiRedaction?.status === 'good' ? 'text-yellow-700' : 'text-red-700'}`}>{ga4Audit.audit.dataCollection?.piiRedaction?.status === 'good' ? 'Always monitor URLs for PII to ensure compliance.' : 'PII detected! Remove PII from URLs immediately.'}</div>
                       {/* Show View Details button if sampleUrls exist */}
-                      {ga4Audit.audit.dataCollection?.piiRedaction?.details?.sampleUrls && Object.keys(ga4Audit.audit.dataCollection.piiRedaction.details.sampleUrls).length > 0 && (
-                        <button
-                          className="text-xs text-blue-700 underline mt-2 focus:outline-none"
-                          onClick={() => setShowPIIDetails(v => !v)}
-                        >
-                          {showPIIDetails ? 'Hide details' : 'View details'}
-                        </button>
-                      )}
+                      {typeof ga4Audit.audit.dataCollection?.piiRedaction?.details === 'object' &&
+                        ga4Audit.audit.dataCollection.piiRedaction.details !== null &&
+                        'sampleUrls' in ga4Audit.audit.dataCollection.piiRedaction.details &&
+                        Object.keys((ga4Audit.audit.dataCollection.piiRedaction.details as { sampleUrls: any }).sampleUrls).length > 0 && (
+                          <button
+                            className="text-xs text-blue-700 underline mt-2 focus:outline-none"
+                            onClick={() => setShowPIIDetails(v => !v)}
+                          >
+                            {showPIIDetails ? 'Hide details' : 'View details'}
+                          </button>
+                        )}
                     </div>
                   </div>
                   {/* Expandable PII URLs list */}
-                  {showPIIDetails && ga4Audit.audit.dataCollection?.piiRedaction?.details?.sampleUrls && Object.keys(ga4Audit.audit.dataCollection.piiRedaction.details.sampleUrls).length > 0 && (
-                    <div className="mt-4 bg-white border border-gray-200 rounded p-3 max-h-48 overflow-y-auto">
-                      {Object.entries(ga4Audit.audit.dataCollection.piiRedaction.details.sampleUrls).map(([piiType, urls]) => (
-                        <div key={piiType} className="mb-3">
-                          <div className="font-semibold text-xs text-gray-700 mb-1">{piiType.replace(/_/g, ' ')} examples:</div>
-                          <ul className="list-disc pl-5">
-                            {Array.isArray(urls) && urls.map((item: any, idx: number) => (
-                              <li key={idx} className="text-xs text-gray-800 break-all">
-                                <span className="font-mono">{item.url}</span>
-                                {typeof item.pageViews === 'number' && (
-                                  <span className="ml-2 text-gray-400">({item.pageViews} views)</span>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {showPIIDetails &&
+                    typeof ga4Audit.audit.dataCollection?.piiRedaction?.details === 'object' &&
+                    ga4Audit.audit.dataCollection.piiRedaction.details !== null &&
+                    'sampleUrls' in ga4Audit.audit.dataCollection.piiRedaction.details &&
+                    Object.keys((ga4Audit.audit.dataCollection.piiRedaction.details as { sampleUrls: any }).sampleUrls).length > 0 && (
+                      <div className="mt-4 bg-white border border-gray-200 rounded p-3 max-h-48 overflow-y-auto">
+                        {Object.entries((ga4Audit.audit.dataCollection.piiRedaction.details as { sampleUrls: any }).sampleUrls).map(([piiType, urls]) => (
+                          <div key={piiType} className="mb-3">
+                            <div className="font-semibold text-xs text-gray-700 mb-1">{piiType.replace(/_/g, ' ')} examples:</div>
+                            <ul className="list-disc pl-5">
+                              {Array.isArray(urls) && urls.map((item: any, idx: number) => (
+                                <li key={idx} className="text-xs text-gray-800 break-all">
+                                  <span className="font-mono">{item.url}</span>
+                                  {typeof item.pageViews === 'number' && (
+                                    <span className="ml-2 text-gray-400">({item.pageViews} views)</span>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                 </div>
                 {/* Google Signals (yellow if on) */}
                 <div className={`flex justify-between items-center py-4 px-2 ${ga4Audit.googleSignals?.state === 'GOOGLE_SIGNALS_ENABLED' ? 'bg-yellow-50' : ''}`}>
