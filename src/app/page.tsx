@@ -162,6 +162,12 @@ const GA4GTMAssistant = () => {
     }
   }
 
+  // Helper for Search Console status
+  const searchConsoleStatus = ga4Audit.searchConsoleDataStatus;
+  const hasSearchConsoleData = searchConsoleStatus && (
+    (searchConsoleStatus.totalClicks > 0) || (searchConsoleStatus.totalImpressions > 0)
+  );
+
   // Property Picker UI (grouped by account)
   if (isAuthenticated && ga4Properties.length > 0 && !selectedProperty) {
     // Group properties by accountName
@@ -418,8 +424,12 @@ const GA4GTMAssistant = () => {
                   />
                   <StatusCard
                     title="Search Console Integration"
-                    status="good"
-                    description={ga4Audit.searchConsoleDataStatus ? `${ga4Audit.searchConsoleDataStatus.totalClicks} clicks and ${ga4Audit.searchConsoleDataStatus.totalImpressions} impressions tracked from organic search.` : 'Not linked'}
+                    status={hasSearchConsoleData ? "good" : "warning"}
+                    description={
+                      hasSearchConsoleData
+                        ? `${searchConsoleStatus.totalClicks} clicks and ${searchConsoleStatus.totalImpressions} impressions tracked from organic search.`
+                        : "Not linked"
+                    }
                   />
                   {/* Add more status cards as needed, e.g. Data Privacy, Traffic Attribution, BigQuery Export, etc. */}
                   <StatusCard
@@ -695,8 +705,8 @@ const GA4GTMAssistant = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <StatusCard
               title="Search Console"
-              status={ga4Audit.searchConsoleDataStatus ? 'good' : 'warning'}
-              description={ga4Audit.searchConsoleDataStatus ? `${ga4Audit.searchConsoleDataStatus.totalClicks} clicks and ${ga4Audit.searchConsoleDataStatus.totalImpressions} impressions tracked from organic search.` : 'Not linked'}
+              status={hasSearchConsoleData ? 'good' : 'warning'}
+              description={hasSearchConsoleData ? `${searchConsoleStatus.totalClicks} clicks and ${searchConsoleStatus.totalImpressions} impressions tracked from organic search.` : 'Not linked'}
             />
             <StatusCard
               title="Google Ads"
