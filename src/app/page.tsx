@@ -632,22 +632,31 @@ const GA4GTMAssistant = () => {
                       <div className="text-gray-900">{ga4Audit.audit.dataCollection?.unwantedReferrals?.value || 'None detected'}</div>
                       <div className={`text-xs mt-1 ${ga4Audit.audit.dataCollection?.unwantedReferrals?.status === 'critical' ? 'text-red-700' : 'text-yellow-700'}`}>{ga4Audit.audit.dataCollection?.unwantedReferrals?.status === 'critical' ? 'Payment processors found in referrals! Remove them to avoid data pollution.' : 'Check for payment processors or self-referrers in session source dimension.'}</div>
                       {/* Show View Details button if unwanted referrers exist */}
-                      {Array.isArray(ga4Audit.audit.dataCollection?.unwantedReferrals?.referrers) && ga4Audit.audit.dataCollection.unwantedReferrals.referrers.length > 0 && (
-                        <button
-                          className="mt-2 text-xs text-blue-700 underline focus:outline-none"
-                          onClick={() => setShowUnwantedReferrers(v => !v)}
-                        >
-                          {showUnwantedReferrers ? 'Hide details' : 'View details'}
-                        </button>
-                      )}
+                      {typeof ga4Audit.audit.dataCollection?.unwantedReferrals === 'object' &&
+                        ga4Audit.audit.dataCollection.unwantedReferrals !== null &&
+                        'referrers' in ga4Audit.audit.dataCollection.unwantedReferrals &&
+                        Array.isArray((ga4Audit.audit.dataCollection.unwantedReferrals as { referrers: any[] }).referrers) &&
+                        (ga4Audit.audit.dataCollection.unwantedReferrals as { referrers: any[] }).referrers.length > 0 && (
+                          <button
+                            className="mt-2 text-xs text-blue-700 underline focus:outline-none"
+                            onClick={() => setShowUnwantedReferrers(v => !v)}
+                          >
+                            {showUnwantedReferrers ? 'Hide details' : 'View details'}
+                          </button>
+                        )}
                     </div>
                   </div>
                   {/* Expandable unwanted referrers list */}
-                  {showUnwantedReferrers && Array.isArray(ga4Audit.audit.dataCollection?.unwantedReferrals?.referrers) && ga4Audit.audit.dataCollection.unwantedReferrals.referrers.length > 0 && (
+                  {showUnwantedReferrers &&
+                    typeof ga4Audit.audit.dataCollection?.unwantedReferrals === 'object' &&
+                    ga4Audit.audit.dataCollection.unwantedReferrals !== null &&
+                    'referrers' in ga4Audit.audit.dataCollection.unwantedReferrals &&
+                    Array.isArray((ga4Audit.audit.dataCollection.unwantedReferrals as { referrers: any[] }).referrers) &&
+                    (ga4Audit.audit.dataCollection.unwantedReferrals as { referrers: any[] }).referrers.length > 0 && (
                     <div className="mt-4 bg-white border border-gray-200 rounded p-3 max-h-48 overflow-y-auto">
                       <div className="font-semibold text-xs text-gray-700 mb-1">Unwanted Referrers:</div>
                       <ul className="list-disc pl-5">
-                        {ga4Audit.audit.dataCollection.unwantedReferrals.referrers.map((ref: string, idx: number) => (
+                        {(ga4Audit.audit.dataCollection.unwantedReferrals as { referrers: any[] }).referrers.map((ref: string, idx: number) => (
                           <li key={idx} className="text-xs text-gray-800 break-all">{ref}</li>
                         ))}
                       </ul>
