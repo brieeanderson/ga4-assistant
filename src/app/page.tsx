@@ -4,8 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useOAuth } from '@/hooks/useOAuth';
 import { useGA4Audit } from '@/hooks/useGA4Audit';
 import {
-  CheckCircle,
-  AlertTriangle,
   XCircle,
   TrendingUp,
   Settings,
