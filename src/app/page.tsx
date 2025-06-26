@@ -163,7 +163,7 @@ const GA4GTMAssistant = () => {
   }
 
   // Helper for Search Console status
-  const searchConsoleStatus = ga4Audit.searchConsoleDataStatus;
+  const searchConsoleStatus = ga4Audit?.searchConsoleDataStatus;
   const hasSearchConsoleData = searchConsoleStatus && (
     (searchConsoleStatus.totalClicks > 0) || (searchConsoleStatus.totalImpressions > 0)
   );
