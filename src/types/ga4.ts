@@ -147,6 +147,7 @@ export interface GA4Audit {
     name: string;
   };
   configScore: number;
+  otherEvents?: Array<{ name: string; count: number }>;
 }
 
 export interface AuditItem {
