@@ -24,19 +24,35 @@ const GA4HelperLanding = () => {
   const handleSubmit = async () => {
     if (!email || isSubmitting) return;
     
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert('Please enter a valid email address');
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      // Simple approach: Log email for now
-      console.log('Email collected:', email);
-      
-      // You can add a real service later (ConvertKit, Mailchimp, etc.)
-      // await fetch('your-email-service-endpoint', { ... });
-      
-      setIsSubmitted(true);
-      setEmail('');
+      const formData = new FormData();
+      formData.append('form-name', 'ga4-helper-newsletter');
+      formData.append('email', email);
+
+      const response = await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(formData).toString()
+      });
+
+      if (response.ok) {
+        setIsSubmitted(true);
+        setEmail('');
+      } else {
+        throw new Error('Form submission failed');
+      }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error submitting form:', error);
+      alert('There was an error submitting your email. Please try again.');
     }
     
     setIsSubmitting(false);
@@ -90,13 +106,8 @@ const GA4HelperLanding = () => {
 
   const features = [
     "Complete GA4 fundamentals checklist (30+ critical settings)",
-    "Custom dimensions and metrics optimization",
-    "Enhanced measurement parameter registration",
-    "Google Ads and Search Console integration audit",
-    "Data privacy and GDPR compliance check",
-    "Real-time configuration recommendations",
-    "GTM container analysis and optimization",
-    "Attribution model recommendations"
+    "Prioritized list of fixes",
+    "Clear instructions on how to make necessary fixes"
   ];
 
   return (
@@ -177,6 +188,9 @@ const GA4HelperLanding = () => {
                       onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
                       placeholder="Enter your email for early access"
                       className="w-full pl-12 pr-4 py-4 bg-black/60 border border-gray-600 rounded-2xl text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
+                      required
+                      pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+                      title="Please enter a valid email address"
                     />
                   </div>
                   <button
@@ -297,6 +311,9 @@ const GA4HelperLanding = () => {
                       onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
                       placeholder="Your email address"
                       className="w-full pl-12 pr-4 py-4 bg-black/60 border border-gray-600 rounded-2xl text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
+                      required
+                      pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+                      title="Please enter a valid email address"
                     />
                   </div>
                   <button
