@@ -462,45 +462,45 @@ const GA4GTMAssistant = () => {
                         // Enhanced Measurement event definitions
                         const definitions: Record<string, { label: string; description: string; events: string[]; dimensions: string[]; metrics?: string[] }> = {
                           streamEnabled: {
-                            label: 'Page Changes',
+                            label: 'History Change',
                             description: 'Tracks each time a page loads or the URL changes (history events). This is essential for single-page applications and ensures every page view is counted, even when the URL changes without a full reload.',
                             events: ['page_view'],
                             dimensions: ['page_location', 'page_referrer', 'page_title'],
                           },
                           scrollsEnabled: {
                             label: 'Scrolls',
-                            description: 'Tracks when a user reaches the bottom of a page (90% vertical depth). Useful for measuring engagement with long-form content.',
+                            description: 'Tracks when a user reaches the bottom of a page (90% vertical depth).',
                             events: ['scroll'],
                             dimensions: ['percent_scrolled'],
                           },
                           outboundClicksEnabled: {
                             label: 'Outbound Clicks',
-                            description: 'Tracks clicks on links that lead users away from your domain (external links). Helps you understand what destinations are most popular with your visitors.',
+                            description: 'Tracks clicks on links that lead users away from your domain (external links).',
                             events: ['click'],
                             dimensions: ['link_url', 'link_domain'],
                           },
                           siteSearchEnabled: {
                             label: 'Site Search',
-                            description: 'Tracks when a user performs a search on your website by detecting common search query parameters in the URL (such as s, q, search, query, keyword, k). This helps you understand what visitors are looking for on your site.',
+                            description: 'Tracks when a user performs a search on your website by detecting common search query parameters in the URL (such as s, q, search, query, keyword, k). Additional setup is required if your site uses a different query parameter.',
                             events: ['view_search_results'],
                             dimensions: ['search_term'],
                           },
                           videoEngagementEnabled: {
                             label: 'Video Engagement',
-                            description: 'Tracks interactions with embedded YouTube videos (requires JS API enabled). Events include video start, progress (at 10, 25, 50, 75%), and completion. Useful for measuring how users engage with video content.',
+                            description: 'Tracks interactions with embedded YouTube videos (requires JS API enabled). Events include video start, progress (at 10, 25, 50, 75%), and completion. Some dimensions and metrics require additional setup. See "Customizations" for more information.',
                             events: ['video_start', 'video_progress', 'video_complete'],
                             dimensions: ['video_title', 'video_url', 'video_provider'],
                             metrics: ['video_percent', 'video_current_time', 'video_duration'],
                           },
                           fileDownloadsEnabled: {
                             label: 'File Downloads',
-                            description: 'Tracks when a user clicks a link to download a file (such as PDF, DOCX, XLSX, ZIP, MP4, MP3, etc). This helps you measure interest in downloadable resources on your site.',
+                            description: 'Tracks when a user clicks a link that ends with common file extensions (such as PDF, DOCX, XLSX, ZIP, MP4, MP3, etc).',
                             events: ['file_download'],
-                            dimensions: ['file_name', 'file_extension', 'file_url'],
+                            dimensions: ['file_name', 'file_extension'],
                           },
                           formInteractionsEnabled: {
                             label: 'Form Interactions',
-                            description: 'Tracks when users start filling out a form and when they submit it. This helps you see how many users begin forms versus how many complete them, so you can identify and fix drop-off points in your forms.',
+                            description: 'Tracks when users start filling out a form and when they submit it. Will fire for all form elements -- always debug. All related dimensions require additional setup. See "Customizations" for more information.',
                             events: ['form_start', 'form_submit'],
                             dimensions: ['form_id', 'form_name', 'form_destination', 'form_submit_text'],
                           },
