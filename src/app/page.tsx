@@ -550,31 +550,42 @@ const GA4GTMAssistant = () => {
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Created Events & Rules</h3>
               {ga4Audit.eventCreateRules && ga4Audit.eventCreateRules.length > 0 ? (
-                ga4Audit.eventCreateRules.map((stream, idx) => (
-                  <div key={stream.streamId || idx} className="mb-4 p-4 border rounded-lg">
-                    <div className="font-semibold text-gray-800 mb-2">{stream.streamName}</div>
-                    {stream.rules && stream.rules.length > 0 ? (
-                      <ul className="space-y-2">
-                        {stream.rules.map((rule, ridx) => (
-                          <li key={rule.name || rule.displayName || ridx} className="border-b pb-2 mb-2">
-                            <div className="font-medium text-gray-900">{rule.displayName}</div>
-                            {rule.eventConditions && rule.eventConditions.length > 0 && (
-                              <div className="text-xs text-gray-600">Conditions: {rule.eventConditions.map(c => `${c.field} ${c.comparisonType} ${c.value}`).join(', ')}</div>
-                            )}
-                            {rule.destinationEvent && (
-                              <div className="text-xs text-gray-600">Destination Event: {rule.destinationEvent}</div>
-                            )}
-                            {rule.parameterMutations && rule.parameterMutations.length > 0 && (
-                              <div className="text-xs text-gray-600">Parameter Mutations: {rule.parameterMutations.map(m => `${m.parameter} → ${m.parameterValue}`).join(', ')}</div>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <div className="text-gray-500">No created events for this stream.</div>
-                    )}
-                  </div>
-                ))
+                ga4Audit.eventCreateRules.map((stream, idx) => {
+                  const hasCreatedEvents = stream.rules && stream.rules.length > 0;
+                  return (
+                    <div
+                      key={stream.streamId || idx}
+                      className={`mb-4 p-4 border rounded-lg ${hasCreatedEvents ? 'bg-red-50 border-red-300' : ''}`}
+                    >
+                      <div className="font-semibold text-gray-800 mb-2">{stream.streamName}</div>
+                      {hasCreatedEvents && (
+                        <div className="text-sm text-red-700 font-semibold mb-2">
+                          GA4 created events are often incorrectly set up and should be reviewed by a GA4 expert.
+                        </div>
+                      )}
+                      {hasCreatedEvents ? (
+                        <ul className="space-y-2">
+                          {stream.rules.map((rule, ridx) => (
+                            <li key={rule.name || rule.displayName || ridx} className="border-b pb-2 mb-2">
+                              <div className="font-medium text-gray-900">{rule.displayName}</div>
+                              {rule.eventConditions && rule.eventConditions.length > 0 && (
+                                <div className="text-xs text-gray-600">Conditions: {rule.eventConditions.map(c => `${c.field} ${c.comparisonType} ${c.value}`).join(', ')}</div>
+                              )}
+                              {rule.destinationEvent && (
+                                <div className="text-xs text-gray-600">Destination Event: {rule.destinationEvent}</div>
+                              )}
+                              {rule.parameterMutations && rule.parameterMutations.length > 0 && (
+                                <div className="text-xs text-gray-600">Parameter Mutations: {rule.parameterMutations.map(m => `${m.parameter} → ${m.parameterValue}`).join(', ')}</div>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="text-gray-500">No created events for this stream.</div>
+                      )}
+                    </div>
+                  );
+                })
               ) : (
                 <div className="text-gray-500">No created event rules found.</div>
               )}
@@ -583,7 +594,17 @@ const GA4GTMAssistant = () => {
             {/* All Other Events (Placeholder) */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">All Other Events</h3>
-              <div className="text-gray-500">To display all other events in the account, backend support is needed.</div>
+              {ga4Audit.otherEvents && ga4Audit.otherEvents.length > 0 ? (
+                <ul className="list-disc pl-6 text-gray-900">
+                  {ga4Audit.otherEvents
+                    .filter(e => e.count && e.count > 1)
+                    .map((e, idx) => (
+                      <li key={e.name || idx}>{e.name}</li>
+                    ))}
+                </ul>
+              ) : (
+                <div className="text-gray-500">To display all other events in the account, backend support is needed.</div>
+              )}
             </div>
           </div>
         )}
