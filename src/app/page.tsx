@@ -514,28 +514,27 @@ const GA4GTMAssistant = () => {
                         // Always use the mapped key if present
                         const mappedKey = keyMap[setting] || setting;
                         const def = definitions[mappedKey];
+                        if (!def) return null; // Only render known, mapped options
                         return (
                           <li key={setting} className="flex flex-col py-2 border-b last:border-b-0">
                             <div className="flex items-center justify-between">
-                              <span className="capitalize font-medium text-gray-900">{def ? def.label : mappedKey.replace('Enabled', '').replace(/([A-Z])/g, ' $1').trim()}</span>
+                              <span className="capitalize font-medium text-gray-900">{def.label}</span>
                               <span className={enabled ? 'text-green-600 font-semibold' : 'text-gray-400'}>
                                 {enabled ? 'On' : 'Off'}
                               </span>
                             </div>
-                            {def && (
-                              <div className="text-xs text-gray-700 mt-1">
-                                <div>{def.description}</div>
-                                <div className="mt-1">
-                                  <span className="font-semibold">Events:</span> {def.events.join(', ')}
-                                </div>
-                                <div>
-                                  <span className="font-semibold">Dimensions:</span> {def.dimensions.join(', ')}
-                                </div>
-                                {def.metrics && (
-                                  <div><span className="font-semibold">Metrics:</span> {def.metrics.join(', ')}</div>
-                                )}
+                            <div className="text-xs text-gray-700 mt-1">
+                              <div>{def.description}</div>
+                              <div className="mt-1">
+                                <span className="font-semibold">Events:</span> {def.events.join(', ')}
                               </div>
-                            )}
+                              <div>
+                                <span className="font-semibold">Dimensions:</span> {def.dimensions.join(', ')}
+                              </div>
+                              {def.metrics && (
+                                <div><span className="font-semibold">Metrics:</span> {def.metrics.join(', ')}</div>
+                              )}
+                            </div>
                           </li>
                         );
                       })}
