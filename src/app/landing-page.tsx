@@ -10,7 +10,7 @@ const GA4AuditLanding = () => {
 
   React.useEffect(() => {
     if (isAuthenticated) {
-      router.push('/');
+      router.push('/audit');
     }
   }, [isAuthenticated, router]);
 
