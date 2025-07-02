@@ -13,11 +13,13 @@ import {
 } from 'lucide-react';
 import { formatLabel } from '../lib/formatLabel';
 import { PropertyConfigScore } from '../components/GA4/PropertyConfigScore';
+import LoginModal from '../components/common/LoginModal';
 
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
   const [showPIIDetails, setShowPIIDetails] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
   
   // OAuth state
   const { 
@@ -50,6 +52,13 @@ const GA4GTMAssistant = () => {
       runGA4Audit(accessToken, selectedProperty.propertyId);
     }
   }, [selectedProperty, accessToken, runGA4Audit]);
+
+  // Show login modal automatically if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setLoginModalOpen(true);
+    }
+  }, [isAuthenticated]);
 
   // Helper for PII details type guard
   const piiDetails = ga4Audit?.audit?.dataCollection?.piiRedaction?.details;
@@ -104,7 +113,28 @@ const GA4GTMAssistant = () => {
         </div>
       </div>
     );
-    }
+  }
+
+  // Show login modal for unauthenticated users
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
+        <LoginModal
+          open={loginModalOpen}
+          onClose={() => setLoginModalOpen(false)}
+          login={login}
+        />
+        {!loginModalOpen && (
+          <button
+            className="mt-8 px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl font-bold text-lg shadow-lg hover:from-orange-700 hover:to-red-700 transition-all duration-200"
+            onClick={() => setLoginModalOpen(true)}
+          >
+            Sign in with Google
+          </button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
