@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useOAuth } from '@/hooks/useOAuth';
 import { useGA4Audit } from '@/hooks/useGA4Audit';
 import {
@@ -20,6 +20,7 @@ const GA4GTMAssistant = () => {
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
   const [showPIIDetails, setShowPIIDetails] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const hasAutoOpenedLogin = useRef(false);
   
   // OAuth state
   const { 
@@ -53,10 +54,15 @@ const GA4GTMAssistant = () => {
     }
   }, [selectedProperty, accessToken, runGA4Audit]);
 
-  // Show login modal automatically if not authenticated
+  // Only auto-open login modal on first load if unauthenticated
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !hasAutoOpenedLogin.current) {
       setLoginModalOpen(true);
+      hasAutoOpenedLogin.current = true;
+    }
+    // If user logs in, reset the auto-open flag for future logouts
+    if (isAuthenticated) {
+      hasAutoOpenedLogin.current = false;
     }
   }, [isAuthenticated]);
 
