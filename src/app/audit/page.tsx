@@ -11,14 +11,12 @@ import {
   Shield,
   Link
 } from 'lucide-react';
-import { formatLabel } from '../../lib/formatLabel';
 import { PropertyConfigScore } from '../../components/GA4/PropertyConfigScore';
 import LoginModal from '../../components/common/LoginModal';
 
 const GA4GTMAssistant = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
-  const [showPIIDetails, setShowPIIDetails] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   
   // OAuth state
