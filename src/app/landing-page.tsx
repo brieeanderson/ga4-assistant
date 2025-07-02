@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import { Shield, CheckCircle, AlertTriangle, BarChart3, Users, Zap, ArrowRight, Globe, Database } from 'lucide-react';
 import { useOAuth } from '@/hooks/useOAuth';
