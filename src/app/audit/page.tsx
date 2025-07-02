@@ -236,7 +236,7 @@ const GA4GTMAssistant = () => {
                     <div className="text-right">
                       <div className="text-gray-900">
                         {ga4Audit.dataStreams?.some((s) => s.crossDomainSettings && s.crossDomainSettings.domains && s.crossDomainSettings.domains.length > 0)
-                          ? ga4Audit.dataStreams.filter((s) => s.crossDomainSettings && s.crossDomainSettings.domains && s.crossDomainSettings.domains.length > 0).map((s) => s.crossDomainSettings.domains.join(', ')).join('; ')
+                          ? ga4Audit.dataStreams.filter((s) => s.crossDomainSettings && s.crossDomainSettings.domains && s.crossDomainSettings.domains.length > 0).map((s) => s.crossDomainSettings!.domains.join(', ')).join('; ')
                           : 'Not enabled'}
                       </div>
                       <div className="text-xs text-yellow-700 mt-1">Double check that all relevant domains are listed for cross-domain tracking.</div>
