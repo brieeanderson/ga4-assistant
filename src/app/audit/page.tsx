@@ -7,7 +7,7 @@ import GA4Dashboard from '../../components/GA4/GA4Dashboard';
 
 const AuditPage = () => {
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
-  const { isAuthenticated, accessToken } = useOAuth();
+  const { isAuthenticated, accessToken, logout } = useOAuth();
   const {
     ga4Properties,
     ga4Audit,
@@ -29,6 +29,12 @@ const AuditPage = () => {
       runGA4Audit(accessToken, selectedProperty.propertyId);
     }
   }, [selectedProperty, accessToken, runGA4Audit]);
+
+  useEffect(() => {
+    if (error && typeof error === 'string' && error.toLowerCase().includes('invalid or expired access token')) {
+      logout();
+    }
+  }, [error, logout]);
 
   if (!isAuthenticated) {
     return (
