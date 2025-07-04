@@ -46,6 +46,9 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
     { id: 'recommendations', label: 'Recommendations', icon: Shield, color: 'orange' }
   ];
 
+  const recommendations = generateRecommendations(auditData);
+  const topRecommendations = recommendations.filter(r => r.severity === 'critical' || r.severity === 'important').slice(0, 5);
+
   const renderOverviewTab = () => (
     <div className="space-y-8">
       {/* Configuration Score Hero */}
@@ -82,6 +85,36 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
             <div className="text-sm text-slate-400">Integrations</div>
           </div>
         </div>
+
+        {/* Top Recommendations */}
+        {topRecommendations.length > 0 && (
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+            <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+              <Shield className="w-7 h-7 mr-3 text-orange-400" />
+              Priority Recommendations
+            </h3>
+            <div className="space-y-4">
+              {topRecommendations.map((rec, idx) => (
+                <div key={idx} className={`p-6 rounded-xl border ${rec.severity === 'critical' ? 'bg-red-500/10 border-red-500/20' : rec.severity === 'important' ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-blue-500/10 border-blue-500/20'}`}>
+                  <div className="flex items-start space-x-4">
+                    <div className={`p-2 rounded-lg ${rec.severity === 'critical' ? 'bg-red-500/20' : rec.severity === 'important' ? 'bg-yellow-500/20' : 'bg-blue-500/20'}`}>
+                      <AlertTriangle className={`w-5 h-5 ${rec.severity === 'critical' ? 'text-red-400' : rec.severity === 'important' ? 'text-yellow-400' : 'text-blue-400'}`} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-lg font-semibold text-white">{rec.title}</h4>
+                        {rec.severity === 'critical' && <div className="px-3 py-1 bg-red-500/20 text-red-300 rounded text-sm">Critical</div>}
+                        {rec.severity === 'important' && <div className="px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded text-sm">Important</div>}
+                      </div>
+                      <p className="text-sm text-slate-400 mb-3">{rec.description}</p>
+                      {rec.docsUrl && <a href={rec.docsUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 underline">Learn more</a>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Critical Issues - Score Killers */}
@@ -591,74 +624,262 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
     </div>
   );
 
-  const renderRecommendationsTab = () => (
-    <div className="space-y-8">
-      {/* Priority Recommendations */}
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
-          <Shield className="w-7 h-7 mr-3 text-orange-400" />
-          Priority Recommendations
-        </h3>
-        <div className="space-y-4">
-          {/* Example: You may want to generate these from auditData if available */}
-          <div className="p-6 bg-red-500/10 rounded-xl border border-red-500/20">
-            <div className="flex items-start space-x-4">
-              <div className="p-2 bg-red-500/20 rounded-lg">
-                <AlertTriangle className="w-5 h-5 text-red-400" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-lg font-semibold text-white">Enable Site Search Tracking</h4>
-                  <div className="px-3 py-1 bg-red-500/20 text-red-300 rounded text-sm">Critical</div>
-                </div>
-                <p className="text-sm text-slate-400 mb-3">Site search tracking is disabled, missing valuable user intent data</p>
-                <div className="flex items-center space-x-3">
-                  <button className="px-4 py-2 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors">Learn More</button>
-                  <span className="text-xs text-slate-500">Admin → Data Settings → Enhanced Measurement</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="p-6 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
-            <div className="flex items-start space-x-4">
-              <div className="p-2 bg-yellow-500/20 rounded-lg">
-                <AlertTriangle className="w-5 h-5 text-yellow-400" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-lg font-semibold text-white">Configure Form Interactions</h4>
-                  <div className="px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded text-sm">Important</div>
-                </div>
-                <p className="text-sm text-slate-400 mb-3">Form interaction tracking is disabled, limiting conversion funnel insights</p>
-                <div className="flex items-center space-x-3">
-                  <button className="px-4 py-2 bg-yellow-500/20 text-yellow-300 rounded-lg hover:bg-yellow-500/30 transition-colors">Learn More</button>
-                  <span className="text-xs text-slate-500">Admin → Data Settings → Enhanced Measurement</span>
-                </div>
+  const renderRecommendationsTab = () => {
+    // Group by severity
+    const grouped = {
+      critical: recommendations.filter(r => r.severity === 'critical'),
+      important: recommendations.filter(r => r.severity === 'important'),
+      info: recommendations.filter(r => r.severity === 'info'),
+    };
+    return (
+      <div className="space-y-8">
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+          <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+            <Shield className="w-7 h-7 mr-3 text-orange-400" />
+            All Recommendations
+          </h3>
+          {Object.entries(grouped).map(([severity, recs]) => recs.length > 0 && (
+            <div key={severity} className="mb-8">
+              <h4 className={`text-xl font-bold mb-4 ${severity === 'critical' ? 'text-red-400' : severity === 'important' ? 'text-yellow-400' : 'text-blue-400'}`}>{severity.charAt(0).toUpperCase() + severity.slice(1)}</h4>
+              <div className="space-y-4">
+                {recs.map((rec, idx) => (
+                  <div key={idx} className={`p-6 rounded-xl border ${severity === 'critical' ? 'bg-red-500/10 border-red-500/20' : severity === 'important' ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-blue-500/10 border-blue-500/20'}`}>
+                    <div className="flex items-start space-x-4">
+                      <div className={`p-2 rounded-lg ${severity === 'critical' ? 'bg-red-500/20' : severity === 'important' ? 'bg-yellow-500/20' : 'bg-blue-500/20'}`}>
+                        <AlertTriangle className={`w-5 h-5 ${severity === 'critical' ? 'text-red-400' : severity === 'important' ? 'text-yellow-400' : 'text-blue-400'}`} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-lg font-semibold text-white">{rec.title}</h4>
+                          {severity === 'critical' && <div className="px-3 py-1 bg-red-500/20 text-red-300 rounded text-sm">Critical</div>}
+                          {severity === 'important' && <div className="px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded text-sm">Important</div>}
+                          {severity === 'info' && <div className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded text-sm">Info</div>}
+                        </div>
+                        <p className="text-sm text-slate-400 mb-3">{rec.description}</p>
+                        {rec.docsUrl && <a href={rec.docsUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 underline">Learn more</a>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-          <div className="p-6 bg-blue-500/10 rounded-xl border border-blue-500/20">
-            <div className="flex items-start space-x-4">
-              <div className="p-2 bg-blue-500/20 rounded-lg">
-                <Sparkles className="w-5 h-5 text-blue-400" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-lg font-semibold text-white">Add Custom Event Parameters</h4>
-                  <div className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded text-sm">Enhancement</div>
-                </div>
-                <p className="text-sm text-slate-400 mb-3">Consider adding custom parameters to track specific business metrics</p>
-                <div className="flex items-center space-x-3">
-                  <button className="px-4 py-2 bg-blue-500/20 text-blue-300 rounded-lg hover:bg-blue-500/30 transition-colors">Learn More</button>
-                  <span className="text-xs text-slate-500">Admin → Custom Definitions</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
+
+  // Recommendation generator based on knowledge base
+  const generateRecommendations = (auditData: any) => {
+    const recs = [];
+    // 1. Timezone
+    if (!auditData?.property?.timeZone) {
+      recs.push({
+        title: 'Set timezone',
+        description: 'Timezone is not set. Keep timezones consistent across marketing platforms for accurate attribution.',
+        severity: 'critical',
+        docsUrl: 'https://support.google.com/analytics/answer/9304153?hl=en'
+      });
+    }
+    // 2. Currency
+    if (!auditData?.property?.currencyCode) {
+      recs.push({
+        title: 'Set currency',
+        description: 'Currency is not set. GA4 defaults to USD and converts all transactions based on daily rates.',
+        severity: 'important',
+        docsUrl: 'https://support.google.com/analytics/answer/9796179?hl=en'
+      });
+    }
+    // 3. Industry category
+    if (!auditData?.property?.industryCategory) {
+      recs.push({
+        title: 'Set industry category',
+        description: 'Industry category is not set. Used for benchmarking and improves machine learning predictions.',
+        severity: 'important',
+        deduction: -5,
+        docsUrl: 'https://support.google.com/analytics/answer/13771577?hl=en'
+      });
+    }
+    // 4. Data retention
+    if (auditData?.dataRetention?.eventDataRetention !== 'FOURTEEN_MONTHS') {
+      recs.push({
+        title: 'Set data retention period',
+        description: 'Set to 14 months (max available). Default is only 2 months!',
+        severity: 'critical',
+        deduction: -20,
+        docsUrl: 'https://support.google.com/analytics/answer/7667196?hl=en'
+      });
+    }
+    // 5. PII redaction
+    if (auditData?.audit?.dataCollection?.piiRedaction?.status !== 'good') {
+      recs.push({
+        title: 'Redact PII from URLs',
+        description: 'Remove email addresses, phone numbers from URL parameters for GDPR compliance.',
+        severity: 'critical',
+        docsUrl: 'https://support.google.com/analytics/answer/13544947?sjid=1431056984149397764-NC'
+      });
+    }
+    // 6. Cross-domain tracking
+    if (!auditData?.dataStreams?.some((s: any) => s.crossDomainSettings && s.crossDomainSettings.domains && s.crossDomainSettings.domains.length > 0)) {
+      recs.push({
+        title: 'Complete cross domain tracking',
+        description: 'Essential for multi-domain businesses.',
+        severity: 'important',
+        docsUrl: 'https://support.google.com/analytics/answer/10071811?hl=en'
+      });
+    }
+    // 7. Unwanted referrals
+    if (!auditData?.unwantedReferrals || auditData.unwantedReferrals.length === 0) {
+      recs.push({
+        title: 'Define unwanted referrals',
+        description: 'Exclude payment processors (PayPal, Stripe) from referrals.',
+        severity: 'important',
+        docsUrl: 'https://support.google.com/analytics/answer/10327750?hl=en'
+      });
+    }
+    // 8. IP filters
+    if (!auditData?.ipFilters || auditData.ipFilters.length === 0) {
+      recs.push({
+        title: 'Create IP filters',
+        description: 'Filter out office/employee traffic for accurate data.',
+        severity: 'important',
+        docsUrl: 'https://support.google.com/analytics/answer/13296761?hl=en'
+      });
+    }
+    // 9. Session timeout
+    if (auditData?.dataStreams && auditData.dataStreams.some((s: any) => s.sessionTimeout && s.sessionTimeout !== 1800)) {
+      recs.push({
+        title: 'Adjust session timeout',
+        description: 'Default is 30 minutes. Lower values can cause a lot of (not set) data.',
+        severity: 'info',
+        docsUrl: 'https://support.google.com/analytics/answer/12131703?hl=en'
+      });
+    }
+    // 10. Google Signals
+    if (!auditData?.googleSignals || auditData.googleSignals.state !== 'GOOGLE_SIGNALS_ENABLED') {
+      recs.push({
+        title: 'Configure Google Signals',
+        description: 'Enables demographics but may cause data thresholding and require extra privacy policies.',
+        severity: 'info',
+        docsUrl: 'https://support.google.com/analytics/answer/9445345?hl=en'
+      });
+    }
+    // 11. Enhanced measurement
+    if (!auditData?.enhancedMeasurement || auditData.enhancedMeasurement.length === 0) {
+      recs.push({
+        title: 'Enable enhanced measurement',
+        description: 'Select events to track automatically: Page views, scrolls, outbound clicks, site search, video, file downloads, form interactions, history changes.',
+        severity: 'important',
+        docsUrl: 'https://support.google.com/analytics/answer/9216061?hl=en'
+      });
+    }
+    // 12. Site search
+    if (auditData?.enhancedMeasurement && auditData.enhancedMeasurement[0] && auditData.enhancedMeasurement[0].settings && !auditData.enhancedMeasurement[0].settings.siteSearchEnabled) {
+      recs.push({
+        title: 'Double check site search parameters',
+        description: 'Default parameters: q, s, search, query, keyword.',
+        severity: 'important',
+        docsUrl: 'https://support.google.com/analytics/answer/9216061?hl=en'
+      });
+    }
+    // 13. Key events
+    if (!auditData?.keyEvents || auditData.keyEvents.length === 0) {
+      recs.push({
+        title: 'Set key events',
+        description: 'You must have at least one key event (conversion) to access attribution data.',
+        severity: 'critical',
+        deduction: -20
+      });
+    } else if (auditData.keyEvents.length > 2) {
+      recs.push({
+        title: 'Reduce key events',
+        description: 'Too many key events (more than 2) can reduce clarity in reporting.',
+        severity: 'info',
+        deduction: -10
+      });
+    }
+    // 14. Custom dimensions
+    if (!auditData?.customDimensions || auditData.customDimensions.length === 0) {
+      recs.push({
+        title: 'Define custom dimensions',
+        description: 'Register event parameters as custom dimensions to use in reports.',
+        severity: 'important',
+        docsUrl: 'https://support.google.com/analytics/answer/14240153?hl=en'
+      });
+    }
+    // 15. Custom metrics
+    if (!auditData?.customMetrics || auditData.customMetrics.length === 0) {
+      recs.push({
+        title: 'Create custom metrics',
+        description: 'Define calculated metrics important to your business.',
+        severity: 'info',
+        docsUrl: 'https://support.google.com/analytics/answer/14239619?sjid=1431056984149397764-NC#zippy=%2Canalyze-the-metric-in-a-report%2Canalyze-the-metric-in-an-exploration'
+      });
+    }
+    // 16. Google Ads link
+    if (!auditData?.googleAdsLinks || auditData.googleAdsLinks.length === 0) {
+      recs.push({
+        title: 'Connect Google Ads',
+        description: 'Import key events as Google Ads conversions for bidding.',
+        severity: 'critical',
+        deduction: -20,
+        docsUrl: 'https://support.google.com/analytics/answer/9379420?hl=en'
+      });
+    }
+    // 17. Search Console link
+    if (!auditData?.searchConsoleDataStatus || !auditData.searchConsoleDataStatus.isLinked) {
+      recs.push({
+        title: 'Connect Search Console',
+        description: 'Enable Search Console collection in Reports > Library after linking.',
+        severity: 'important',
+        deduction: -5,
+        docsUrl: 'https://support.google.com/analytics/answer/10737381?hl=en'
+      });
+    }
+    // 18. BigQuery link
+    if (!auditData?.bigQueryLinks || auditData.bigQueryLinks.length === 0) {
+      recs.push({
+        title: 'Connect BigQuery',
+        description: 'Enables advanced analysis and custom reporting needs.',
+        severity: 'info',
+        deduction: -5,
+        docsUrl: 'https://support.google.com/analytics/answer/9358801?hl=en'
+      });
+    }
+    // 19. Attribution channel
+    if (auditData?.attribution && auditData.attribution.channelsThatCanReceiveCredit !== 'PAID_AND_ORGANIC') {
+      recs.push({
+        title: 'Set channel credit to Paid and Organic',
+        description: 'Affects web conversions shared with Google Ads.',
+        severity: 'important',
+        deduction: -10,
+        docsUrl: 'https://support.google.com/analytics/answer/10597962?hl=en'
+      });
+    }
+    // 20. Enhanced measurement parameters (form/video)
+    if (auditData?.enhancedMeasurement && auditData.enhancedMeasurement[0]) {
+      const settings = auditData.enhancedMeasurement[0].settings;
+      if (settings.formInteractionsEnabled && !auditData.customDimensions?.some((d: any) => d.parameterName === 'form_id' || d.parameterName === 'form_name')) {
+        recs.push({
+          title: 'Register form parameters',
+          description: 'Register form_id and form_name as custom dimensions.',
+          severity: 'important',
+          deduction: -10,
+          docsUrl: 'https://support.google.com/analytics/answer/9216061?hl=en'
+        });
+      }
+      if (settings.videoEngagementEnabled && !auditData.customDimensions?.some((d: any) => d.parameterName === 'video_percent' || d.parameterName === 'video_duration')) {
+        recs.push({
+          title: 'Register video parameters',
+          description: 'Register video_percent and video_duration as custom dimensions.',
+          severity: 'info',
+          deduction: -5,
+          docsUrl: 'https://support.google.com/analytics/answer/9216061?hl=en'
+        });
+      }
+    }
+    return recs;
+  };
 
   return (
     <div className="min-h-screen bg-black">
