@@ -290,14 +290,14 @@ const handler: Handler = async (event, context) => {
 
     // 🚀 NEW: Run enhanced data quality checks
     console.log('🚀 Running enhanced data quality checks...');
-    let enhancedChecks;
+    let enhancedChecksResult;
     try {
-      enhancedChecks = await runEnhancedDataQualityChecks(accessToken, propertyId);
+      enhancedChecksResult = await runEnhancedDataQualityChecks(accessToken, propertyId);
       console.log('✅ Enhanced data quality checks completed');
     } catch (error) {
       console.error('⚠️ Enhanced data quality checks failed:', error);
       // Create fallback object so audit still works
-      enhancedChecks = {
+      enhancedChecksResult = {
         dataQualityScore: 100,
         criticalIssues: 0,
         warnings: 0,
@@ -436,38 +436,14 @@ const handler: Handler = async (event, context) => {
       
       // 🚀 NEW: Add enhanced data quality results
       dataQuality: {
-        score: enhancedChecks.dataQualityScore,
-        piiAnalysis: enhancedChecks.piiAnalysis,
-        searchImplementation: enhancedChecks.searchAnalysis,
-        trafficSources: enhancedChecks.trafficAnalysis,
-        criticalIssues: enhancedChecks.criticalIssues,
-        warnings: enhancedChecks.warnings
+        score: enhancedChecksResult.dataQualityScore,
+        piiAnalysis: enhancedChecksResult.piiAnalysis,
+        searchImplementation: enhancedChecksResult.searchAnalysis,
+        trafficSources: enhancedChecksResult.trafficAnalysis,
+        criticalIssues: enhancedChecksResult.criticalIssues,
+        warnings: enhancedChecksResult.warnings
       },
-      configScore: enhancedChecks.dataQualityScore,
-      enhancedChecks: enhancedChecks, // Pass full results to frontend
-      
-      audit: buildComprehensiveAudit({
-        propertyData,
-        dataStreams: dataStreamsWithCrossDomain,
-        keyEvents: keyEvents.keyEvents || [],
-        dataRetention,
-        attribution,
-        googleSignals,
-        googleAdsLinks: googleAdsLinks.googleAdsLinks || [],
-        bigQueryLinks: bigQueryLinks.bigQueryLinks || [],
-        connectedSiteTags: connectedSiteTags.connectedSiteTags || [],
-        searchConsoleLinks: [], // Empty array since we're using Data API
-        customDimensions: customDimensions.customDimensions || [],
-        customMetrics: customMetrics.customMetrics || [],
-        enhancedMeasurement: enhancedMeasurementDetails,
-        measurementProtocolSecrets,
-        eventCreateRules,
-        searchConsoleDataStatus,
-        dataFilters,
-        hostnames,
-        enhancedChecks // Pass enhanced checks to audit builder
-      }),
-      userInfo
+      configScore: enhancedChecksResult.dataQualityScore,
     };
 
     return {
@@ -664,6 +640,42 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
   return searchConsoleStatus;
 }
 
+// Helper to check if a parameter is registered as a custom dimension or metric
+function isParamRegistered(param, customDimensions, customMetrics) {
+  const dim = customDimensions.find(d => d.parameterName === param);
+  const met = customMetrics.find(m => m.parameterName === param);
+  return !!(dim || met);
+}
+
+// Determine if form or video interactions are enabled in any enhanced measurement stream
+const formInteractionsEnabled = enhancedMeasurement.some(
+  s => s.settings && s.settings.formInteractionsEnabled
+);
+const videoInteractionsEnabled = enhancedMeasurement.some(
+  s => s.settings && s.settings.videoEngagementEnabled
+);
+
+// Custom dimension/metric recommendations logic
+let customDimensionsRecommendation = '';
+let customMetricsRecommendation = '';
+
+// Form interactions: recommend if enabled but form_id or form_name not registered
+if (formInteractionsEnabled &&
+  (!isParamRegistered('form_id', customDimensions.customDimensions, customMetrics.customMetrics) ||
+   !isParamRegistered('form_name', customDimensions.customDimensions, customMetrics.customMetrics))) {
+  customDimensionsRecommendation =
+    'Form interactions are enabled in Enhanced Measurement, but form_id or form_name is not registered as a custom dimension. Register these to analyze form performance.';
+}
+
+// Video interactions: recommend if enabled but video_percent not registered AND (video_duration or video_time not registered)
+if (videoInteractionsEnabled &&
+  (!isParamRegistered('video_percent', customDimensions.customDimensions, customMetrics.customMetrics)) &&
+  (!isParamRegistered('video_duration', customDimensions.customDimensions, customMetrics.customMetrics) &&
+   !isParamRegistered('video_time', customDimensions.customDimensions, customMetrics.customMetrics))) {
+  customMetricsRecommendation =
+    'Video interactions are enabled in Enhanced Measurement, but video_percent is not registered as a custom dimension or metric, and video_duration or video_time is not registered. Register these to analyze video engagement.';
+}
+
 // Enhanced audit builder function
 function buildComprehensiveAudit(params: any) {
   const {
@@ -767,19 +779,15 @@ function buildComprehensiveAudit(params: any) {
     },
     customDefinitions: {
       customDimensions: {
-        status: customDimensions.length > 0 ? 'good' : 'opportunity',
-        value: `${customDimensions.length}/50 configured`,
-        recommendation: customDimensions.length > 0
-          ? `${customDimensions.length} dimensions for detailed analysis`
-          : 'Consider adding custom dimensions for business-specific data',
+        status: customDimensions.customDimensions.length > 0 ? 'good' : 'opportunity',
+        value: `${customDimensions.customDimensions.length}/50 configured`,
+        recommendation: customDimensionsRecommendation || '',
         adminPath: 'Admin > Custom definitions > Custom dimensions'
       },
       customMetrics: {
-        status: customMetrics.length > 0 ? 'good' : 'opportunity',
-        value: `${customMetrics.length}/50 configured`,
-        recommendation: customMetrics.length > 0
-          ? `${customMetrics.length} metrics for business KPIs`
-          : 'Consider adding custom metrics for business-specific calculations',
+        status: customMetrics.customMetrics.length > 0 ? 'good' : 'opportunity',
+        value: `${customMetrics.customMetrics.length}/50 configured`,
+        recommendation: customMetricsRecommendation || '',
         adminPath: 'Admin > Custom definitions > Custom metrics'
       }
     },

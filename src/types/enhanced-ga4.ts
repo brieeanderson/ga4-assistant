@@ -202,7 +202,6 @@ export interface EnhancedGA4Audit {
   
   // Enhanced data quality properties
   dataQuality?: EnhancedDataQuality;
-  enhancedChecks?: EnhancedDataQuality; // For backward compatibility
   
   // Audit results with enhanced items
   audit: {

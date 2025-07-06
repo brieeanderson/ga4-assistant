@@ -67,24 +67,6 @@ export const DataQualityAlerts: React.FC<DataQualityAlertsProps> = ({
     });
   }
 
-  // Enhanced measurement issues
-  const enhancedMeasurementEnabled = audit.enhancedMeasurement?.some(stream => 
-    stream.settings?.streamEnabled
-  );
-  
-  if (!enhancedMeasurementEnabled) {
-    criticalAlerts.push({
-      id: 'no-enhanced-measurement',
-      icon: AlertTriangle,
-      title: '⚡ Enhanced Measurement Disabled',
-      severity: 'warning',
-      description: 'Enhanced Measurement is disabled, missing automatic tracking of common website interactions.',
-      impact: 'Missing data on scrolls, outbound clicks, site search, video engagement, and file downloads',
-      action: 'Enable Enhanced Measurement for automatic event tracking',
-      adminPath: 'Admin > Data Streams > [Stream] > Enhanced Measurement'
-    });
-  }
-
   // Event create rules complexity warning
   const totalEventCreateRules = audit.eventCreateRules?.reduce((total, stream) => total + stream.rules.length, 0) || 0;
   
