@@ -20,7 +20,7 @@ import {
   Sparkles,
   LineChart
 } from 'lucide-react';
-import { GA4Audit, DataStream, CustomDimension, CustomMetric, KeyEvent, EventCreateRuleStream } from '@/types/ga4';
+import { GA4Audit, DataStream, CustomDimension, CustomMetric, KeyEvent } from '@/types/ga4';
 
 // Add prop types
 interface GA4DashboardProps {
