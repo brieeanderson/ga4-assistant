@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Database, BarChart3, Tag, Eye, EyeOff } from 'lucide-react';
-import { GA4Audit } from '@/types/ga4';
+import { GA4Audit, CustomDimension, CustomMetric, KeyEvent } from '@/types/ga4';
 
 interface CustomDefinitionsDisplayProps {
   audit: GA4Audit;
@@ -55,7 +55,7 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
 
           {audit.customDimensions.length > 0 ? (
             <div className="space-y-3">
-              {displayedDimensions.map((dimension, index) => (
+              {displayedDimensions.map((dimension: CustomDimension, index: number) => (
                 <div key={dimension.parameterName} className="bg-black/50 rounded-xl p-4 border border-gray-600/50">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
@@ -133,7 +133,7 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
 
           {audit.customMetrics.length > 0 ? (
             <div className="space-y-3">
-              {displayedMetrics.map((metric, index) => (
+              {displayedMetrics.map((metric: CustomMetric, index: number) => (
                 <div key={metric.parameterName} className="bg-black/50 rounded-xl p-4 border border-gray-600/50">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
@@ -201,7 +201,7 @@ export const CustomDefinitionsDisplay: React.FC<CustomDefinitionsDisplayProps> =
         
         {audit.keyEvents.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {audit.keyEvents.map((event, index) => (
+            {audit.keyEvents.map((event: KeyEvent, index: number) => (
               <div key={event.eventName} className="bg-black/50 rounded-xl p-4 border border-gray-600/50">
                 <div className="flex items-start justify-between mb-3">
                   <div>

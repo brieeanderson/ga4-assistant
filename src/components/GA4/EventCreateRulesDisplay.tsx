@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Settings, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Eye, EyeOff, Zap, Target } from 'lucide-react';
-import { GA4Audit } from '@/types/ga4';
+import { GA4Audit, EventCreateRuleStream, EventCreateRule } from '@/types/ga4';
 
 interface EventCreateRulesDisplayProps {
   audit: GA4Audit;
@@ -166,7 +166,7 @@ export const EventCreateRulesDisplay: React.FC<EventCreateRulesDisplayProps> = (
           </h3>
           
           <div className="space-y-6">
-            {audit.eventCreateRules.map((stream, streamIndex) => {
+            {audit.eventCreateRules.map((stream: EventCreateRuleStream, streamIndex: number) => {
               const isExpanded = expandedStreams.has(streamIndex);
               const displayedRules = showAllRules ? stream.rules : stream.rules.slice(0, 3);
               
@@ -206,7 +206,7 @@ export const EventCreateRulesDisplay: React.FC<EventCreateRulesDisplayProps> = (
 
                   {isExpanded && stream.rules.length > 0 && (
                     <div className="px-6 pb-6 space-y-4">
-                      {displayedRules.map((rule, ruleIndex) => (
+                      {displayedRules.map((rule: EventCreateRule, ruleIndex: number) => (
                         <div key={ruleIndex} className="bg-black/50 rounded-xl p-4 border border-gray-600/50">
                           <div className="flex items-start justify-between mb-3">
                             <div>
@@ -221,7 +221,7 @@ export const EventCreateRulesDisplay: React.FC<EventCreateRulesDisplayProps> = (
                             <div className="mb-3">
                               <h6 className="text-sm font-medium text-gray-300 mb-2">Conditions:</h6>
                               <div className="space-y-1">
-                                {rule.eventConditions.map((condition, condIndex) => (
+                                {rule.eventConditions.map((condition: any, condIndex: number) => (
                                   <div key={condIndex} className="text-xs bg-gray-800/80 px-2 py-1 rounded">
                                     <code className="text-gray-300">
                                       {condition.field} {condition.comparisonType} {condition.value}
@@ -236,7 +236,7 @@ export const EventCreateRulesDisplay: React.FC<EventCreateRulesDisplayProps> = (
                             <div className="mb-3">
                               <h6 className="text-sm font-medium text-gray-300 mb-2">Parameter Mutations:</h6>
                               <div className="space-y-1">
-                                {rule.parameterMutations.map((mod, modIndex) => (
+                                {rule.parameterMutations.map((mod: any, modIndex: number) => (
                                   <div key={modIndex} className="text-xs bg-blue-800/30 px-2 py-1 rounded">
                                     <code className="text-blue-300">
                                       {mod.parameter}: {mod.parameterValue}

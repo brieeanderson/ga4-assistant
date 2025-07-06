@@ -20,15 +20,16 @@ import {
   Sparkles,
   LineChart
 } from 'lucide-react';
+import { GA4Audit, DataStream, CustomDimension, CustomMetric, KeyEvent, EventCreateRuleStream } from '@/types/ga4';
 
 // Add prop types
 interface GA4DashboardProps {
-  auditData: any; // Replace 'any' with your GA4Audit type if available
+  auditData: GA4Audit;
   property: any;
   onChangeProperty: () => void;
 }
 
-const generateRecommendations = (auditData: any) => {
+const generateRecommendations = (auditData: GA4Audit) => {
   const recs = [];
   // 1. Timezone
   if (!auditData?.property?.timeZone) {
@@ -78,7 +79,7 @@ const generateRecommendations = (auditData: any) => {
     });
   }
   // 6. Cross-domain tracking
-  if (!auditData?.dataStreams?.some((s: any) => s.crossDomainSettings && s.crossDomainSettings.domains && s.crossDomainSettings.domains.length > 0)) {
+  if (!auditData?.dataStreams?.some((s: DataStream) => s.crossDomainSettings && s.crossDomainSettings.domains && s.crossDomainSettings.domains.length > 0)) {
     recs.push({
       title: 'Complete cross domain tracking',
       description: 'Essential for multi-domain businesses.',
@@ -105,7 +106,7 @@ const generateRecommendations = (auditData: any) => {
     });
   }
   // 9. Session timeout
-  if (auditData?.dataStreams && auditData.dataStreams.some((s: any) => s.sessionTimeout && s.sessionTimeout !== 1800)) {
+  if (auditData?.dataStreams && auditData.dataStreams.some((s: DataStream) => s.sessionTimeout && s.sessionTimeout !== 1800)) {
     recs.push({
       title: 'Adjust session timeout',
       description: 'Default is 30 minutes. Lower values can cause a lot of (not set) data.',
@@ -217,7 +218,7 @@ const generateRecommendations = (auditData: any) => {
   // 20. Enhanced measurement parameters (form/video)
   if (auditData?.enhancedMeasurement && auditData.enhancedMeasurement[0]) {
     const settings = auditData.enhancedMeasurement[0].settings;
-    if (settings.formInteractionsEnabled && !auditData.customDimensions?.some((d: any) => d.parameterName === 'form_id' || d.parameterName === 'form_name')) {
+    if (settings.formInteractionsEnabled && !auditData.customDimensions?.some((d: CustomDimension) => d.parameterName === 'form_id' || d.parameterName === 'form_name')) {
       recs.push({
         title: 'Register form parameters',
         description: 'Register form_id and form_name as custom dimensions.',
@@ -226,7 +227,7 @@ const generateRecommendations = (auditData: any) => {
         docsUrl: 'https://support.google.com/analytics/answer/9216061?hl=en'
       });
     }
-    if (settings.videoEngagementEnabled && !auditData.customDimensions?.some((d: any) => d.parameterName === 'video_percent' || d.parameterName === 'video_duration')) {
+    if (settings.videoEngagementEnabled && !auditData.customDimensions?.some((d: CustomDimension) => d.parameterName === 'video_percent' || d.parameterName === 'video_duration')) {
       recs.push({
         title: 'Register video parameters',
         description: 'Register video_percent and video_duration as custom dimensions.',
@@ -380,7 +381,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           <Globe className="w-6 h-6 mr-2 text-blue-400" />
           Cross-Domain Tracking
         </h3>
-        <div className="text-white text-lg font-semibold">{auditData?.dataStreams?.some(s => s.crossDomainSettings && s.crossDomainSettings.domains && s.crossDomainSettings.domains.length > 0) ? 'Configured' : 'Not Configured'}</div>
+        <div className="text-white text-lg font-semibold">{auditData?.dataStreams?.some((s: DataStream) => s.crossDomainSettings && s.crossDomainSettings.domains && s.crossDomainSettings.domains.length > 0) ? 'Configured' : 'Not Configured'}</div>
         <div className="text-sm text-slate-400 mt-2">Essential for multi-domain businesses. <span className="font-semibold">Check detected hostnames and domains.</span></div>
         {auditData?.hostnames && auditData.hostnames.length > 0 && (
           <div className="mt-2">
@@ -466,7 +467,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           Key Events (Conversions)
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {auditData?.keyEvents?.map((event: any, index: number) => (
+          {auditData?.keyEvents?.map((event: KeyEvent, index: number) => (
             <div key={index} className="p-6 bg-green-500/10 rounded-xl border border-green-500/20">
               <div className="flex items-center justify-between mb-4">
                 <div className="p-2 bg-green-500/20 rounded-lg">
@@ -851,7 +852,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               </div>
             </div>
             <div className="space-y-3">
-              {auditData?.customDimensions?.map((dimension: any, index: number) => (
+              {auditData?.customDimensions?.map((dimension: CustomDimension, index: number) => (
                 <div key={index} className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
                   <div className="flex items-center justify-between mb-2">
                     <div className="font-medium text-white">{dimension.displayName}</div>
@@ -881,7 +882,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               </div>
             </div>
             <div className="space-y-3">
-              {auditData?.customMetrics?.map((metric: any, index: number) => (
+              {auditData?.customMetrics?.map((metric: CustomMetric, index: number) => (
                 <div key={index} className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
                   <div className="flex items-center justify-between mb-2">
                     <div className="font-medium text-white">{metric.displayName}</div>
@@ -907,7 +908,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           Custom Events
         </h3>
         <div className="space-y-3">
-          {auditData?.keyEvents?.map((event: any, index: number) => (
+          {auditData?.keyEvents?.map((event: KeyEvent, index: number) => (
             <div key={index} className="p-4 bg-green-500/10 rounded-xl border border-green-500/20">
               <div className="flex items-center justify-between mb-2">
                 <div className="font-medium text-white">{event.eventName}</div>
