@@ -252,12 +252,13 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
   };
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: TrendingUp, color: 'orange' },
-    { id: 'configuration', label: 'Configuration', icon: Settings, color: 'orange' },
-    { id: 'events', label: 'Events & Tracking', icon: Target, color: 'orange' },
-    { id: 'attribution', label: 'Attribution', icon: LineChart, color: 'orange' },
-    { id: 'integrations', label: 'Integrations', icon: Link, color: 'orange' },
-    { id: 'recommendations', label: 'Recommendations', icon: Shield, color: 'orange' }
+    { id: 'overview', label: 'Overview', icon: TrendingUp },
+    { id: 'configuration', label: 'Configuration', icon: Settings },
+    { id: 'events', label: 'Events & Tracking', icon: Target },
+    { id: 'attribution', label: 'Attribution', icon: LineChart },
+    { id: 'integrations', label: 'Integrations', icon: Link },
+    { id: 'customizations', label: 'Customizations', icon: Database },
+    { id: 'recommendations', label: 'Recommendations', icon: Shield }
   ];
 
   const recommendations = generateRecommendations(auditData);
@@ -364,6 +365,67 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           </div>
         </div>
       </div>
+      {/* Data Retention */}
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+        <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+          <Clock className="w-6 h-6 mr-2 text-orange-400" />
+          Data Retention
+        </h3>
+        <div className="text-white text-lg font-semibold">{auditData?.dataRetention?.eventDataRetention === 'FOURTEEN_MONTHS' ? '14 months' : auditData?.dataRetention?.eventDataRetention === 'TWO_MONTHS' ? '2 months' : 'Unknown'}</div>
+        <div className="text-sm text-slate-400 mt-2">Controls how long event-level data is available for analysis. <span className="font-semibold">Recommended: 14 months</span></div>
+      </div>
+      {/* Cross-Domain Tracking */}
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+        <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+          <Globe className="w-6 h-6 mr-2 text-blue-400" />
+          Cross-Domain Tracking
+        </h3>
+        <div className="text-white text-lg font-semibold">{auditData?.dataStreams?.some(s => s.crossDomainSettings && s.crossDomainSettings.domains && s.crossDomainSettings.domains.length > 0) ? 'Configured' : 'Not Configured'}</div>
+        <div className="text-sm text-slate-400 mt-2">Essential for multi-domain businesses. <span className="font-semibold">Check detected hostnames and domains.</span></div>
+        {auditData?.hostnames && auditData.hostnames.length > 0 && (
+          <div className="mt-2">
+            <div className="font-semibold mb-1 text-gray-200">Detected hostnames:</div>
+            <ul className="ml-4 list-disc">
+              {auditData.hostnames.map((host, i) => (
+                <li key={host + i} className="break-all text-gray-200">{host}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+      {/* PII Checks */}
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+        <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+          <Shield className="w-6 h-6 mr-2 text-red-400" />
+          PII Checks
+        </h3>
+        <div className="text-white text-lg font-semibold">{auditData?.dataQuality?.piiAnalysis?.severity === 'critical' ? 'PII Detected' : 'No PII Detected'}</div>
+        <div className="text-sm text-slate-400 mt-2">Checks for names, email addresses, phone numbers, SSNs, usernames, and other PII in page URLs and query parameters. <span className="font-semibold">PII in URLs is a major privacy and compliance risk.</span></div>
+        {auditData?.dataQuality?.piiAnalysis?.severity === 'critical' && auditData.dataQuality.piiAnalysis.details && (
+          <div className="mt-2 text-sm text-red-300">
+            {auditData.dataQuality.piiAnalysis.details.critical.length} critical, {auditData.dataQuality.piiAnalysis.details.high.length} high, {auditData.dataQuality.piiAnalysis.details.medium.length} medium issues across {auditData.dataQuality.piiAnalysis.details.totalAffectedUrls} URLs.
+          </div>
+        )}
+      </div>
+      {/* Unwanted Referrers */}
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+        <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+          <Link className="w-6 h-6 mr-2 text-pink-400" />
+          Unwanted Referrers
+        </h3>
+        <div className="text-white text-lg font-semibold">{auditData?.dataQuality?.trafficSources?.unwantedReferrals?.detected ? 'Detected' : 'None Detected'}</div>
+        <div className="text-sm text-slate-400 mt-2">Exclude payment processors (PayPal, Stripe) and other unwanted referrers for accurate attribution.</div>
+        {auditData?.dataQuality?.trafficSources?.unwantedReferrals?.detected && auditData.dataQuality.trafficSources.unwantedReferrals.sources && (
+          <div className="mt-2">
+            <div className="font-semibold mb-1 text-gray-200">Detected unwanted referrers:</div>
+            <ul className="ml-4 list-disc">
+              {auditData.dataQuality.trafficSources.unwantedReferrals.sources.map((ref: any, i: number) => (
+                <li key={ref.source + i} className="break-all text-gray-200">{ref.source} ({ref.sessions} sessions)</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
       {/* Enhanced Measurement */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
         <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
@@ -390,78 +452,6 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               </div>
             );
           })}
-        </div>
-      </div>
-      {/* Custom Definitions */}
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
-          <Database className="w-7 h-7 mr-3 text-blue-400" />
-          Custom Definitions
-        </h3>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Custom Dimensions */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-lg font-semibold text-white">Custom Dimensions</h4>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-slate-400">{auditData?.customDimensions?.length || 0}/50</span>
-                <div className="w-16 bg-slate-700 rounded-full h-2">
-                  <div 
-                    className="h-2 bg-blue-500 rounded-full transition-all duration-300"
-                    style={{ width: `${((auditData?.customDimensions?.length || 0) / 50) * 100}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3">
-              {auditData?.customDimensions?.map((dimension: any, index: number) => (
-                <div key={index} className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="font-medium text-white">{dimension.displayName}</div>
-                    <div className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded text-xs">
-                      {dimension.scope}
-                    </div>
-                  </div>
-                  <div className="text-sm text-slate-400">
-                    Parameter: <code className="bg-slate-700 px-2 py-1 rounded text-orange-300">{dimension.parameterName}</code>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* Custom Metrics */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-lg font-semibold text-white">Custom Metrics</h4>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-slate-400">{auditData?.customMetrics?.length || 0}/50</span>
-                <div className="w-16 bg-slate-700 rounded-full h-2">
-                  <div 
-                    className="h-2 bg-purple-500 rounded-full transition-all duration-300"
-                    style={{ width: `${((auditData?.customMetrics?.length || 0) / 50) * 100}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3">
-              {auditData?.customMetrics?.map((metric: any, index: number) => (
-                <div key={index} className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="font-medium text-white">{metric.displayName}</div>
-                    <div className="px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-xs">
-                      {metric.scope}
-                    </div>
-                  </div>
-                  <div className="text-sm text-slate-400">
-                    Parameter: <code className="bg-slate-700 px-2 py-1 rounded text-orange-300">{metric.parameterName}</code>
-                  </div>
-                  <div className="text-xs text-slate-500 mt-1">
-                    Unit: {metric.unitOfMeasurement}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -838,6 +828,97 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
     </div>
   );
 
+  const renderCustomizationsTab = () => (
+    <div className="space-y-8">
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+        <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+          <Database className="w-7 h-7 mr-3 text-blue-400" />
+          Custom Dimensions
+        </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Custom Dimensions */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-semibold text-white">Custom Dimensions</h4>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-slate-400">{auditData?.customDimensions?.length || 0}/50</span>
+                <div className="w-16 bg-slate-700 rounded-full h-2">
+                  <div 
+                    className="h-2 bg-blue-500 rounded-full transition-all duration-300"
+                    style={{ width: `${((auditData?.customDimensions?.length || 0) / 50) * 100}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {auditData?.customDimensions?.map((dimension: any, index: number) => (
+                <div key={index} className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-medium text-white">{dimension.displayName}</div>
+                    <div className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded text-xs">
+                      {dimension.scope}
+                    </div>
+                  </div>
+                  <div className="text-sm text-slate-400">
+                    Parameter: <code className="bg-slate-700 px-2 py-1 rounded text-orange-300">{dimension.parameterName}</code>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Custom Metrics */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-semibold text-white">Custom Metrics</h4>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-slate-400">{auditData?.customMetrics?.length || 0}/50</span>
+                <div className="w-16 bg-slate-700 rounded-full h-2">
+                  <div 
+                    className="h-2 bg-purple-500 rounded-full transition-all duration-300"
+                    style={{ width: `${((auditData?.customMetrics?.length || 0) / 50) * 100}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {auditData?.customMetrics?.map((metric: any, index: number) => (
+                <div key={index} className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-medium text-white">{metric.displayName}</div>
+                    <div className="px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-xs">
+                      {metric.scope}
+                    </div>
+                  </div>
+                  <div className="text-sm text-slate-400">
+                    Parameter: <code className="bg-slate-700 px-2 py-1 rounded text-orange-300">{metric.parameterName}</code>
+                  </div>
+                  <div className="text-xs text-slate-500 mt-1">
+                    Unit: {metric.unitOfMeasurement}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+        <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+          <Activity className="w-7 h-7 mr-3 text-green-400" />
+          Custom Events
+        </h3>
+        <div className="space-y-3">
+          {auditData?.keyEvents?.map((event: any, index: number) => (
+            <div key={index} className="p-4 bg-green-500/10 rounded-xl border border-green-500/20">
+              <div className="flex items-center justify-between mb-2">
+                <div className="font-medium text-white">{event.eventName}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   const renderRecommendationsTab = () => {
     // Group by severity
     const grouped = {
@@ -918,28 +999,17 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-gray-800 bg-gray-950">
-        <div className="max-w-7xl mx-auto px-6">
-          <nav className="flex space-x-8">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
-                    activeTab === tab.id
-                      ? 'border-orange-500 text-orange-400'
-                      : 'border-transparent text-gray-400 hover:text-gray-300'
-                  }`}
-                >
-                  <Icon className="w-4 h-4 mr-2" />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
+      <div className="flex space-x-2 border-b border-slate-800 mb-8">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            className={`flex items-center px-4 py-2 font-semibold text-sm rounded-t-lg transition-colors duration-200 ${activeTab === tab.id ? 'text-orange-400 border-b-2 border-orange-400 bg-slate-900' : 'text-slate-300 hover:text-orange-300'}`}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            <tab.icon className="w-4 h-4 mr-2" />
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Content */}
@@ -949,6 +1019,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
         {activeTab === 'events' && renderEventsTab()}
         {activeTab === 'attribution' && renderAttributionTab()}
         {activeTab === 'integrations' && renderIntegrationsTab()}
+        {activeTab === 'customizations' && renderCustomizationsTab()}
         {activeTab === 'recommendations' && renderRecommendationsTab()}
       </div>
     </div>
