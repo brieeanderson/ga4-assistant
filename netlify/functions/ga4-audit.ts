@@ -446,12 +446,19 @@ const handler: Handler = async (event, context) => {
       configScore: enhancedChecksResult.dataQualityScore,
     };
 
+    // Define a type for enhanced measurement settings
+    interface EnhancedMeasurementSettings {
+      formInteractionsEnabled?: boolean;
+      videoEngagementEnabled?: boolean;
+      [key: string]: any;
+    }
+
     // Determine if form or video interactions are enabled in any enhanced measurement stream
     const formInteractionsEnabled = audit.enhancedMeasurement.some(
-      s => s.settings && s.settings.formInteractionsEnabled
+      s => s.settings && (s.settings as EnhancedMeasurementSettings).formInteractionsEnabled
     );
     const videoInteractionsEnabled = audit.enhancedMeasurement.some(
-      s => s.settings && s.settings.videoEngagementEnabled
+      s => s.settings && (s.settings as EnhancedMeasurementSettings).videoEngagementEnabled
     );
 
     // Custom dimension/metric recommendations logic
