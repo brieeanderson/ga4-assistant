@@ -648,10 +648,10 @@ function isParamRegistered(param: string, customDimensions: any[], customMetrics
 }
 
 // Determine if form or video interactions are enabled in any enhanced measurement stream
-const formInteractionsEnabled = enhancedMeasurement.some(
+const formInteractionsEnabled = audit.enhancedMeasurement.some(
   s => s.settings && s.settings.formInteractionsEnabled
 );
-const videoInteractionsEnabled = enhancedMeasurement.some(
+const videoInteractionsEnabled = audit.enhancedMeasurement.some(
   s => s.settings && s.settings.videoEngagementEnabled
 );
 
@@ -661,17 +661,17 @@ let customMetricsRecommendation = '';
 
 // Form interactions: recommend if enabled but form_id or form_name not registered
 if (formInteractionsEnabled &&
-  (!isParamRegistered('form_id', customDimensions.customDimensions, customMetrics.customMetrics) ||
-   !isParamRegistered('form_name', customDimensions.customDimensions, customMetrics.customMetrics))) {
+  (!isParamRegistered('form_id', audit.customDimensions, audit.customMetrics) ||
+   !isParamRegistered('form_name', audit.customDimensions, audit.customMetrics))) {
   customDimensionsRecommendation =
     'Form interactions are enabled in Enhanced Measurement, but form_id or form_name is not registered as a custom dimension. Register these to analyze form performance.';
 }
 
 // Video interactions: recommend if enabled but video_percent not registered AND (video_duration or video_time not registered)
 if (videoInteractionsEnabled &&
-  (!isParamRegistered('video_percent', customDimensions.customDimensions, customMetrics.customMetrics)) &&
-  (!isParamRegistered('video_duration', customDimensions.customDimensions, customMetrics.customMetrics) &&
-   !isParamRegistered('video_time', customDimensions.customDimensions, customMetrics.customMetrics))) {
+  (!isParamRegistered('video_percent', audit.customDimensions, audit.customMetrics)) &&
+  (!isParamRegistered('video_duration', audit.customDimensions, audit.customMetrics) &&
+   !isParamRegistered('video_time', audit.customDimensions, audit.customMetrics))) {
   customMetricsRecommendation =
     'Video interactions are enabled in Enhanced Measurement, but video_percent is not registered as a custom dimension or metric, and video_duration or video_time is not registered. Register these to analyze video engagement.';
 }
