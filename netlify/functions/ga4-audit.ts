@@ -446,6 +446,35 @@ const handler: Handler = async (event, context) => {
       configScore: enhancedChecksResult.dataQualityScore,
     };
 
+    // Determine if form or video interactions are enabled in any enhanced measurement stream
+    const formInteractionsEnabled = audit.enhancedMeasurement.some(
+      s => s.settings && s.settings.formInteractionsEnabled
+    );
+    const videoInteractionsEnabled = audit.enhancedMeasurement.some(
+      s => s.settings && s.settings.videoEngagementEnabled
+    );
+
+    // Custom dimension/metric recommendations logic
+    let customDimensionsRecommendation = '';
+    let customMetricsRecommendation = '';
+
+    // Form interactions: recommend if enabled but form_id or form_name not registered
+    if (formInteractionsEnabled &&
+      (!isParamRegistered('form_id', audit.customDimensions, audit.customMetrics) ||
+       !isParamRegistered('form_name', audit.customDimensions, audit.customMetrics))) {
+      customDimensionsRecommendation =
+        'Form interactions are enabled in Enhanced Measurement, but form_id or form_name is not registered as a custom dimension. Register these to analyze form performance.';
+    }
+
+    // Video interactions: recommend if enabled but video_percent not registered AND (video_duration or video_time not registered)
+    if (videoInteractionsEnabled &&
+      (!isParamRegistered('video_percent', audit.customDimensions, audit.customMetrics)) &&
+      (!isParamRegistered('video_duration', audit.customDimensions, audit.customMetrics) &&
+       !isParamRegistered('video_time', audit.customDimensions, audit.customMetrics))) {
+      customMetricsRecommendation =
+        'Video interactions are enabled in Enhanced Measurement, but video_percent is not registered as a custom dimension or metric, and video_duration or video_time is not registered. Register these to analyze video engagement.';
+    }
+
     return {
       statusCode: 200,
       headers,
@@ -645,197 +674,6 @@ function isParamRegistered(param: string, customDimensions: any[], customMetrics
   const dim = customDimensions.find(d => d.parameterName === param);
   const met = customMetrics.find(m => m.parameterName === param);
   return !!(dim || met);
-}
-
-// Determine if form or video interactions are enabled in any enhanced measurement stream
-const formInteractionsEnabled = audit.enhancedMeasurement.some(
-  s => s.settings && s.settings.formInteractionsEnabled
-);
-const videoInteractionsEnabled = audit.enhancedMeasurement.some(
-  s => s.settings && s.settings.videoEngagementEnabled
-);
-
-// Custom dimension/metric recommendations logic
-let customDimensionsRecommendation = '';
-let customMetricsRecommendation = '';
-
-// Form interactions: recommend if enabled but form_id or form_name not registered
-if (formInteractionsEnabled &&
-  (!isParamRegistered('form_id', audit.customDimensions, audit.customMetrics) ||
-   !isParamRegistered('form_name', audit.customDimensions, audit.customMetrics))) {
-  customDimensionsRecommendation =
-    'Form interactions are enabled in Enhanced Measurement, but form_id or form_name is not registered as a custom dimension. Register these to analyze form performance.';
-}
-
-// Video interactions: recommend if enabled but video_percent not registered AND (video_duration or video_time not registered)
-if (videoInteractionsEnabled &&
-  (!isParamRegistered('video_percent', audit.customDimensions, audit.customMetrics)) &&
-  (!isParamRegistered('video_duration', audit.customDimensions, audit.customMetrics) &&
-   !isParamRegistered('video_time', audit.customDimensions, audit.customMetrics))) {
-  customMetricsRecommendation =
-    'Video interactions are enabled in Enhanced Measurement, but video_percent is not registered as a custom dimension or metric, and video_duration or video_time is not registered. Register these to analyze video engagement.';
-}
-
-// Enhanced audit builder function
-function buildComprehensiveAudit(params: any) {
-  const {
-    propertyData,
-    dataStreams,
-    keyEvents,
-    dataRetention,
-    attribution,
-    googleSignals,
-    googleAdsLinks,
-    bigQueryLinks,
-    connectedSiteTags,
-    searchConsoleLinks,
-    customDimensions,
-    customMetrics,
-    enhancedMeasurement,
-    measurementProtocolSecrets,
-    eventCreateRules,
-    searchConsoleDataStatus,
-    dataFilters,
-    hostnames,
-    enhancedChecks
-  } = params;
-
-  return {
-    propertySettings: {
-      timezone: {
-        status: propertyData.timeZone ? 'good' : 'critical',
-        value: propertyData.timeZone || 'Not Set (defaults to Pacific Time)',
-        recommendation: propertyData.timeZone 
-          ? `Timezone set to ${propertyData.timeZone}`
-          : 'Set timezone in Admin > Property settings',
-        adminPath: 'Admin > Property settings'
-      },
-      currency: {
-        status: propertyData.currencyCode ? 'good' : 'warning',
-        value: propertyData.currencyCode || 'USD (default)',
-        recommendation: propertyData.currencyCode 
-          ? `Currency set to ${propertyData.currencyCode}`
-          : 'Consider setting currency if you track revenue',
-        adminPath: 'Admin > Property settings'
-      },
-      industryCategory: {
-        status: propertyData.industryCategory ? 'good' : 'warning',
-        value: propertyData.industryCategory || 'Not set',
-        recommendation: propertyData.industryCategory 
-          ? 'Industry category configured for ML optimization'
-          : 'Set industry category for better machine learning predictions',
-        adminPath: 'Admin > Property settings'
-      }
-    },
-    dataCollection: {
-      dataRetention: {
-        status: dataRetention.eventDataRetention === 'TWO_MONTHS' ? 'critical' : 'good',
-        value: dataRetention.eventDataRetention || 'Not configured',
-        recommendation: dataRetention.eventDataRetention === 'TWO_MONTHS'
-          ? 'CRITICAL: Set data retention to 14 months to avoid losing historical data'
-          : 'Data retention properly configured',
-        adminPath: 'Admin > Data Settings > Data Retention'
-      },
-      
-      // 🚀 NEW: Enhanced data collection audit items
-      piiRedaction: {
-        status: enhancedChecks?.piiAnalysis?.hasPII ? 'critical' : 'good',
-        value: enhancedChecks?.piiAnalysis?.hasPII 
-          ? `PII detected in ${enhancedChecks.piiAnalysis.details?.totalAffectedUrls || 0} URLs`
-          : 'No PII detected in URL parameters',
-        recommendation: enhancedChecks?.piiAnalysis?.recommendation || 'PII analysis unavailable',
-        details: enhancedChecks?.piiAnalysis?.details ? 
-          `Found ${enhancedChecks.piiAnalysis.details.critical.length + enhancedChecks.piiAnalysis.details.high.length} critical/high severity PII instances` : 
-          undefined,
-        adminPath: 'Admin > Data Settings > Data Collection > Data redaction'
-      },
-      
-      siteSearch: {
-        status: enhancedChecks?.searchAnalysis?.status === 'optimal' ? 'good' :
-                enhancedChecks?.searchAnalysis?.status === 'partial' ? 'warning' :
-                enhancedChecks?.searchAnalysis?.status === 'needs_config' ? 'critical' :
-                enhancedChecks?.searchAnalysis?.status === 'missed_opportunity' ? 'warning' : 'unknown',
-        value: enhancedChecks?.searchAnalysis?.hasSearchTerms 
-          ? `${enhancedChecks.searchAnalysis.searchTermsCount} search terms captured`
-          : enhancedChecks?.searchAnalysis?.customSearchParams?.length > 0
-          ? `${enhancedChecks.searchAnalysis.customSearchParams.length} custom search parameters detected but not tracked`
-          : 'No search activity detected',
-        recommendation: enhancedChecks?.searchAnalysis?.recommendation || 'Search analysis unavailable',
-        details: enhancedChecks?.searchAnalysis?.configurationSuggestions?.length > 0 ?
-          enhancedChecks.searchAnalysis.configurationSuggestions.join(' | ') : undefined,
-        adminPath: 'Admin > Data Streams > [Stream] > Enhanced measurement > Site search'
-      },
-      
-      unwantedReferrals: {
-        status: enhancedChecks?.trafficAnalysis?.unwantedReferrals?.detected ? 'critical' : 'good',
-        value: enhancedChecks?.trafficAnalysis?.unwantedReferrals?.detected
-          ? `${enhancedChecks.trafficAnalysis.unwantedReferrals.count} payment processors as referrals`
-          : 'No unwanted referrals detected',
-        recommendation: enhancedChecks?.trafficAnalysis?.unwantedReferrals?.recommendation || 'Referral analysis unavailable',
-        details: enhancedChecks?.trafficAnalysis?.unwantedReferrals?.detected ?
-          `Affecting ${enhancedChecks.trafficAnalysis.unwantedReferrals.totalSessions} sessions` : undefined,
-        adminPath: 'Admin > Data Settings > Data Collection > Configure tag settings > Unwanted referrals'
-      }
-    },
-    customDefinitions: {
-      customDimensions: {
-        status: customDimensions.customDimensions.length > 0 ? 'good' : 'opportunity',
-        value: `${customDimensions.customDimensions.length}/50 configured`,
-        recommendation: customDimensionsRecommendation || '',
-        adminPath: 'Admin > Custom definitions > Custom dimensions'
-      },
-      customMetrics: {
-        status: customMetrics.customMetrics.length > 0 ? 'good' : 'opportunity',
-        value: `${customMetrics.customMetrics.length}/50 configured`,
-        recommendation: customMetricsRecommendation || '',
-        adminPath: 'Admin > Custom definitions > Custom metrics'
-      }
-    },
-    keyEvents: {
-      keyEventsSetup: {
-        status: keyEvents.length === 0 ? 'critical' : keyEvents.length > 2 ? 'warning' : 'good',
-        value: `${keyEvents.length} key event(s) configured`,
-        recommendation: keyEvents.length === 0
-          ? 'CRITICAL: Set up key events for business objectives'
-          : keyEvents.length > 2
-          ? `⚠️ TOO MANY: ${keyEvents.length} key events may dilute data`
-          : `Properly configured: ${keyEvents.map((e: any) => e.eventName).join(', ')}`,
-        adminPath: 'Admin > Events'
-      }
-    },
-    integrations: {
-      googleAds: {
-        status: googleAdsLinks.length > 0 ? 'good' : 'warning',
-        value: googleAdsLinks.length > 0 
-          ? `${googleAdsLinks.length} account(s) connected`
-          : 'Not connected',
-        recommendation: googleAdsLinks.length > 0
-          ? 'Google Ads linked for conversion import'
-          : 'Connect Google Ads for conversion tracking and bidding optimization',
-        adminPath: 'Admin > Product linking > Google Ads'
-      },
-      searchConsole: {
-        status: searchConsoleDataStatus.hasData ? 'good' : 'warning',
-        value: searchConsoleDataStatus.hasData 
-          ? `${searchConsoleDataStatus.totalClicks} clicks, ${searchConsoleDataStatus.totalImpressions} impressions`
-          : 'No data detected',
-        recommendation: searchConsoleDataStatus.hasData
-          ? 'Search Console linked and providing data'
-          : 'Link Search Console for organic search insights',
-        adminPath: 'Admin > Product linking > Search Console'
-      },
-      bigQuery: {
-        status: bigQueryLinks.length > 0 ? 'good' : 'opportunity',
-        value: bigQueryLinks.length > 0 
-          ? `${bigQueryLinks.length} project(s) connected`
-          : 'Not connected',
-        recommendation: bigQueryLinks.length > 0
-          ? 'BigQuery connected for advanced analysis'
-          : 'Connect BigQuery for unsampled data (free tier available)',
-        adminPath: 'Admin > Product linking > BigQuery'
-      }
-    }
-  };
 }
 
 export { handler };
