@@ -240,6 +240,9 @@ const generateRecommendations = (auditData: any) => {
 };
 
 const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChangeProperty }) => {
+  // Debug: Log the auditData every time the dashboard renders
+  console.log('GA4Dashboard auditData:', auditData);
+
   const [activeTab, setActiveTab] = useState('overview');
 
   const getScoreColor = (score: number) => {
