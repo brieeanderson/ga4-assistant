@@ -97,10 +97,10 @@ const generateRecommendations = (auditData: GA4Audit) => {
     });
   }
   // 8. IP filters
-  if (!auditData?.ipFilters || auditData.ipFilters.length === 0) {
+  if (!auditData?.dataFilters || auditData.dataFilters.length === 0) {
     recs.push({
-      title: 'Create IP filters',
-      description: 'Filter out office/employee traffic for accurate data.',
+      title: 'Create Data Filters',
+      description: 'Filter out office/employee traffic and unwanted referrals for accurate data.',
       severity: 'important',
       docsUrl: 'https://support.google.com/analytics/answer/13296761?hl=en'
     });
@@ -703,55 +703,6 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
             </div>
           </div>
         </div>
-        {/* Attribution Insights (optional) */}
-        {auditData?.attributionInsights && (
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
-            <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
-              <Sparkles className="w-7 h-7 mr-3 text-yellow-400" />
-              Attribution Insights
-            </h3>
-            {/* Top Converting Paths */}
-            <div className="mb-8">
-              <h4 className="text-lg font-semibold text-white mb-4">Top Converting Paths</h4>
-              <div className="space-y-3">
-                {auditData.attributionInsights.topConvertingPaths?.map((path: any, idx: number) => (
-                  <div key={idx} className="p-4 bg-slate-800/50 rounded-xl border border-slate-700 flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-white">{path.path}</div>
-                      <div className="text-xs text-slate-400">Conversions: {path.conversions} | Value: ${path.conversionValue} | {path.percentage}%</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* Channel Contribution */}
-            <div>
-              <h4 className="text-lg font-semibold text-white mb-4">Channel Contribution</h4>
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-xs text-slate-300">
-                  <thead>
-                    <tr>
-                      <th className="px-2 py-1 text-left">Channel</th>
-                      <th className="px-2 py-1">First Click</th>
-                      <th className="px-2 py-1">Last Click</th>
-                      <th className="px-2 py-1">Data Driven</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {auditData.attributionInsights.channelContribution?.map((row: any, idx: number) => (
-                      <tr key={idx} className="border-b border-slate-700">
-                        <td className="px-2 py-1 font-medium text-white">{row.channel}</td>
-                        <td className="px-2 py-1">{row.firstClick}%</td>
-                        <td className="px-2 py-1">{row.lastClick}%</td>
-                        <td className="px-2 py-1">{row.datadriven}%</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     );
   };
