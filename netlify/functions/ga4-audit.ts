@@ -641,7 +641,7 @@ async function checkSearchConsoleDataAvailability(accessToken: string, propertyI
 }
 
 // Helper to check if a parameter is registered as a custom dimension or metric
-function isParamRegistered(param, customDimensions, customMetrics) {
+function isParamRegistered(param: string, customDimensions: any[], customMetrics: any[]) {
   const dim = customDimensions.find(d => d.parameterName === param);
   const met = customMetrics.find(m => m.parameterName === param);
   return !!(dim || met);
