@@ -17,7 +17,6 @@ import {
   Clock,
   DollarSign,
   RefreshCw,
-  Sparkles,
   LineChart
 } from 'lucide-react';
 import { GA4Audit, DataStream, CustomDimension, CustomMetric, KeyEvent } from '@/types/ga4';
