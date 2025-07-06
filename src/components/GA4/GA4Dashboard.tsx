@@ -88,7 +88,7 @@ const generateRecommendations = (auditData: GA4Audit) => {
     });
   }
   // 7. Unwanted referrals
-  if (!auditData?.unwantedReferrals || auditData.unwantedReferrals.length === 0) {
+  if (!auditData?.dataQuality?.trafficSources?.unwantedReferrals || !auditData.dataQuality.trafficSources.unwantedReferrals.detected) {
     recs.push({
       title: 'Define unwanted referrals',
       description: 'Exclude payment processors (PayPal, Stripe) from referrals.',
