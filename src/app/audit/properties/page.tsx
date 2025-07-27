@@ -34,6 +34,9 @@ const PropertiesPage = () => {
     }
   }, [isAuthenticated, isLoading, accessToken, ga4Properties.length, fetchGA4Properties, router]);
 
+  // Prevent clearing state if we're about to navigate
+  const shouldClearState = !selectedProperty || !ga4Audit;
+
   // Clear any previously selected property and audit state when this page loads
   useEffect(() => {
     console.log('Properties page loaded - clearing state');
@@ -64,9 +67,6 @@ const PropertiesPage = () => {
       router.replace(`/audit/properties/${selectedProperty.propertyId}`);
     }
   }, [selectedProperty, isAnalyzing, ga4Audit, router]);
-
-  // Prevent clearing state if we're about to navigate
-  const shouldClearState = !selectedProperty || !ga4Audit;
 
   useEffect(() => {
     if (error && typeof error === 'string' && error.toLowerCase().includes('invalid or expired access token')) {
