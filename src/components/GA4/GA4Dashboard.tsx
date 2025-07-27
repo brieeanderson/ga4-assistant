@@ -87,22 +87,22 @@ const generateRecommendations = (auditData: GA4Audit) => {
       docsUrl: 'https://support.google.com/analytics/answer/10071811?hl=en'
     });
   }
-  // 7. Unwanted referrals
-  if (!auditData?.dataQuality?.trafficSources?.unwantedReferrals || !auditData.dataQuality.trafficSources.unwantedReferrals.detected) {
-    recs.push({
-      title: 'Define unwanted referrals',
-      description: 'Exclude payment processors (PayPal, Stripe) from referrals.',
-      severity: 'important',
-      docsUrl: 'https://support.google.com/analytics/answer/10327750?hl=en'
-    });
-  }
-  // 8. IP filters
+  // 7. Data Filters - Check for IP filters specifically
   if (!auditData?.dataFilters || auditData.dataFilters.length === 0) {
     recs.push({
-      title: 'Create Data Filters',
-      description: 'Filter out office/employee traffic and unwanted referrals for accurate data.',
+      title: 'Create IP Address Data Filters',
+      description: 'Filter out office/employee traffic by IP address for accurate data.',
       severity: 'important',
       docsUrl: 'https://support.google.com/analytics/answer/13296761?hl=en'
+    });
+  }
+  // 8. Unwanted referrals - Check if they're properly configured
+  if (!auditData?.dataQuality?.trafficSources?.unwantedReferrals || !auditData.dataQuality.trafficSources.unwantedReferrals.detected) {
+    recs.push({
+      title: 'Configure Unwanted Referrals',
+      description: 'Exclude payment processors (PayPal, Stripe) and other unwanted referral sources.',
+      severity: 'important',
+      docsUrl: 'https://support.google.com/analytics/answer/10327750?hl=en'
     });
   }
   // 9. Session timeout
@@ -205,8 +205,10 @@ const generateRecommendations = (auditData: GA4Audit) => {
       docsUrl: 'https://support.google.com/analytics/answer/9358801?hl=en'
     });
   }
-  // 19. Attribution channel (if available)
-  if (auditData?.attribution && (auditData.attribution as any).channelsThatCanReceiveCredit !== 'PAID_AND_ORGANIC') {
+  // 19. Attribution channel (if available and not set correctly)
+  if (auditData?.attribution && 
+      (auditData.attribution as any).channelsThatCanReceiveCredit && 
+      (auditData.attribution as any).channelsThatCanReceiveCredit !== 'PAID_AND_ORGANIC') {
     recs.push({
       title: 'Set channel credit to Paid and Organic',
       description: 'Affects web conversions shared with Google Ads.',
