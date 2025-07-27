@@ -12,6 +12,15 @@ const AuditResultsPage = () => {
   const { propertyId } = useParams();
   const { isAuthenticated, accessToken, logout } = useOAuth();
   const router = useRouter();
+  
+  console.log('AuditResultsPage rendered:', {
+    propertyId,
+    isAuthenticated,
+    hasAccessToken: !!accessToken,
+    ga4PropertiesLength: ga4Properties.length,
+    hasGA4Audit: !!ga4Audit,
+    ga4AuditPropertyId: ga4Audit?.property?.propertyId
+  });
   const {
     ga4Properties,
     ga4Audit,
@@ -36,18 +45,39 @@ const AuditResultsPage = () => {
   }, [isAuthenticated, accessToken, ga4Properties.length, fetchGA4Properties, router]);
 
   useEffect(() => {
-    if (ga4Properties.length > 0 && propertyId) {
-      const property = ga4Properties.find(p => p.propertyId === propertyId);
-      if (property) {
-        setSelectedProperty(property);
-        if (!ga4Audit) {
-          runGA4Audit(accessToken!, propertyId as string);
+    if (propertyId) {
+      // If we already have the audit data for this property, use it
+      if (ga4Audit && ga4Audit.property?.propertyId === propertyId) {
+        console.log('Using existing audit data for property:', propertyId);
+        // Try to find the property in the list, or create a basic one from audit data
+        const property = ga4Properties.find(p => p.propertyId === propertyId);
+        if (property) {
+          setSelectedProperty(property);
+        } else if (ga4Audit.property) {
+          setSelectedProperty(ga4Audit.property);
         }
-      } else {
-        router.push('/audit/properties');
+        return;
+      }
+
+      // If we have properties list, find the property
+      if (ga4Properties.length > 0) {
+        const property = ga4Properties.find(p => p.propertyId === propertyId);
+        if (property) {
+          setSelectedProperty(property);
+          if (!ga4Audit) {
+            runGA4Audit(accessToken!, propertyId as string);
+          }
+        } else {
+          console.log('Property not found in list, redirecting to properties page');
+          router.push('/audit/properties');
+        }
+      } else if (accessToken) {
+        // If we don't have properties list yet, fetch them
+        console.log('Fetching properties list for property:', propertyId);
+        fetchGA4Properties(accessToken);
       }
     }
-  }, [ga4Properties, propertyId, ga4Audit, accessToken, runGA4Audit, router]);
+  }, [ga4Properties, propertyId, ga4Audit, accessToken, runGA4Audit, router, fetchGA4Properties]);
 
   useEffect(() => {
     if (error && typeof error === 'string' && error.toLowerCase().includes('invalid or expired access token')) {
