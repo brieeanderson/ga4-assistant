@@ -13,14 +13,6 @@ const AuditResultsPage = () => {
   const { isAuthenticated, accessToken, logout } = useOAuth();
   const router = useRouter();
   
-  console.log('AuditResultsPage rendered:', {
-    propertyId,
-    isAuthenticated,
-    hasAccessToken: !!accessToken,
-    ga4PropertiesLength: ga4Properties.length,
-    hasGA4Audit: !!ga4Audit,
-    ga4AuditPropertyId: ga4Audit?.property?.propertyId
-  });
   const {
     ga4Properties,
     ga4Audit,
@@ -30,6 +22,15 @@ const AuditResultsPage = () => {
     runGA4Audit,
     clearError
   } = useGA4Audit();
+
+  console.log('AuditResultsPage rendered:', {
+    propertyId,
+    isAuthenticated,
+    hasAccessToken: !!accessToken,
+    ga4PropertiesLength: ga4Properties.length,
+    hasGA4Audit: !!ga4Audit,
+    ga4AuditPropertyId: ga4Audit?.property?.propertyId
+  });
 
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
 
