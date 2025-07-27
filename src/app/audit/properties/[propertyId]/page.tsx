@@ -10,7 +10,7 @@ import Breadcrumbs from '@/components/common/Breadcrumbs';
 
 const AuditResultsPage = () => {
   const { propertyId } = useParams();
-  const { isAuthenticated, accessToken, logout } = useOAuth();
+  const { isAuthenticated, accessToken, logout, isLoading } = useOAuth();
   const router = useRouter();
   
   const {
@@ -25,6 +25,7 @@ const AuditResultsPage = () => {
 
   console.log('AuditResultsPage rendered:', {
     propertyId,
+    isLoading,
     isAuthenticated,
     hasAccessToken: !!accessToken,
     ga4PropertiesLength: ga4Properties.length,
@@ -35,6 +36,11 @@ const AuditResultsPage = () => {
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
 
   useEffect(() => {
+    // Wait for authentication to load before making any decisions
+    if (isLoading) {
+      return;
+    }
+
     if (!isAuthenticated) {
       router.push('/audit');
       return;
@@ -43,7 +49,7 @@ const AuditResultsPage = () => {
     if (isAuthenticated && accessToken && ga4Properties.length === 0) {
       fetchGA4Properties(accessToken);
     }
-  }, [isAuthenticated, accessToken, ga4Properties.length, fetchGA4Properties, router]);
+  }, [isLoading, isAuthenticated, accessToken, ga4Properties.length, fetchGA4Properties, router]);
 
   useEffect(() => {
     if (propertyId) {
@@ -85,6 +91,17 @@ const AuditResultsPage = () => {
       logout();
     }
   }, [error, logout]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p>Loading authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
