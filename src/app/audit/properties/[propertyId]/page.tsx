@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { useOAuth } from '@/hooks/useOAuth';
 import { useGA4Audit } from '@/hooks/useGA4Audit';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Shield, BarChart3, Globe, Users, Home, Clock } from 'lucide-react';
-import Link from 'next/link';
+import { Clock } from 'lucide-react';
+
 import GA4Dashboard from '@/components/GA4/GA4Dashboard';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
 
@@ -150,69 +150,6 @@ const AuditResultsPage = () => {
 
   return (
     <div className="bg-black">
-      {/* Header */}
-      <div className="border-b border-slate-700 bg-slate-900">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/audit/properties"
-                className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back to Properties</span>
-              </Link>
-            </div>
-            <div className="text-white font-semibold">
-              Audit Results: {selectedProperty.displayName}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Tabs */}
-      <div className="border-b border-slate-700 bg-slate-800">
-        <div className="max-w-7xl mx-auto px-4">
-          <nav className="flex space-x-8">
-            <Link
-              href={`/audit/properties/${propertyId}`}
-              className="flex items-center space-x-2 py-4 px-1 border-b-2 border-blue-500 text-blue-400 font-medium"
-            >
-              <Home className="h-4 w-4" />
-              <span>Overview</span>
-            </Link>
-            <Link
-              href={`/audit/properties/${propertyId}/privacy`}
-              className="flex items-center space-x-2 py-4 px-1 border-b-2 border-transparent text-gray-300 hover:text-white font-medium"
-            >
-              <Shield className="h-4 w-4" />
-              <span>Privacy & Compliance</span>
-            </Link>
-            <Link
-              href={`/audit/properties/${propertyId}/data-quality`}
-              className="flex items-center space-x-2 py-4 px-1 border-b-2 border-transparent text-gray-300 hover:text-white font-medium"
-            >
-              <BarChart3 className="h-4 w-4" />
-              <span>Data Quality</span>
-            </Link>
-            <Link
-              href={`/audit/properties/${propertyId}/integrations`}
-              className="flex items-center space-x-2 py-4 px-1 border-b-2 border-transparent text-gray-300 hover:text-white font-medium"
-            >
-              <Globe className="h-4 w-4" />
-              <span>Integrations</span>
-            </Link>
-            <Link
-              href={`/audit/properties/${propertyId}/tracking`}
-              className="flex items-center space-x-2 py-4 px-1 border-b-2 border-transparent text-gray-300 hover:text-white font-medium"
-            >
-              <Users className="h-4 w-4" />
-              <span>User Tracking</span>
-            </Link>
-          </nav>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-6">

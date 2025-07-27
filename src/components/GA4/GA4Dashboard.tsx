@@ -17,7 +17,8 @@ import {
   Clock,
   DollarSign,
   RefreshCw,
-  LineChart
+  LineChart,
+  ArrowLeft
 } from 'lucide-react';
 import { GA4Audit, DataStream, CustomDimension, CustomMetric, KeyEvent } from '@/types/ga4';
 
@@ -1110,14 +1111,23 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       <div className="border-b border-gray-800 bg-black">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-white">
-                <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">GA4Helper</span>
-                <span className="text-white ml-2">Dashboard</span>
-              </h1>
-              <p className="text-gray-400 mt-2">
-                {property?.displayName} • {property?.timeZone || auditData?.property?.timeZone}
-              </p>
+            <div className="flex items-center space-x-6">
+              <button 
+                onClick={onChangeProperty}
+                className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Properties</span>
+              </button>
+              <div>
+                <h1 className="text-3xl font-bold text-white">
+                  <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">GA4Helper</span>
+                  <span className="text-white ml-2">Dashboard</span>
+                </h1>
+                <p className="text-gray-400 mt-2">
+                  {property?.displayName} • {property?.timeZone || auditData?.property?.timeZone}
+                </p>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
@@ -1126,9 +1136,6 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                 </div>
                 <div className="text-sm text-gray-400">Config Score</div>
               </div>
-              <button className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200" onClick={onChangeProperty}>
-                Change Property
-              </button>
               <button className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200">
                 <RefreshCw className="w-4 h-4 inline mr-2" />
                 Refresh
