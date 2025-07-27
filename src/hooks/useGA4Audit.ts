@@ -117,10 +117,7 @@ export const useGA4Audit = () => {
         keyEvents: result.keyEvents?.length
       });
       
-      // Redirect to results page
-      if (typeof window !== 'undefined') {
-        window.location.href = `/audit/properties/${propertyId}`;
-      }
+      // Audit completed - let the component handle navigation
       
     } catch (error) {
       console.error('Error running GA4 audit:', error);
@@ -178,6 +175,13 @@ export const useGA4Audit = () => {
     setError(null);
   }, []);
 
+  const clearAuditState = useCallback(() => {
+    setSelectedProperty('');
+    setGA4Audit(null);
+    setIsAnalyzing(false);
+    setError(null);
+  }, []);
+
   return {
     // State
     isAnalyzing,
@@ -196,6 +200,7 @@ export const useGA4Audit = () => {
     runGA4Audit,
     analyzeWebsite,
     clearError,
+    clearAuditState,
     setError
   };
 };

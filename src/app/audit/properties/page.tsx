@@ -16,9 +16,11 @@ const PropertiesPage = () => {
     ga4Properties,
     isAnalyzing,
     error,
+    ga4Audit,
     fetchGA4Properties,
     runGA4Audit,
-    clearError
+    clearError,
+    clearAuditState
   } = useGA4Audit();
 
   useEffect(() => {
@@ -32,11 +34,24 @@ const PropertiesPage = () => {
     }
   }, [isAuthenticated, isLoading, accessToken, ga4Properties.length, fetchGA4Properties, router]);
 
+  // Clear any previously selected property and audit state when this page loads
+  useEffect(() => {
+    setSelectedProperty(null);
+    clearAuditState();
+  }, [clearAuditState]);
+
   useEffect(() => {
     if (selectedProperty && accessToken) {
       runGA4Audit(accessToken, selectedProperty.propertyId);
     }
   }, [selectedProperty, accessToken, runGA4Audit]);
+
+  // Navigate to results page when audit is complete
+  useEffect(() => {
+    if (selectedProperty && !isAnalyzing && ga4Audit) {
+      router.push(`/audit/properties/${selectedProperty.propertyId}`);
+    }
+  }, [selectedProperty, isAnalyzing, ga4Audit, router]);
 
   useEffect(() => {
     if (error && typeof error === 'string' && error.toLowerCase().includes('invalid or expired access token')) {
