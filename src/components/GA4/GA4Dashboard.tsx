@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TrendingUp,
   Settings,
@@ -18,9 +18,12 @@ import {
   DollarSign,
   RefreshCw,
   LineChart,
-  ArrowLeft
+  ArrowLeft,
+  TrendingUp as TrendingUpIcon,
+  TrendingDown
 } from 'lucide-react';
 import { GA4Audit, DataStream, CustomDimension, CustomMetric, KeyEvent } from '@/types/ga4';
+import { useScoreHistory, ScoreComparison } from '@/hooks/useScoreHistory';
 
 // Add prop types
 interface GA4DashboardProps {
@@ -78,15 +81,8 @@ const generateRecommendations = (auditData: GA4Audit) => {
       docsUrl: 'https://support.google.com/analytics/answer/13544947?sjid=1431056984149397764-NC'
     });
   }
-  // 6. Cross-domain tracking
-  if (!auditData?.dataStreams?.some((s: DataStream) => s.crossDomainSettings && s.crossDomainSettings.domains && s.crossDomainSettings.domains.length > 0)) {
-    recs.push({
-      title: 'Complete cross domain tracking',
-      description: 'Essential for multi-domain businesses.',
-      severity: 'important',
-      docsUrl: 'https://support.google.com/analytics/answer/10071811?hl=en'
-    });
-  }
+  // 6. Cross-domain tracking - removed API-based detection since it's not available
+  // Cross-domain tracking requires manual verification in GA4 interface
   // 7. Data Filters - Check for IP filters specifically
   if (!auditData?.dataFilters || auditData.dataFilters.length === 0) {
     recs.push({
@@ -247,6 +243,27 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
   console.log('GA4Dashboard auditData:', auditData);
 
   const [activeTab, setActiveTab] = useState('overview');
+  const { saveScore, getScoreComparison } = useScoreHistory();
+  const [scoreComparison, setScoreComparison] = useState<ScoreComparison | null>(null);
+
+  // Save score and get comparison when audit data changes
+  useEffect(() => {
+    if (auditData && property?.propertyId) {
+      const { scores } = calculateCategoryScores();
+      const overallScore = Math.round(
+        (scores.propertySettings + scores.dataCollection + scores.keyEvents + scores.integrations) / 4
+      );
+      
+      // Save the current score
+      saveScore(property.propertyId, property.displayName, overallScore);
+      
+      // Get score comparison
+      const comparison = getScoreComparison(property.propertyId, overallScore);
+      setScoreComparison(comparison);
+      
+      console.log('📊 Score comparison:', comparison);
+    }
+  }, [auditData, property, saveScore, getScoreComparison, calculateCategoryScores]);
 
   // Calculate individual category scores based on audit data using deduction system
   const calculateCategoryScores = () => {
@@ -493,6 +510,60 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           </div>
         )}
 
+        {/* Score History */}
+        {scoreComparison && scoreComparison.previousScore !== null && (
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+            <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+              <TrendingUpIcon className="w-7 h-7 mr-3 text-blue-400" />
+              Score Progress
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center p-4 bg-slate-800 rounded-xl border border-slate-600">
+                <div className="text-sm text-gray-400 mb-1">Previous Score</div>
+                <div className="text-2xl font-bold text-white">{scoreComparison.previousScore}%</div>
+                <div className="text-xs text-gray-500 mt-1">{scoreComparison.lastAuditDate}</div>
+              </div>
+              <div className="text-center p-4 bg-slate-800 rounded-xl border border-slate-600">
+                <div className="text-sm text-gray-400 mb-1">Current Score</div>
+                <div className="text-2xl font-bold text-white">{scoreComparison.currentScore}%</div>
+                <div className="text-xs text-gray-500 mt-1">Today</div>
+              </div>
+              <div className="text-center p-4 bg-slate-800 rounded-xl border border-slate-600">
+                <div className="text-sm text-gray-400 mb-1">Change</div>
+                <div className={`text-2xl font-bold flex items-center justify-center ${
+                  scoreComparison.improvement ? 'text-green-400' : scoreComparison.scoreChange !== 0 ? 'text-red-400' : 'text-white'
+                }`}>
+                  {scoreComparison.improvement ? (
+                    <TrendingUpIcon className="w-5 h-5 mr-1" />
+                  ) : scoreComparison.scoreChange !== 0 ? (
+                    <TrendingDown className="w-5 h-5 mr-1" />
+                  ) : null}
+                  {scoreComparison.scoreChange && scoreComparison.scoreChange > 0 ? '+' : ''}{scoreComparison.scoreChange || 0}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {scoreComparison.daysSinceLastAudit} days ago
+                </div>
+              </div>
+            </div>
+            {scoreComparison.improvement && (
+              <div className="mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                <div className="flex items-center text-green-400">
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  <span className="text-sm font-medium">Great progress! Your GA4 configuration has improved.</span>
+                </div>
+              </div>
+            )}
+            {!scoreComparison.improvement && scoreComparison.scoreChange !== 0 && (
+              <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                <div className="flex items-center text-red-400">
+                  <AlertTriangle className="w-4 h-4 mr-2" />
+                  <span className="text-sm font-medium">Score has decreased. Review the recommendations above to improve your configuration.</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Top Recommendations */}
         {topRecommendations.length > 0 && (
           <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
@@ -572,11 +643,20 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           <Globe className="w-6 h-6 mr-2 text-blue-400" />
           Cross-Domain Tracking
         </h3>
-        <div className="text-white text-lg font-semibold">{auditData?.dataStreams?.some((s: DataStream) => s.crossDomainSettings && s.crossDomainSettings.domains && s.crossDomainSettings.domains.length > 0) ? 'Configured' : 'Not Configured'}</div>
-        <div className="text-sm text-slate-400 mt-2">Essential for multi-domain businesses. <span className="font-semibold">Check detected hostnames and domains.</span></div>
+        <div className="text-white text-lg font-semibold">Requires Manual Verification</div>
+        <div className="text-sm text-slate-400 mt-2">Essential for multi-domain businesses. <span className="font-semibold">Cross-domain tracking cannot be detected via API and requires manual verification.</span></div>
+        <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+          <div className="text-sm text-blue-300 font-medium mb-2">How to check cross-domain tracking:</div>
+          <div className="text-xs text-gray-300 space-y-1">
+            <div>1. Go to <span className="font-semibold">Admin → Data Streams</span></div>
+            <div>2. Click on your web data stream</div>
+            <div>3. Go to <span className="font-semibold">Configure tag settings → Configure your domains</span></div>
+            <div>4. Check if cross-domain tracking is enabled and domains are listed</div>
+          </div>
+        </div>
         {auditData?.hostnames && auditData.hostnames.length > 0 && (
-          <div className="mt-2">
-            <div className="font-semibold mb-1 text-gray-200">Detected hostnames:</div>
+          <div className="mt-4">
+            <div className="font-semibold mb-1 text-gray-200">Detected hostnames (for reference):</div>
             <ul className="ml-4 list-disc">
               {auditData.hostnames.map((host, i) => (
                 <li key={host + i} className="break-all text-gray-200">{host}</li>
@@ -900,73 +980,82 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
 
   const renderIntegrationsTab = () => (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-green-900 to-green-800 rounded-2xl p-6 border border-green-500/30">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-green-500/20 rounded-xl">
-              <Search className="w-6 h-6 text-green-400" />
+      {/* Search Console */}
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+        <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+          <Search className="w-6 h-6 mr-2 text-green-400" />
+          Search Console
+        </h3>
+        <div className="text-white text-lg font-semibold">{auditData?.searchConsoleDataStatus?.isLinked ? 'Connected' : 'Not Connected'}</div>
+        <div className="text-sm text-slate-400 mt-2">Organic search data integration for SEO insights and keyword performance.</div>
+        {auditData?.searchConsoleDataStatus?.isLinked ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+              <div className="text-sm text-slate-400 mb-2">Clicks</div>
+              <div className="text-white font-semibold">{auditData?.searchConsoleDataStatus?.totalClicks?.toLocaleString() || 0}</div>
             </div>
-            <div className="px-3 py-1 bg-green-500 rounded-full text-white text-sm font-medium">
-              {auditData?.searchConsoleDataStatus?.isLinked ? 'Connected' : 'Not Linked'}
-            </div>
-          </div>
-          <h3 className="text-xl font-bold text-white mb-2">Search Console</h3>
-          <p className="text-sm text-green-200 mb-4">{auditData?.searchConsoleDataStatus?.hasData ? 'Organic search data flowing' : 'No data yet'}</p>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-green-300">Clicks</span>
-              <span className="text-white font-medium">{auditData?.searchConsoleDataStatus?.totalClicks?.toLocaleString() || 0}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-green-300">Impressions</span>
-              <span className="text-white font-medium">{auditData?.searchConsoleDataStatus?.totalImpressions?.toLocaleString() || 0}</span>
+            <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+              <div className="text-sm text-slate-400 mb-2">Impressions</div>
+              <div className="text-white font-semibold">{auditData?.searchConsoleDataStatus?.totalImpressions?.toLocaleString() || 0}</div>
             </div>
           </div>
-        </div>
-        <div className="bg-gradient-to-br from-blue-900 to-blue-800 rounded-2xl p-6 border border-blue-500/30">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-blue-500/20 rounded-xl">
-              <DollarSign className="w-6 h-6 text-blue-400" />
+        ) : (
+          <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <div className="text-red-400 font-semibold">Search Console not connected. Link your Search Console property for organic search insights.</div>
+          </div>
+        )}
+      </div>
+
+      {/* Google Ads */}
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+        <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+          <DollarSign className="w-6 h-6 mr-2 text-blue-400" />
+          Google Ads
+        </h3>
+        <div className="text-white text-lg font-semibold">{auditData?.googleAdsLinks?.length > 0 ? 'Connected' : 'Not Connected'}</div>
+        <div className="text-sm text-slate-400 mt-2">Conversion tracking and audience sharing between Google Ads and GA4.</div>
+        {auditData?.googleAdsLinks?.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+              <div className="text-sm text-slate-400 mb-2">Accounts</div>
+              <div className="text-white font-semibold">{auditData?.googleAdsLinks?.length}</div>
             </div>
-            <div className="px-3 py-1 bg-blue-500 rounded-full text-white text-sm font-medium">
-              {auditData?.googleAdsLinks?.length > 0 ? 'Connected' : 'Not Linked'}
+            <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+              <div className="text-sm text-slate-400 mb-2">Status</div>
+              <div className="text-white font-semibold">Importing</div>
             </div>
           </div>
-          <h3 className="text-xl font-bold text-white mb-2">Google Ads</h3>
-          <p className="text-sm text-blue-200 mb-4">{auditData?.googleAdsLinks?.length > 0 ? 'Conversion tracking active' : 'No Google Ads accounts linked.'}</p>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-blue-300">Accounts</span>
-              <span className="text-white font-medium">{auditData?.googleAdsLinks?.length || 0}</span>
+        ) : (
+          <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <div className="text-red-400 font-semibold">Google Ads not connected. Link your Google Ads accounts for conversion tracking and audience insights.</div>
+          </div>
+        )}
+      </div>
+
+      {/* BigQuery */}
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+        <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+          <Database className="w-6 h-6 mr-2 text-purple-400" />
+          BigQuery
+        </h3>
+        <div className="text-white text-lg font-semibold">{auditData?.bigQueryLinks?.length > 0 ? 'Connected' : 'Not Connected'}</div>
+        <div className="text-sm text-slate-400 mt-2">Raw data export for advanced analysis and custom reporting.</div>
+        {auditData?.bigQueryLinks?.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+              <div className="text-sm text-slate-400 mb-2">Exports</div>
+              <div className="text-white font-semibold">{auditData?.bigQueryLinks?.length}</div>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-blue-300">Conversions</span>
-              <span className="text-white font-medium">{auditData?.googleAdsLinks?.length > 0 ? 'Importing' : 'Not importing'}</span>
+            <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+              <div className="text-sm text-slate-400 mb-2">Status</div>
+              <div className="text-white font-semibold">Active</div>
             </div>
           </div>
-        </div>
-        <div className="bg-gradient-to-br from-purple-900 to-purple-800 rounded-2xl p-6 border border-purple-500/30">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-purple-500/20 rounded-xl">
-              <Database className="w-6 h-6 text-purple-400" />
-            </div>
-            <div className="px-3 py-1 bg-purple-500 rounded-full text-white text-sm font-medium">
-              {auditData?.bigQueryLinks?.length > 0 ? 'Connected' : 'Not Linked'}
-            </div>
+        ) : (
+          <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <div className="text-red-400 font-semibold">BigQuery not connected. Enable BigQuery export for advanced data analysis and custom reporting capabilities.</div>
           </div>
-          <h3 className="text-xl font-bold text-white mb-2">BigQuery</h3>
-          <p className="text-sm text-purple-200 mb-4">{auditData?.bigQueryLinks?.length > 0 ? 'Raw data export enabled' : 'Not enabled - consider for advanced analysis and custom reporting needs.'}</p>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-purple-300">Exports</span>
-              <span className="text-white font-medium">{auditData?.bigQueryLinks?.length || 0}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-purple-300">Status</span>
-              <span className="text-white font-medium">{auditData?.bigQueryLinks?.length > 0 ? 'Active' : 'Inactive'}</span>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -1124,10 +1213,33 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <div className={`text-2xl font-bold ${getScoreColor(overallScore)}`}>
-                  {overallScore}%
+                <div className="flex items-center space-x-2">
+                  <div className={`text-2xl font-bold ${getScoreColor(overallScore)}`}>
+                    {overallScore}%
+                  </div>
+                  {scoreComparison && scoreComparison.previousScore !== null && (
+                    <div className="flex items-center space-x-1">
+                      {scoreComparison.improvement ? (
+                        <TrendingUpIcon className="w-4 h-4 text-green-400" />
+                      ) : scoreComparison.scoreChange !== 0 ? (
+                        <TrendingDown className="w-4 h-4 text-red-400" />
+                      ) : null}
+                      {scoreComparison.scoreChange !== 0 && (
+                        <span className={`text-sm font-semibold ${
+                          scoreComparison.improvement ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          {scoreComparison.scoreChange && scoreComparison.scoreChange > 0 ? '+' : ''}{scoreComparison.scoreChange || 0}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="text-sm text-gray-400">Config Score</div>
+                {scoreComparison && scoreComparison.lastAuditDate && (
+                  <div className="text-xs text-gray-500">
+                    Last: {scoreComparison.lastAuditDate}
+                  </div>
+                )}
               </div>
               <button 
                 onClick={onChangeProperty}
