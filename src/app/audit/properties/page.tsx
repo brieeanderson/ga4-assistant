@@ -20,7 +20,6 @@ const PropertiesPage = () => {
     fetchGA4Properties,
     runGA4Audit,
     clearError,
-    clearAuditState,
     clearAuditStateExceptSelected
   } = useGA4Audit();
 
