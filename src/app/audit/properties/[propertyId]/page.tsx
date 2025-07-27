@@ -29,7 +29,7 @@ const AuditResultsPage = () => {
     hasAccessToken: !!accessToken,
     ga4PropertiesLength: ga4Properties.length,
     hasGA4Audit: !!ga4Audit,
-    ga4AuditPropertyId: ga4Audit?.property?.propertyId
+    ga4AuditPropertyName: ga4Audit?.property?.name
   });
 
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
@@ -47,8 +47,8 @@ const AuditResultsPage = () => {
 
   useEffect(() => {
     if (propertyId) {
-      // If we already have the audit data for this property, use it
-      if (ga4Audit && ga4Audit.property?.propertyId === propertyId) {
+      // If we already have the audit data, we can use it
+      if (ga4Audit) {
         console.log('Using existing audit data for property:', propertyId);
         // Try to find the property in the list, or create a basic one from audit data
         const property = ga4Properties.find(p => p.propertyId === propertyId);
