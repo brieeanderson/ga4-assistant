@@ -48,7 +48,15 @@ const PropertiesPage = () => {
 
   // Navigate to results page when audit is complete
   useEffect(() => {
+    console.log('Navigation effect triggered:', {
+      selectedProperty: selectedProperty?.propertyId,
+      isAnalyzing,
+      hasGA4Audit: !!ga4Audit,
+      ga4AuditKeys: ga4Audit ? Object.keys(ga4Audit) : null
+    });
+    
     if (selectedProperty && !isAnalyzing && ga4Audit) {
+      console.log('Navigating to results page:', `/audit/properties/${selectedProperty.propertyId}`);
       router.push(`/audit/properties/${selectedProperty.propertyId}`);
     }
   }, [selectedProperty, isAnalyzing, ga4Audit, router]);

@@ -108,6 +108,11 @@ export const useGA4Audit = () => {
       }
       
       const result = await response.json();
+      console.log('Setting GA4 audit result:', {
+        hasResult: !!result,
+        resultKeys: Object.keys(result || {}),
+        propertyName: result?.property?.displayName
+      });
       setGA4Audit(result);
       
       console.log('GA4 Audit completed successfully:', {
@@ -176,6 +181,7 @@ export const useGA4Audit = () => {
   }, []);
 
   const clearAuditState = useCallback(() => {
+    console.log('Clearing audit state');
     setSelectedProperty('');
     setGA4Audit(null);
     setIsAnalyzing(false);
