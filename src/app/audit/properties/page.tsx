@@ -10,7 +10,7 @@ import Breadcrumbs from '@/components/common/Breadcrumbs';
 const PropertiesPage = () => {
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const { isAuthenticated, accessToken, logout } = useOAuth();
+  const { isAuthenticated, accessToken, logout, isLoading } = useOAuth();
   const router = useRouter();
   const {
     ga4Properties,
@@ -22,7 +22,7 @@ const PropertiesPage = () => {
   } = useGA4Audit();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !isLoading) {
       router.push('/audit');
       return;
     }
@@ -30,7 +30,7 @@ const PropertiesPage = () => {
     if (isAuthenticated && accessToken && ga4Properties.length === 0) {
       fetchGA4Properties(accessToken);
     }
-  }, [isAuthenticated, accessToken, ga4Properties.length, fetchGA4Properties, router]);
+  }, [isAuthenticated, isLoading, accessToken, ga4Properties.length, fetchGA4Properties, router]);
 
   useEffect(() => {
     if (selectedProperty && accessToken) {
@@ -64,6 +64,17 @@ const PropertiesPage = () => {
     acc[account].push(prop);
     return acc;
   }, {});
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

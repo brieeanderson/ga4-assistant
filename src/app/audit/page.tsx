@@ -2,15 +2,17 @@
 import React from 'react';
 import { Shield, CheckCircle, AlertTriangle, BarChart3, Users, Zap, ArrowRight, Globe, Database, Lock, Clock } from 'lucide-react';
 import { useOAuth } from '@/hooks/useOAuth';
+import { useRouter } from 'next/navigation';
 
 const AuditLandingPage = () => {
   const { login, isAuthenticated, isLoading } = useOAuth();
+  const router = useRouter();
 
   React.useEffect(() => {
-    if (isAuthenticated) {
-      window.location.href = '/audit/properties';
+    if (isAuthenticated && !isLoading) {
+      router.push('/audit/properties');
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isLoading, router]);
 
   const auditCategories = [
     {
