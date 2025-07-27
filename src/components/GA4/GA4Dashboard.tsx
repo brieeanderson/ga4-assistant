@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   TrendingUp,
   Settings,
@@ -263,10 +263,10 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       
       console.log('📊 Score comparison:', comparison);
     }
-  }, [auditData, property, saveScore, getScoreComparison, calculateCategoryScores]);
+  }, [auditData, property, saveScore, getScoreComparison]);
 
   // Calculate individual category scores based on audit data using deduction system
-  const calculateCategoryScores = () => {
+  const calculateCategoryScores = useCallback(() => {
     if (!auditData) return { 
       scores: { propertySettings: 0, dataCollection: 0, keyEvents: 0, integrations: 0 },
       deductions: { propertySettings: [], dataCollection: [], keyEvents: [], integrations: [] }
@@ -362,7 +362,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       },
       deductions
     };
-  };
+  }, [auditData]);
 
   const { scores: categoryScores, deductions } = calculateCategoryScores();
   
