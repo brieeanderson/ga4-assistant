@@ -245,6 +245,51 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
 
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Calculate individual category scores based on audit data
+  const calculateCategoryScores = () => {
+    if (!auditData) return { propertySettings: 0, dataCollection: 0, keyEvents: 0, integrations: 0 };
+
+    // Property Settings Score (25 points total)
+    let propertySettingsScore = 0;
+    if (auditData.property?.timeZone) propertySettingsScore += 8;
+    if (auditData.property?.currencyCode) propertySettingsScore += 8;
+    if (auditData.property?.industryCategory) propertySettingsScore += 4;
+    if (auditData.dataRetention?.eventDataRetention === 'FOURTEEN_MONTHS') propertySettingsScore += 5;
+
+    // Data Collection Score (25 points total)
+    let dataCollectionScore = 0;
+    if (auditData.dataStreams?.length > 0) dataCollectionScore += 8;
+    if (auditData.enhancedMeasurement?.length > 0) dataCollectionScore += 8;
+    if (auditData.dataFilters && auditData.dataFilters.length > 0) dataCollectionScore += 4;
+    if (auditData.dataStreams?.some((s: any) => s.crossDomainSettings?.domains?.length > 0)) dataCollectionScore += 5;
+
+    // Key Events Score (25 points total)
+    let keyEventsScore = 0;
+    if (auditData.keyEvents?.length >= 1) keyEventsScore += 10;
+    if (auditData.keyEvents?.length >= 3) keyEventsScore += 8;
+    if (auditData.keyEvents?.length >= 5) keyEventsScore += 7;
+
+    // Integrations Score (25 points total)
+    let integrationsScore = 0;
+    if (auditData.googleAdsLinks?.length > 0) integrationsScore += 8;
+    if (auditData.bigQueryLinks?.length > 0) integrationsScore += 8;
+    if (auditData.searchConsoleDataStatus?.isLinked) integrationsScore += 9;
+
+    return {
+      propertySettings: Math.round((propertySettingsScore / 25) * 100),
+      dataCollection: Math.round((dataCollectionScore / 25) * 100),
+      keyEvents: Math.round((keyEventsScore / 25) * 100),
+      integrations: Math.round((integrationsScore / 25) * 100)
+    };
+  };
+
+  const categoryScores = calculateCategoryScores();
+  
+  // Calculate overall score as average of category scores
+  const overallScore = Math.round(
+    (categoryScores.propertySettings + categoryScores.dataCollection + categoryScores.keyEvents + categoryScores.integrations) / 4
+  );
+
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-400';
     if (score >= 60) return 'text-orange-400';
@@ -271,32 +316,32 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-slate-800 to-slate-900 rounded-full border-4 border-slate-700 mb-6">
             <div className="text-5xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              {auditData?.configScore}%
+              {overallScore}%
             </div>
           </div>
           <h2 className="text-3xl font-bold text-white mb-2">Configuration Score</h2>
-          <p className="text-lg text-slate-400">Your GA4 setup is <span className={getScoreColor(auditData?.configScore)}>
-            {auditData?.configScore >= 80 ? 'well configured' : 
-             auditData?.configScore >= 60 ? 'needs improvement' : 'needs attention'}
+          <p className="text-lg text-slate-400">Your GA4 setup is <span className={getScoreColor(overallScore)}>
+            {overallScore >= 80 ? 'well configured' : 
+             overallScore >= 60 ? 'needs improvement' : 'needs attention'}
           </span></p>
         </div>
 
-        {/* Score Breakdown - You may want to calculate these from auditData if available */}
+        {/* Score Breakdown - Calculated from audit data */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-green-500/10 rounded-xl border border-green-500/20">
-            <div className="text-2xl font-bold text-green-400 mb-1">90%</div>
+          <div className={`text-center p-4 rounded-xl border ${categoryScores.propertySettings >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.propertySettings >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+            <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.propertySettings)}`}>{categoryScores.propertySettings}%</div>
             <div className="text-sm text-slate-400">Property Settings</div>
           </div>
-          <div className="text-center p-4 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
-            <div className="text-2xl font-bold text-yellow-400 mb-1">75%</div>
+          <div className={`text-center p-4 rounded-xl border ${categoryScores.dataCollection >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.dataCollection >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+            <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.dataCollection)}`}>{categoryScores.dataCollection}%</div>
             <div className="text-sm text-slate-400">Data Collection</div>
           </div>
-          <div className="text-center p-4 bg-green-500/10 rounded-xl border border-green-500/20">
-            <div className="text-2xl font-bold text-green-400 mb-1">85%</div>
+          <div className={`text-center p-4 rounded-xl border ${categoryScores.keyEvents >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.keyEvents >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+            <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.keyEvents)}`}>{categoryScores.keyEvents}%</div>
             <div className="text-sm text-slate-400">Key Events</div>
           </div>
-          <div className="text-center p-4 bg-red-500/10 rounded-xl border border-red-500/20">
-            <div className="text-2xl font-bold text-red-400 mb-1">50%</div>
+          <div className={`text-center p-4 rounded-xl border ${categoryScores.integrations >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.integrations >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+            <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.integrations)}`}>{categoryScores.integrations}%</div>
             <div className="text-sm text-slate-400">Integrations</div>
           </div>
         </div>
