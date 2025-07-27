@@ -247,7 +247,10 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
 
   // Calculate individual category scores based on audit data using deduction system
   const calculateCategoryScores = () => {
-    if (!auditData) return { propertySettings: 0, dataCollection: 0, keyEvents: 0, integrations: 0 };
+    if (!auditData) return { 
+      scores: { propertySettings: 0, dataCollection: 0, keyEvents: 0, integrations: 0 },
+      deductions: { propertySettings: [], dataCollection: [], keyEvents: [], integrations: [] }
+    };
 
     // Helper function to check if a parameter is registered as a custom dimension or metric
     const isParamRegistered = (param: string) => {
@@ -256,10 +259,23 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       return !!(dim || met);
     };
 
+    const deductions = {
+      propertySettings: [] as Array<{ reason: string; points: number }>,
+      dataCollection: [] as Array<{ reason: string; points: number }>,
+      keyEvents: [] as Array<{ reason: string; points: number }>,
+      integrations: [] as Array<{ reason: string; points: number }>
+    };
+
     // Property Settings Score (starts at 100, deductions apply)
     let propertySettingsScore = 100;
-    if (!auditData.property?.industryCategory) propertySettingsScore -= 5;
-    if (auditData.dataRetention?.eventDataRetention !== 'FOURTEEN_MONTHS') propertySettingsScore -= 20;
+    if (!auditData.property?.industryCategory) {
+      propertySettingsScore -= 5;
+      deductions.propertySettings.push({ reason: 'Industry category not set', points: 5 });
+    }
+    if (auditData.dataRetention?.eventDataRetention !== 'FOURTEEN_MONTHS') {
+      propertySettingsScore -= 20;
+      deductions.propertySettings.push({ reason: 'Data retention not set to 14 months', points: 20 });
+    }
 
     // Data Collection Score (starts at 100, deductions apply)
     let dataCollectionScore = 100;
@@ -270,6 +286,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
     );
     if (formInteractionsEnabled && (!isParamRegistered('form_name') && !isParamRegistered('form_id'))) {
       dataCollectionScore -= 10;
+      deductions.dataCollection.push({ reason: 'Form interactions enabled but form_name/form_id not registered', points: 10 });
     }
 
     // Check video interactions
@@ -278,37 +295,56 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
     );
     if (videoInteractionsEnabled && !isParamRegistered('video_percent')) {
       dataCollectionScore -= 5;
+      deductions.dataCollection.push({ reason: 'Video interactions enabled but video_percent not registered', points: 5 });
     }
     if (videoInteractionsEnabled && (!isParamRegistered('video_duration') && !isParamRegistered('video_time'))) {
       dataCollectionScore -= 5;
+      deductions.dataCollection.push({ reason: 'Video interactions enabled but video_duration/video_time not registered', points: 5 });
     }
 
     // Key Events Score (starts at 100, deductions apply)
     let keyEventsScore = 100;
     if (!auditData.keyEvents || auditData.keyEvents.length === 0) {
       keyEventsScore -= 20;
+      deductions.keyEvents.push({ reason: 'No key events configured', points: 20 });
     } else if (auditData.keyEvents.length > 3) {
       keyEventsScore -= 10;
+      deductions.keyEvents.push({ reason: 'More than 3 key events configured (over-configuration)', points: 10 });
     }
 
     // Integrations Score (starts at 100, deductions apply)
     let integrationsScore = 100;
-    if (!auditData.googleAdsLinks || auditData.googleAdsLinks.length === 0) integrationsScore -= 20;
-    if (!auditData.searchConsoleDataStatus?.isLinked) integrationsScore -= 5;
-    if (!auditData.bigQueryLinks || auditData.bigQueryLinks.length === 0) integrationsScore -= 5;
+    if (!auditData.googleAdsLinks || auditData.googleAdsLinks.length === 0) {
+      integrationsScore -= 20;
+      deductions.integrations.push({ reason: 'Google Ads not connected', points: 20 });
+    }
+    if (!auditData.searchConsoleDataStatus?.isLinked) {
+      integrationsScore -= 5;
+      deductions.integrations.push({ reason: 'Search Console not linked', points: 5 });
+    }
+    if (!auditData.bigQueryLinks || auditData.bigQueryLinks.length === 0) {
+      integrationsScore -= 5;
+      deductions.integrations.push({ reason: 'BigQuery not connected', points: 5 });
+    }
 
     // Check attribution settings
-    if (auditData.attribution?.reportingAttributionModel !== 'PAID_AND_ORGANIC') integrationsScore -= 10;
+    if (auditData.attribution?.reportingAttributionModel !== 'PAID_AND_ORGANIC') {
+      integrationsScore -= 10;
+      deductions.integrations.push({ reason: 'Attribution model not set to paid and organic', points: 10 });
+    }
 
     return {
-      propertySettings: Math.max(0, Math.round(propertySettingsScore)),
-      dataCollection: Math.max(0, Math.round(dataCollectionScore)),
-      keyEvents: Math.max(0, Math.round(keyEventsScore)),
-      integrations: Math.max(0, Math.round(integrationsScore))
+      scores: {
+        propertySettings: Math.max(0, Math.round(propertySettingsScore)),
+        dataCollection: Math.max(0, Math.round(dataCollectionScore)),
+        keyEvents: Math.max(0, Math.round(keyEventsScore)),
+        integrations: Math.max(0, Math.round(integrationsScore))
+      },
+      deductions
     };
   };
 
-  const categoryScores = calculateCategoryScores();
+  const { scores: categoryScores, deductions } = calculateCategoryScores();
   
   // Calculate overall score as average of category scores
   const overallScore = Math.round(
@@ -370,6 +406,65 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
             <div className="text-sm text-slate-400">Integrations</div>
           </div>
         </div>
+
+        {/* Score Deductions */}
+        {(deductions.propertySettings.length > 0 || deductions.dataCollection.length > 0 || deductions.keyEvents.length > 0 || deductions.integrations.length > 0) && (
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+            <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+              <AlertTriangle className="w-7 h-7 mr-3 text-red-400" />
+              Score Deductions
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {deductions.propertySettings.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-lg font-semibold text-white mb-3">Property Settings</h4>
+                  {deductions.propertySettings.map((deduction, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                      <span className="text-sm text-slate-300">{deduction.reason}</span>
+                      <span className="text-sm font-semibold text-red-400">-{deduction.points}pts</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {deductions.dataCollection.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-lg font-semibold text-white mb-3">Data Collection</h4>
+                  {deductions.dataCollection.map((deduction, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                      <span className="text-sm text-slate-300">{deduction.reason}</span>
+                      <span className="text-sm font-semibold text-red-400">-{deduction.points}pts</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {deductions.keyEvents.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-lg font-semibold text-white mb-3">Key Events</h4>
+                  {deductions.keyEvents.map((deduction, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                      <span className="text-sm text-slate-300">{deduction.reason}</span>
+                      <span className="text-sm font-semibold text-red-400">-{deduction.points}pts</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {deductions.integrations.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-lg font-semibold text-white mb-3">Integrations</h4>
+                  {deductions.integrations.map((deduction, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                      <span className="text-sm text-slate-300">{deduction.reason}</span>
+                      <span className="text-sm font-semibold text-red-400">-{deduction.points}pts</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Top Recommendations */}
         {topRecommendations.length > 0 && (
