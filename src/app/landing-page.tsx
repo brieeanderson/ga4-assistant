@@ -1,66 +1,66 @@
 'use client';
-import React from 'react';
-import { Shield, CheckCircle, AlertTriangle, BarChart3, Users, Zap, ArrowRight, Globe, Database } from 'lucide-react';
-import { useOAuth } from '@/hooks/useOAuth';
-import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+import { Shield, CheckCircle, AlertTriangle, BarChart3, Users, Zap, ArrowRight, Globe, Database, Mail, Star, Clock } from 'lucide-react';
+import Link from 'next/link';
 
-const GA4AuditLanding = () => {
-  const { login, isAuthenticated, isLoading } = useOAuth();
-  const router = useRouter();
+const LandingPage = () => {
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  React.useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/audit');
-    }
-  }, [isAuthenticated, router]);
+  const handleNewsletterSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // TODO: Implement newsletter signup logic
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    setIsSubmitting(false);
+    setIsSubmitted(true);
+    setEmail('');
+  };
 
-  const auditCategories = [
+  const upcomingFeatures = [
     {
       icon: Shield,
-      title: "Privacy & Compliance",
-      description: "GDPR-critical settings like PII redaction, Google Signals configuration, and data retention policies.",
-      items: ["PII URL Redaction", "Google Signals Setup", "Data Retention Settings", "IP Filtering"]
+      title: "GA4 Audit Tool",
+      description: "Comprehensive audit of your Google Analytics 4 setup to ensure reliable data collection and GDPR compliance.",
+      status: "Coming Soon"
     },
     {
       icon: BarChart3,
-      title: "Data Quality",
-      description: "Enhanced measurement, attribution settings, and tracking configurations for reliable data.",
-      items: ["Enhanced Measurement", "Attribution Models", "Session Timeout", "Cross-Domain Tracking"]
-    },
-    {
-      icon: Globe,
-      title: "Platform Integrations",
-      description: "Connections to Google Ads, Search Console, and BigQuery for comprehensive insights.",
-      items: ["Google Ads Links", "Search Console Integration", "BigQuery Export", "Measurement Protocol"]
+      title: "Data Quality Monitor",
+      description: "Real-time monitoring of your GA4 data quality with automated alerts and recommendations.",
+      status: "In Development"
     },
     {
       icon: Users,
-      title: "User Tracking",
-      description: "User-ID implementation, audience configurations, and demographic data collection.",
-      items: ["User-ID Tracking", "Reporting Identity", "Demographic Data", "Custom Audiences"]
+      title: "GA4 Courses",
+      description: "Step-by-step courses to master Google Analytics 4 implementation and optimization.",
+      status: "Planned"
     }
   ];
 
-  const keyBenefits = [
+  const benefits = [
     {
       icon: CheckCircle,
-      title: "Comprehensive Coverage",
-      description: "Audits 25+ critical GA4 configuration points that impact data quality and compliance."
+      title: "Expert Insights",
+      description: "Built by analytics professionals with years of GA4 experience."
     },
     {
       icon: AlertTriangle,
-      title: "Priority-Based Scoring",
-      description: "Identifies critical issues vs. nice-to-haves with weighted scoring system."
+      title: "Proactive Monitoring",
+      description: "Identify issues before they impact your data and business decisions."
     },
     {
       icon: Database,
       title: "API-Powered Accuracy",
-      description: "Uses Google Analytics Admin API for precise, real-time configuration assessment."
+      description: "Uses official Google APIs for precise, real-time analysis."
     },
     {
       icon: Zap,
-      title: "Actionable Insights",
-      description: "Provides specific recommendations with direct links to fix issues in GA4."
+      title: "Actionable Recommendations",
+      description: "Get specific, actionable steps to improve your GA4 setup."
     }
   ];
 
@@ -72,156 +72,134 @@ const GA4AuditLanding = () => {
         <div className="relative max-w-7xl mx-auto px-4 py-20 sm:py-32">
           <div className="text-center">
             <div className="inline-flex items-center space-x-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-2 mb-8">
-              <Shield className="h-4 w-4 text-blue-400" />
-              <span className="text-blue-400 text-sm font-medium">Professional GA4 Audit Tool</span>
+              <Star className="h-4 w-4 text-blue-400" />
+              <span className="text-blue-400 text-sm font-medium">Early Access Available</span>
             </div>
             
             <h1 className="text-4xl sm:text-6xl font-bold text-white mb-6">
-              Verify Your GA4
+              Master Your
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                Fundamentals
+                GA4 Analytics
               </span>
             </h1>
             
             <p className="text-xl text-gray-300 mb-10 max-w-3xl mx-auto leading-relaxed">
-              Comprehensive audit of your Google Analytics 4 setup to ensure reliable data collection, 
-              GDPR compliance, and optimal performance. Identify critical configuration gaps before they impact your insights.
+              Professional tools and courses to help you implement, audit, and optimize Google Analytics 4. 
+              Get early access to our comprehensive GA4 audit tool and educational resources.
             </p>
             
-            <button
-              onClick={login}
-              disabled={isLoading}
-              className="inline-flex items-center space-x-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Connecting...</span>
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  <span>Continue with Google</span>
-                  <ArrowRight className="h-5 w-5" />
-                </>
-              )}
-            </button>
-            
-            <p className="text-gray-400 text-sm mt-4">
-              Secure authentication • Read-only access • No data stored
-            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+              <Link
+                href="/audit"
+                className="inline-flex items-center space-x-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <Shield className="h-5 w-5" />
+                <span>Try GA4 Audit Tool</span>
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+              
+              <div className="text-gray-400 text-sm">
+                <Clock className="h-4 w-4 inline mr-1" />
+                Free during beta
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Why This Matters Section */}
-      <div className="max-w-7xl mx-auto px-4 py-20">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-            Why GA4 Configuration Matters
-          </h2>
-          <p className="text-gray-300 text-lg max-w-3xl mx-auto">
-            A poorly configured GA4 property can lead to data loss, compliance issues, and missed opportunities. 
-            Our audit ensures your setup follows Google's best practices and industry standards.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {keyBenefits.map((benefit, index) => (
-            <div key={index} className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 backdrop-blur-sm">
-              <div className="bg-blue-500/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <benefit.icon className="h-6 w-6 text-blue-400" />
+      {/* Newsletter Signup Section */}
+      <div className="relative max-w-4xl mx-auto px-4 py-16">
+        <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 border border-slate-600 rounded-2xl p-8 backdrop-blur-sm">
+          <div className="text-center mb-8">
+            <Mail className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+            <h2 className="text-3xl font-bold text-white mb-4">Get Early Access</h2>
+            <p className="text-gray-300 text-lg">
+              Be the first to know when new tools and courses are available. 
+              Get exclusive early access and special pricing.
+            </p>
+          </div>
+          
+          {!isSubmitted ? (
+            <form onSubmit={handleNewsletterSignup} className="max-w-md mx-auto">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email address"
+                  required
+                  className="flex-1 px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? 'Signing up...' : 'Get Access'}
+                </button>
               </div>
-              <h3 className="text-white font-semibold text-lg mb-3">{benefit.title}</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">{benefit.description}</p>
+            </form>
+          ) : (
+            <div className="text-center">
+              <CheckCircle className="h-12 w-12 text-green-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">Welcome aboard!</h3>
+              <p className="text-gray-300">We'll notify you when new features are available.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Upcoming Features */}
+      <div className="relative max-w-7xl mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-white mb-4">What's Coming</h2>
+          <p className="text-gray-300 text-lg">Our roadmap of tools and resources to help you master GA4</p>
+        </div>
+        
+        <div className="grid md:grid-cols-3 gap-8">
+          {upcomingFeatures.map((feature, index) => (
+            <div key={index} className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 hover:border-slate-600 transition-colors">
+              <div className="flex items-center justify-between mb-4">
+                <feature.icon className="h-8 w-8 text-blue-400" />
+                <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full">
+                  {feature.status}
+                </span>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
+              <p className="text-gray-300">{feature.description}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* What We Audit Section */}
-      <div className="bg-gray-800/30 py-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-              Comprehensive GA4 Health Check
-            </h2>
-            <p className="text-gray-300 text-lg max-w-3xl mx-auto">
-              Our audit covers every critical aspect of your GA4 setup, from privacy compliance to advanced integrations.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {auditCategories.map((category, index) => (
-              <div key={index} className="bg-gray-800/50 border border-gray-700 rounded-xl p-8 backdrop-blur-sm">
-                <div className="flex items-start space-x-4">
-                  <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <category.icon className="h-6 w-6 text-blue-400" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-white font-semibold text-xl mb-3">{category.title}</h3>
-                    <p className="text-gray-300 text-sm mb-6 leading-relaxed">{category.description}</p>
-                    <div className="space-y-2">
-                      {category.items.map((item, itemIndex) => (
-                        <div key={itemIndex} className="flex items-center space-x-2">
-                          <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
-                          <span className="text-gray-400 text-sm">{item}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Benefits Section */}
+      <div className="relative max-w-7xl mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-white mb-4">Why Choose GA4Helper?</h2>
+          <p className="text-gray-300 text-lg">Professional-grade tools built by analytics experts</p>
         </div>
-      </div>
-
-      {/* CTA Section */}
-      <div className="max-w-7xl mx-auto px-4 py-20">
-        <div className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-500/20 rounded-2xl p-12 text-center backdrop-blur-sm">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-            Ready to Audit Your GA4 Setup?
-          </h2>
-          <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-            Get a comprehensive report of your GA4 configuration in minutes. Identify issues, ensure compliance, and optimize for better data quality.
-          </p>
-          <button
-            onClick={login}
-            disabled={isLoading}
-            className="inline-flex items-center space-x-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Connecting...</span>
-              </>
-            ) : (
-              <>
-                <Shield className="h-5 w-5" />
-                <span>Start Your Free Audit</span>
-                <ArrowRight className="h-5 w-5" />
-              </>
-            )}
-          </button>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {benefits.map((benefit, index) => (
+            <div key={index} className="text-center">
+              <benefit.icon className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">{benefit.title}</h3>
+              <p className="text-gray-300 text-sm">{benefit.description}</p>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-gray-800 py-8">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-gray-400 text-sm">
-            This tool uses read-only access to your Google Analytics data. No data is stored or shared.
-          </p>
+      <footer className="border-t border-slate-700 mt-16">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="text-center text-gray-400">
+            <p>&copy; 2024 GA4Helper. Professional Google Analytics 4 tools and resources.</p>
+          </div>
         </div>
       </footer>
     </div>
   );
 };
 
-export default GA4AuditLanding; 
+export default LandingPage; 

@@ -1,3 +1,3 @@
-import GA4AuditLanding from './landing-page';
+import LandingPage from './landing-page';
 
-export default GA4AuditLanding;
+export default LandingPage;

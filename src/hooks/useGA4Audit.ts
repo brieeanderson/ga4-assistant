@@ -117,6 +117,11 @@ export const useGA4Audit = () => {
         keyEvents: result.keyEvents?.length
       });
       
+      // Redirect to results page
+      if (typeof window !== 'undefined') {
+        window.location.href = `/audit/properties/${propertyId}`;
+      }
+      
     } catch (error) {
       console.error('Error running GA4 audit:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to run GA4 audit';
