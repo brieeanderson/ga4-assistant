@@ -419,9 +419,15 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                 <div className="space-y-3">
                   <h4 className="text-lg font-semibold text-white mb-3">Property Settings</h4>
                   {deductions.propertySettings.map((deduction, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <div key={idx} className={`flex items-center justify-between p-3 rounded-lg ${
+                      deduction.points >= 10 
+                        ? 'bg-red-500/10 border border-red-500/20' 
+                        : 'bg-yellow-500/10 border border-yellow-500/20'
+                    }`}>
                       <span className="text-sm text-slate-300">{deduction.reason}</span>
-                      <span className="text-sm font-semibold text-red-400">-{deduction.points}pts</span>
+                      <span className={`text-sm font-semibold ${
+                        deduction.points >= 10 ? 'text-red-400' : 'text-yellow-400'
+                      }`}>-{deduction.points}pts</span>
                     </div>
                   ))}
                 </div>
@@ -431,9 +437,15 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                 <div className="space-y-3">
                   <h4 className="text-lg font-semibold text-white mb-3">Data Collection</h4>
                   {deductions.dataCollection.map((deduction, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <div key={idx} className={`flex items-center justify-between p-3 rounded-lg ${
+                      deduction.points >= 10 
+                        ? 'bg-red-500/10 border border-red-500/20' 
+                        : 'bg-yellow-500/10 border border-yellow-500/20'
+                    }`}>
                       <span className="text-sm text-slate-300">{deduction.reason}</span>
-                      <span className="text-sm font-semibold text-red-400">-{deduction.points}pts</span>
+                      <span className={`text-sm font-semibold ${
+                        deduction.points >= 10 ? 'text-red-400' : 'text-yellow-400'
+                      }`}>-{deduction.points}pts</span>
                     </div>
                   ))}
                 </div>
@@ -443,9 +455,15 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                 <div className="space-y-3">
                   <h4 className="text-lg font-semibold text-white mb-3">Key Events</h4>
                   {deductions.keyEvents.map((deduction, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <div key={idx} className={`flex items-center justify-between p-3 rounded-lg ${
+                      deduction.points >= 10 
+                        ? 'bg-red-500/10 border border-red-500/20' 
+                        : 'bg-yellow-500/10 border border-yellow-500/20'
+                    }`}>
                       <span className="text-sm text-slate-300">{deduction.reason}</span>
-                      <span className="text-sm font-semibold text-red-400">-{deduction.points}pts</span>
+                      <span className={`text-sm font-semibold ${
+                        deduction.points >= 10 ? 'text-red-400' : 'text-yellow-400'
+                      }`}>-{deduction.points}pts</span>
                     </div>
                   ))}
                 </div>
@@ -455,9 +473,15 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                 <div className="space-y-3">
                   <h4 className="text-lg font-semibold text-white mb-3">Integrations</h4>
                   {deductions.integrations.map((deduction, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <div key={idx} className={`flex items-center justify-between p-3 rounded-lg ${
+                      deduction.points >= 10 
+                        ? 'bg-red-500/10 border border-red-500/20' 
+                        : 'bg-yellow-500/10 border border-yellow-500/20'
+                    }`}>
                       <span className="text-sm text-slate-300">{deduction.reason}</span>
-                      <span className="text-sm font-semibold text-red-400">-{deduction.points}pts</span>
+                      <span className={`text-sm font-semibold ${
+                        deduction.points >= 10 ? 'text-red-400' : 'text-yellow-400'
+                      }`}>-{deduction.points}pts</span>
                     </div>
                   ))}
                 </div>
