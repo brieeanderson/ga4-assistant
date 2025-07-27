@@ -1002,8 +1002,8 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <div className={`text-2xl font-bold ${getScoreColor(auditData?.configScore)}`}>
-                  {auditData?.configScore}%
+                <div className={`text-2xl font-bold ${getScoreColor(overallScore)}`}>
+                  {overallScore}%
                 </div>
                 <div className="text-sm text-gray-400">Config Score</div>
               </div>
