@@ -58,7 +58,7 @@ const PropertiesPage = () => {
     );
   });
 
-  const propertiesByAccount = filteredProperties.reduce((acc: any, prop: any) => {
+  const propertiesByAccount: Record<string, any[]> = filteredProperties.reduce((acc: Record<string, any[]>, prop: any) => {
     const account = prop.accountName || 'Unknown Account';
     if (!acc[account]) acc[account] = [];
     acc[account].push(prop);

@@ -204,8 +204,8 @@ const generateRecommendations = (auditData: GA4Audit) => {
       docsUrl: 'https://support.google.com/analytics/answer/9358801?hl=en'
     });
   }
-  // 19. Attribution channel
-  if (auditData?.attribution && auditData.attribution.channelsThatCanReceiveCredit !== 'PAID_AND_ORGANIC') {
+  // 19. Attribution channel (if available)
+  if (auditData?.attribution && (auditData.attribution as any).channelsThatCanReceiveCredit !== 'PAID_AND_ORGANIC') {
     recs.push({
       title: 'Set channel credit to Paid and Organic',
       description: 'Affects web conversions shared with Google Ads.',
@@ -603,10 +603,10 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       };
       return channels[channelCredit] || channels['PAID_AND_ORGANIC'];
     };
-    const attributionModel = formatAttributionModel(auditData?.attribution?.reportingAttributionModel);
-    const acquisitionWindow = formatLookbackWindow(auditData?.attribution?.acquisitionConversionEventLookbackWindow);
-    const otherWindow = formatLookbackWindow(auditData?.attribution?.otherConversionEventLookbackWindow);
-    const channelCredit = formatChannelCredit(auditData?.attribution?.channelsThatCanReceiveCredit);
+    const attributionModel = formatAttributionModel(auditData?.attribution?.reportingAttributionModel || '');
+    const acquisitionWindow = formatLookbackWindow(auditData?.attribution?.acquisitionConversionEventLookbackWindow || '');
+    const otherWindow = formatLookbackWindow(auditData?.attribution?.otherConversionEventLookbackWindow || '');
+    const channelCredit = formatChannelCredit((auditData?.attribution as any)?.channelsThatCanReceiveCredit);
     return (
       <div className="space-y-8">
         {/* Attribution Model & Settings */}

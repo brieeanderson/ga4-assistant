@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { Shield, CheckCircle, AlertTriangle, BarChart3, Users, Zap, ArrowRight, Globe, Database, Mail, Star, Clock } from 'lucide-react';
+import { Shield, CheckCircle, AlertTriangle, BarChart3, Users, Zap, ArrowRight, Database, Mail, Star, Clock } from 'lucide-react';
 import Link from 'next/link';
 
 const LandingPage = () => {

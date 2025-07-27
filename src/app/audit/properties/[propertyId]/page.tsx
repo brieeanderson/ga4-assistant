@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useOAuth } from '@/hooks/useOAuth';
 import { useGA4Audit } from '@/hooks/useGA4Audit';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Shield, BarChart3, Globe, Users, Home, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
+import { ArrowLeft, Shield, BarChart3, Globe, Users, Home, Clock } from 'lucide-react';
 import Link from 'next/link';
 import GA4Dashboard from '@/components/GA4/GA4Dashboard';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
