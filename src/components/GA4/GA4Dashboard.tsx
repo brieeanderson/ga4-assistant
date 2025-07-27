@@ -245,41 +245,66 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
 
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Calculate individual category scores based on audit data
+  // Calculate individual category scores based on audit data using deduction system
   const calculateCategoryScores = () => {
     if (!auditData) return { propertySettings: 0, dataCollection: 0, keyEvents: 0, integrations: 0 };
 
-    // Property Settings Score (25 points total)
-    let propertySettingsScore = 0;
-    if (auditData.property?.timeZone) propertySettingsScore += 8;
-    if (auditData.property?.currencyCode) propertySettingsScore += 8;
-    if (auditData.property?.industryCategory) propertySettingsScore += 4;
-    if (auditData.dataRetention?.eventDataRetention === 'FOURTEEN_MONTHS') propertySettingsScore += 5;
+    // Helper function to check if a parameter is registered as a custom dimension or metric
+    const isParamRegistered = (param: string) => {
+      const dim = auditData.customDimensions?.find((d: any) => d.parameterName === param);
+      const met = auditData.customMetrics?.find((m: any) => m.parameterName === param);
+      return !!(dim || met);
+    };
 
-    // Data Collection Score (25 points total)
-    let dataCollectionScore = 0;
-    if (auditData.dataStreams?.length > 0) dataCollectionScore += 8;
-    if (auditData.enhancedMeasurement?.length > 0) dataCollectionScore += 8;
-    if (auditData.dataFilters && auditData.dataFilters.length > 0) dataCollectionScore += 4;
-    if (auditData.dataStreams?.some((s: any) => s.crossDomainSettings?.domains?.length > 0)) dataCollectionScore += 5;
+    // Property Settings Score (starts at 100, deductions apply)
+    let propertySettingsScore = 100;
+    if (!auditData.property?.industryCategory) propertySettingsScore -= 5;
+    if (auditData.dataRetention?.eventDataRetention !== 'FOURTEEN_MONTHS') propertySettingsScore -= 20;
 
-    // Key Events Score (25 points total)
-    let keyEventsScore = 0;
-    if (auditData.keyEvents?.length >= 1) keyEventsScore += 10;
-    if (auditData.keyEvents?.length >= 3) keyEventsScore += 8;
-    if (auditData.keyEvents?.length >= 5) keyEventsScore += 7;
+    // Data Collection Score (starts at 100, deductions apply)
+    let dataCollectionScore = 100;
+    
+    // Check form interactions
+    const formInteractionsEnabled = auditData.enhancedMeasurement?.some(
+      (s: any) => s.settings?.formInteractionsEnabled
+    );
+    if (formInteractionsEnabled && (!isParamRegistered('form_name') && !isParamRegistered('form_id'))) {
+      dataCollectionScore -= 10;
+    }
 
-    // Integrations Score (25 points total)
-    let integrationsScore = 0;
-    if (auditData.googleAdsLinks?.length > 0) integrationsScore += 8;
-    if (auditData.bigQueryLinks?.length > 0) integrationsScore += 8;
-    if (auditData.searchConsoleDataStatus?.isLinked) integrationsScore += 9;
+    // Check video interactions
+    const videoInteractionsEnabled = auditData.enhancedMeasurement?.some(
+      (s: any) => s.settings?.videoEngagementEnabled
+    );
+    if (videoInteractionsEnabled && !isParamRegistered('video_percent')) {
+      dataCollectionScore -= 5;
+    }
+    if (videoInteractionsEnabled && (!isParamRegistered('video_duration') && !isParamRegistered('video_time'))) {
+      dataCollectionScore -= 5;
+    }
+
+    // Key Events Score (starts at 100, deductions apply)
+    let keyEventsScore = 100;
+    if (!auditData.keyEvents || auditData.keyEvents.length === 0) {
+      keyEventsScore -= 20;
+    } else if (auditData.keyEvents.length > 3) {
+      keyEventsScore -= 10;
+    }
+
+    // Integrations Score (starts at 100, deductions apply)
+    let integrationsScore = 100;
+    if (!auditData.googleAdsLinks || auditData.googleAdsLinks.length === 0) integrationsScore -= 20;
+    if (!auditData.searchConsoleDataStatus?.isLinked) integrationsScore -= 5;
+    if (!auditData.bigQueryLinks || auditData.bigQueryLinks.length === 0) integrationsScore -= 5;
+
+    // Check attribution settings
+    if (auditData.attribution?.reportingAttributionModel !== 'PAID_AND_ORGANIC') integrationsScore -= 10;
 
     return {
-      propertySettings: Math.round((propertySettingsScore / 25) * 100),
-      dataCollection: Math.round((dataCollectionScore / 25) * 100),
-      keyEvents: Math.round((keyEventsScore / 25) * 100),
-      integrations: Math.round((integrationsScore / 25) * 100)
+      propertySettings: Math.max(0, Math.round(propertySettingsScore)),
+      dataCollection: Math.max(0, Math.round(dataCollectionScore)),
+      keyEvents: Math.max(0, Math.round(keyEventsScore)),
+      integrations: Math.max(0, Math.round(integrationsScore))
     };
   };
 
