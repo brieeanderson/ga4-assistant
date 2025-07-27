@@ -34,17 +34,12 @@ const PropertiesPage = () => {
     }
   }, [isAuthenticated, isLoading, accessToken, ga4Properties.length, fetchGA4Properties, router]);
 
-  // Prevent clearing state if we're about to navigate
-  const shouldClearState = !selectedProperty || !ga4Audit;
-
   // Clear any previously selected property and audit state when this page loads
   useEffect(() => {
-    console.log('Properties page loaded - clearing state');
-    if (shouldClearState) {
-      setSelectedProperty(null);
-      clearAuditStateExceptSelected();
-    }
-  }, [shouldClearState, clearAuditStateExceptSelected]); // Only run when shouldClearState changes
+    console.log('Properties page loaded - clearing state on mount');
+    setSelectedProperty(null);
+    clearAuditStateExceptSelected();
+  }, []); // Only run when component mounts
 
   useEffect(() => {
     if (selectedProperty && accessToken) {
@@ -58,11 +53,12 @@ const PropertiesPage = () => {
       selectedProperty: selectedProperty?.propertyId,
       isAnalyzing,
       hasGA4Audit: !!ga4Audit,
-      ga4AuditKeys: ga4Audit ? Object.keys(ga4Audit) : null
+      ga4AuditKeys: ga4Audit ? Object.keys(ga4Audit) : null,
+      ga4AuditProperty: ga4Audit?.property?.displayName
     });
     
     if (selectedProperty && !isAnalyzing && ga4Audit) {
-      console.log('Navigating to results page:', `/audit/properties/${selectedProperty.propertyId}`);
+      console.log('✅ Audit complete! Navigating to results page:', `/audit/properties/${selectedProperty.propertyId}`);
       // Use replace instead of push to avoid back button issues
       router.replace(`/audit/properties/${selectedProperty.propertyId}`);
     }

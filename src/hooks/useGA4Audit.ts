@@ -111,24 +111,29 @@ export const useGA4Audit = () => {
       console.log('Setting GA4 audit result:', {
         hasResult: !!result,
         resultKeys: Object.keys(result || {}),
-        propertyName: result?.property?.displayName
+        propertyName: result?.property?.displayName,
+        hasProperty: !!result?.property,
+        hasDataStreams: !!result?.dataStreams
       });
       setGA4Audit(result);
       
-      console.log('GA4 Audit completed successfully:', {
+      console.log('✅ GA4 Audit completed successfully:', {
         propertyName: result.property?.displayName,
         dataStreams: result.dataStreams?.length,
         customDimensions: result.customDimensions?.length,
-        keyEvents: result.keyEvents?.length
+        keyEvents: result.keyEvents?.length,
+        configScore: result.configScore
       });
       
       // Audit completed - let the component handle navigation
       
     } catch (error) {
-      console.error('Error running GA4 audit:', error);
+      console.error('❌ Error running GA4 audit:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to run GA4 audit';
+      console.error('Setting error state:', errorMessage);
       setError(errorMessage);
     } finally {
+      console.log('🔄 Setting isAnalyzing to false');
       setIsAnalyzing(false);
     }
   }, []);
