@@ -20,7 +20,8 @@ const PropertiesPage = () => {
     fetchGA4Properties,
     runGA4Audit,
     clearError,
-    clearAuditState
+    clearAuditState,
+    clearAuditStateExceptSelected
   } = useGA4Audit();
 
   useEffect(() => {
@@ -36,9 +37,12 @@ const PropertiesPage = () => {
 
   // Clear any previously selected property and audit state when this page loads
   useEffect(() => {
-    setSelectedProperty(null);
-    clearAuditState();
-  }, [clearAuditState]);
+    console.log('Properties page loaded - clearing state');
+    if (shouldClearState) {
+      setSelectedProperty(null);
+      clearAuditStateExceptSelected();
+    }
+  }, [shouldClearState, clearAuditStateExceptSelected]); // Only run when shouldClearState changes
 
   useEffect(() => {
     if (selectedProperty && accessToken) {
@@ -57,9 +61,13 @@ const PropertiesPage = () => {
     
     if (selectedProperty && !isAnalyzing && ga4Audit) {
       console.log('Navigating to results page:', `/audit/properties/${selectedProperty.propertyId}`);
-      router.push(`/audit/properties/${selectedProperty.propertyId}`);
+      // Use replace instead of push to avoid back button issues
+      router.replace(`/audit/properties/${selectedProperty.propertyId}`);
     }
   }, [selectedProperty, isAnalyzing, ga4Audit, router]);
+
+  // Prevent clearing state if we're about to navigate
+  const shouldClearState = !selectedProperty || !ga4Audit;
 
   useEffect(() => {
     if (error && typeof error === 'string' && error.toLowerCase().includes('invalid or expired access token')) {

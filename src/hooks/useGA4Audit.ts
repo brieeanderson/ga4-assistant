@@ -188,6 +188,13 @@ export const useGA4Audit = () => {
     setError(null);
   }, []);
 
+  const clearAuditStateExceptSelected = useCallback(() => {
+    console.log('Clearing audit state except selected property');
+    setGA4Audit(null);
+    setIsAnalyzing(false);
+    setError(null);
+  }, []);
+
   return {
     // State
     isAnalyzing,
@@ -207,6 +214,7 @@ export const useGA4Audit = () => {
     analyzeWebsite,
     clearError,
     clearAuditState,
+    clearAuditStateExceptSelected,
     setError
   };
 };
