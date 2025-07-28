@@ -8,7 +8,6 @@ import {
   Database,
   CheckCircle,
   AlertTriangle,
-  XCircle,
   ExternalLink,
   Zap,
   Globe,
@@ -704,26 +703,138 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           <Zap className="w-7 h-7 mr-3 text-yellow-400" />
           Enhanced Measurement Settings
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {auditData?.enhancedMeasurement && auditData.enhancedMeasurement[0] && Object.entries(auditData.enhancedMeasurement[0].settings).map(([key, value]) => {
-            if (key === 'streamEnabled') return null;
-            return (
-              <div key={key} className={`p-4 rounded-xl border transition-all duration-200 ${
-                value ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'
-              }`}>
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-white font-medium">
-                    {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).replace('Enabled', '')}
-                  </div>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                    value ? 'bg-green-500' : 'bg-red-500'
-                  }`}>
-                    {value ? <CheckCircle className="w-4 h-4 text-white" /> : <XCircle className="w-4 h-4 text-white" />}
-                  </div>
-                </div>
+        <div className="space-y-4">
+          {/* Page Views */}
+          <div className="p-4 rounded-xl border bg-green-500/10 border-green-500/20">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-lg font-semibold text-white">Page Views</div>
+              <div className="px-3 py-1 rounded-full text-sm font-medium bg-green-500 text-white">
+                Always Enabled
               </div>
-            );
-          })}
+            </div>
+            <div className="text-sm text-slate-400">
+              Automatically fires on page load and history changes
+            </div>
+          </div>
+
+          {/* Scrolls */}
+          <div className={`p-4 rounded-xl border ${
+            auditData?.enhancedMeasurement?.[0]?.settings?.scrollsEnabled ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-lg font-semibold text-white">Scrolls</div>
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                auditData?.enhancedMeasurement?.[0]?.settings?.scrollsEnabled ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+              }`}>
+                {auditData?.enhancedMeasurement?.[0]?.settings?.scrollsEnabled ? 'Enabled' : 'Disabled'}
+              </div>
+            </div>
+            <div className="text-sm text-slate-400">
+              {auditData?.enhancedMeasurement?.[0]?.settings?.scrollsEnabled 
+                ? 'Fires when user scrolls 90% of page depth' 
+                : 'Not configured - missing scroll engagement data'}
+            </div>
+          </div>
+
+          {/* Outbound Clicks */}
+          <div className={`p-4 rounded-xl border ${
+            auditData?.enhancedMeasurement?.[0]?.settings?.outboundClicksEnabled ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-lg font-semibold text-white">Outbound Clicks</div>
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                auditData?.enhancedMeasurement?.[0]?.settings?.outboundClicksEnabled ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+              }`}>
+                {auditData?.enhancedMeasurement?.[0]?.settings?.outboundClicksEnabled ? 'Enabled' : 'Disabled'}
+              </div>
+            </div>
+            <div className="text-sm text-slate-400">
+              {auditData?.enhancedMeasurement?.[0]?.settings?.outboundClicksEnabled 
+                ? 'Automatically captures clicks to external domains' 
+                : 'Not configured - missing outbound link tracking'}
+            </div>
+          </div>
+
+          {/* Video Engagement */}
+          <div className={`p-4 rounded-xl border ${
+            auditData?.enhancedMeasurement?.[0]?.settings?.videoEngagementEnabled ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-lg font-semibold text-white">Video Engagement</div>
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                auditData?.enhancedMeasurement?.[0]?.settings?.videoEngagementEnabled ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+              }`}>
+                {auditData?.enhancedMeasurement?.[0]?.settings?.videoEngagementEnabled ? 'Enabled' : 'Disabled'}
+              </div>
+            </div>
+            <div className="text-sm text-slate-400">
+              {auditData?.enhancedMeasurement?.[0]?.settings?.videoEngagementEnabled 
+                ? 'Tracks YouTube video engagement (start, progress, completion)' 
+                : 'Not configured - missing video engagement data'}
+            </div>
+          </div>
+
+          {/* File Downloads */}
+          <div className={`p-4 rounded-xl border ${
+            auditData?.enhancedMeasurement?.[0]?.settings?.fileDownloadsEnabled ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-lg font-semibold text-white">File Downloads</div>
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                auditData?.enhancedMeasurement?.[0]?.settings?.fileDownloadsEnabled ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+              }`}>
+                {auditData?.enhancedMeasurement?.[0]?.settings?.fileDownloadsEnabled ? 'Enabled' : 'Disabled'}
+              </div>
+            </div>
+            <div className="text-sm text-slate-400">
+              {auditData?.enhancedMeasurement?.[0]?.settings?.fileDownloadsEnabled 
+                ? 'Automatically tracks PDF, document, and media downloads' 
+                : 'Not configured - missing file download tracking'}
+            </div>
+          </div>
+
+          {/* Form Interactions */}
+          <div className={`p-4 rounded-xl border ${
+            auditData?.enhancedMeasurement?.[0]?.settings?.formInteractionsEnabled ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-lg font-semibold text-white">Form Interactions</div>
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                auditData?.enhancedMeasurement?.[0]?.settings?.formInteractionsEnabled ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+              }`}>
+                {auditData?.enhancedMeasurement?.[0]?.settings?.formInteractionsEnabled ? 'Enabled' : 'Disabled'}
+              </div>
+            </div>
+            <div className="text-sm text-slate-400">
+              {auditData?.enhancedMeasurement?.[0]?.settings?.formInteractionsEnabled 
+                ? 'Tracks form interactions and submissions' 
+                : 'Not configured - missing form engagement data'}
+            </div>
+          </div>
+
+          {/* Site Search */}
+          <div className={`p-4 rounded-xl border ${
+            auditData?.enhancedMeasurement?.[0]?.settings?.siteSearchEnabled ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-lg font-semibold text-white">Site Search</div>
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                auditData?.enhancedMeasurement?.[0]?.settings?.siteSearchEnabled ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+              }`}>
+                {auditData?.enhancedMeasurement?.[0]?.settings?.siteSearchEnabled ? 'Enabled' : 'Disabled'}
+              </div>
+            </div>
+            <div className="text-sm text-slate-400">
+              {auditData?.enhancedMeasurement?.[0]?.settings?.siteSearchEnabled 
+                ? `Query parameters: ${auditData?.dataQuality?.searchImplementation?.searchParameters?.join(', ') || 'q'}${auditData?.dataQuality?.searchImplementation?.hasSiteSearchConfig ? ' (configured)' : ' (needs configuration)'}` 
+                : 'Not configured - missing site search tracking'}
+            </div>
+            {auditData?.enhancedMeasurement?.[0]?.settings?.siteSearchEnabled && auditData?.dataQuality?.searchImplementation?.hasSiteSearchConfig && (
+              <div className="mt-2 text-xs text-green-400">
+                ✓ Site search has fired in the last 28 days
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
