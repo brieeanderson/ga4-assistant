@@ -271,7 +271,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       deductions: { configuration: [], eventsTracking: [], attribution: [], integrations: [] },
       points: {
         configuration: { earned: 0, total: 25 },
-        eventsTracking: { earned: 0, total: 40 },
+        eventsTracking: { earned: 0, total: 50 },
         attribution: { earned: 0, total: 10 },
         integrations: { earned: 0, total: 30 }
       }
@@ -294,7 +294,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
     // Define total possible points for each category
     const totalPoints = {
       configuration: 25, // Industry category (5) + Data retention (20)
-      eventsTracking: 40, // Form interactions (10) + Video interactions (10) + Key events (20)
+      eventsTracking: 50, // Enhanced measurement (10) + Form interactions (10) + Video interactions (10) + Key events (20)
       attribution: 10,    // Channel credit setting (10)
       integrations: 30    // Google Ads (20) + Search Console (5) + BigQuery (5)
     };
@@ -312,6 +312,12 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
 
     // Events & Tracking Score - Calculate earned points
     let eventsTrackingEarned = totalPoints.eventsTracking;
+    
+    // Check enhanced measurement
+    if (!auditData.enhancedMeasurement || auditData.enhancedMeasurement.length === 0) {
+      eventsTrackingEarned -= 10;
+      deductions.eventsTracking.push({ reason: 'Enhanced measurement not enabled', points: 10 });
+    }
     
     // Check form interactions
     const formInteractionsEnabled = auditData.enhancedMeasurement?.some(
@@ -442,7 +448,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           <div className={`text-center p-4 rounded-xl border ${categoryScores.eventsTracking >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.eventsTracking >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
             <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.eventsTracking)}`}>{categoryScores.eventsTracking}%</div>
             <div className="text-sm text-slate-400">Events & Tracking</div>
-            <div className="text-xs text-slate-500">{points?.eventsTracking?.earned || 0}/{points?.eventsTracking?.total || 40} pts</div>
+            <div className="text-xs text-slate-500">{points?.eventsTracking?.earned || 0}/{points?.eventsTracking?.total || 50} pts</div>
           </div>
           <div className={`text-center p-4 rounded-xl border ${categoryScores.attribution >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.attribution >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
             <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.attribution)}`}>{categoryScores.attribution}%</div>
