@@ -268,7 +268,13 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
   const calculateCategoryScores = useCallback(() => {
     if (!auditData) return { 
       scores: { configuration: 0, eventsTracking: 0, attribution: 0, integrations: 0 },
-      deductions: { configuration: [], eventsTracking: [], attribution: [], integrations: [] }
+      deductions: { configuration: [], eventsTracking: [], attribution: [], integrations: [] },
+      points: {
+        configuration: { earned: 0, total: 25 },
+        eventsTracking: { earned: 0, total: 40 },
+        attribution: { earned: 0, total: 10 },
+        integrations: { earned: 0, total: 30 }
+      }
     };
 
     // Helper function to check if a parameter is registered as a custom dimension or metric
@@ -431,22 +437,22 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           <div className={`text-center p-4 rounded-xl border ${categoryScores.configuration >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.configuration >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
             <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.configuration)}`}>{categoryScores.configuration}%</div>
             <div className="text-sm text-slate-400">Configuration</div>
-            <div className="text-xs text-slate-500">{points.configuration.earned}/{points.configuration.total} pts</div>
+            <div className="text-xs text-slate-500">{points?.configuration?.earned || 0}/{points?.configuration?.total || 25} pts</div>
           </div>
           <div className={`text-center p-4 rounded-xl border ${categoryScores.eventsTracking >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.eventsTracking >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
             <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.eventsTracking)}`}>{categoryScores.eventsTracking}%</div>
             <div className="text-sm text-slate-400">Events & Tracking</div>
-            <div className="text-xs text-slate-500">{points.eventsTracking.earned}/{points.eventsTracking.total} pts</div>
+            <div className="text-xs text-slate-500">{points?.eventsTracking?.earned || 0}/{points?.eventsTracking?.total || 40} pts</div>
           </div>
           <div className={`text-center p-4 rounded-xl border ${categoryScores.attribution >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.attribution >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
             <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.attribution)}`}>{categoryScores.attribution}%</div>
             <div className="text-sm text-slate-400">Attribution</div>
-            <div className="text-xs text-slate-500">{points.attribution.earned}/{points.attribution.total} pts</div>
+            <div className="text-xs text-slate-500">{points?.attribution?.earned || 0}/{points?.attribution?.total || 10} pts</div>
           </div>
           <div className={`text-center p-4 rounded-xl border ${categoryScores.integrations >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.integrations >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
             <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.integrations)}`}>{categoryScores.integrations}%</div>
             <div className="text-sm text-slate-400">Integrations</div>
-            <div className="text-xs text-slate-500">{points.integrations.earned}/{points.integrations.total} pts</div>
+            <div className="text-xs text-slate-500">{points?.integrations?.earned || 0}/{points?.integrations?.total || 30} pts</div>
           </div>
         </div>
 
@@ -1013,7 +1019,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
     const attributionModel = formatAttributionModel(auditData?.attribution?.reportingAttributionModel || '');
     const acquisitionWindow = formatLookbackWindow(auditData?.attribution?.acquisitionConversionEventLookbackWindow || '');
     const otherWindow = formatLookbackWindow(auditData?.attribution?.otherConversionEventLookbackWindow || '');
-    const channelCredit = formatChannelCredit(auditData?.attribution?.channelsThatCanReceiveCredit);
+    const channelCredit = formatChannelCredit(auditData?.attribution?.channelsThatCanReceiveCredit || '');
     return (
       <div className="space-y-8">
         {/* Attribution Model & Settings */}
