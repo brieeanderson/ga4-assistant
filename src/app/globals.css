@@ -64,3 +64,14 @@ h1, h2, h3, .font-bebas {
 input {
   color: #1f2937 !important;
 }
+
+/* URL wrapping utility */
+.url-wrap {
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  white-space: pre-wrap !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  display: block !important;
+  word-break: break-all !important;
+}

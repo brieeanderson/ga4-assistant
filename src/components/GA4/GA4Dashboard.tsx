@@ -739,7 +739,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                            <div className="text-xs text-red-300 mb-1">
                              <span className="font-semibold">{issue.type}</span> in {issue.parameter}
                            </div>
-                           <div className="text-xs text-gray-300 break-all overflow-hidden max-w-full" title={issue.url} style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+                           <div className="text-xs text-gray-300 url-wrap" title={issue.url}>
                              {issue.url}
                            </div>
                            <div className="text-xs text-gray-400 mt-1">
@@ -774,7 +774,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                            <div className="text-xs text-orange-300 mb-1">
                              <span className="font-semibold">{issue.type}</span> in {issue.parameter}
                            </div>
-                           <div className="text-xs text-gray-300 break-all overflow-hidden max-w-full" title={issue.url} style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+                           <div className="text-xs text-gray-300 url-wrap" title={issue.url}>
                              {issue.url}
                            </div>
                            <div className="text-xs text-gray-400 mt-1">
@@ -809,7 +809,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                            <div className="text-xs text-yellow-300 mb-1">
                              <span className="font-semibold">{issue.type}</span> in {issue.parameter}
                            </div>
-                           <div className="text-xs text-gray-300 break-all overflow-hidden max-w-full" title={issue.url} style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+                           <div className="text-xs text-gray-300 url-wrap" title={issue.url}>
                              {issue.url}
                            </div>
                            <div className="text-xs text-gray-400 mt-1">
