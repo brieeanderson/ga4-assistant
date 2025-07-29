@@ -116,7 +116,7 @@ const AuditResultsPage = () => {
       <div className="min-h-screen flex items-center justify-center bg-black text-white">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p>Running audit on {selectedProperty?.displayName || 'your property'}...</p>
+          <p>{selectedProperty ? `Running audit on ${selectedProperty.displayName}...` : 'Loading your accounts...'}</p>
           <p className="text-sm text-gray-400 mt-2">This may take a few moments</p>
         </div>
       </div>
