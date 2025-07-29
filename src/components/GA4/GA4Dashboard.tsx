@@ -202,8 +202,8 @@ const generateRecommendations = (auditData: GA4Audit) => {
   }
   // 19. Attribution channel (if available and not set correctly)
   if (auditData?.attribution && 
-      (auditData.attribution as any).channelsThatCanReceiveCredit && 
-      (auditData.attribution as any).channelsThatCanReceiveCredit !== 'PAID_AND_ORGANIC') {
+      auditData.attribution.channelsThatCanReceiveCredit && 
+      auditData.attribution.channelsThatCanReceiveCredit !== 'PAID_AND_ORGANIC') {
     recs.push({
       title: 'Set channel credit to Paid and Organic',
       description: 'Affects web conversions shared with Google Ads.',
@@ -264,7 +264,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
     }
   }, [auditData, property, saveScore, getScoreComparison]);
 
-  // Calculate individual category scores based on audit data using deduction system
+  // Calculate individual category scores based on audit data using point-based system
   const calculateCategoryScores = useCallback(() => {
     if (!auditData) return { 
       scores: { configuration: 0, eventsTracking: 0, attribution: 0, integrations: 0 },
@@ -285,26 +285,34 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       integrations: [] as Array<{ reason: string; points: number }>
     };
 
-    // Configuration Score (starts at 100, deductions apply)
-    let configurationScore = 100;
+    // Define total possible points for each category
+    const totalPoints = {
+      configuration: 25, // Industry category (5) + Data retention (20)
+      eventsTracking: 40, // Form interactions (10) + Video interactions (10) + Key events (20)
+      attribution: 10,    // Channel credit setting (10)
+      integrations: 30    // Google Ads (20) + Search Console (5) + BigQuery (5)
+    };
+
+    // Configuration Score - Calculate earned points
+    let configurationEarned = totalPoints.configuration;
     if (!auditData.property?.industryCategory) {
-      configurationScore -= 5;
+      configurationEarned -= 5;
       deductions.configuration.push({ reason: 'Industry category not set', points: 5 });
     }
     if (auditData.dataRetention?.eventDataRetention !== 'FOURTEEN_MONTHS') {
-      configurationScore -= 20;
+      configurationEarned -= 20;
       deductions.configuration.push({ reason: 'Data retention not set to 14 months', points: 20 });
     }
 
-    // Events & Tracking Score (starts at 100, deductions apply)
-    let eventsTrackingScore = 100;
+    // Events & Tracking Score - Calculate earned points
+    let eventsTrackingEarned = totalPoints.eventsTracking;
     
     // Check form interactions
     const formInteractionsEnabled = auditData.enhancedMeasurement?.some(
       (s: any) => s.settings?.formInteractionsEnabled
     );
     if (formInteractionsEnabled && (!isParamRegistered('form_name') && !isParamRegistered('form_id'))) {
-      eventsTrackingScore -= 10;
+      eventsTrackingEarned -= 10;
       deductions.eventsTracking.push({ reason: 'Form interactions enabled but form_name/form_id not registered', points: 10 });
     }
 
@@ -313,57 +321,69 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       (s: any) => s.settings?.videoEngagementEnabled
     );
     if (videoInteractionsEnabled && !isParamRegistered('video_percent')) {
-      eventsTrackingScore -= 5;
+      eventsTrackingEarned -= 5;
       deductions.eventsTracking.push({ reason: 'Video interactions enabled but video_percent not registered', points: 5 });
     }
     if (videoInteractionsEnabled && (!isParamRegistered('video_duration') && !isParamRegistered('video_time'))) {
-      eventsTrackingScore -= 5;
+      eventsTrackingEarned -= 5;
       deductions.eventsTracking.push({ reason: 'Video interactions enabled but video_duration/video_time not registered', points: 5 });
     }
 
     // Check key events
     if (!auditData.keyEvents || auditData.keyEvents.length === 0) {
-      eventsTrackingScore -= 20;
+      eventsTrackingEarned -= 20;
       deductions.eventsTracking.push({ reason: 'No key events configured', points: 20 });
     } else if (auditData.keyEvents.length > 3) {
-      eventsTrackingScore -= 10;
+      eventsTrackingEarned -= 10;
       deductions.eventsTracking.push({ reason: 'More than 3 key events configured (over-configuration)', points: 10 });
     }
 
-    // Attribution Score (starts at 100, deductions apply)
-    let attributionScore = 100;
-    if (auditData.attribution?.reportingAttributionModel !== 'PAID_AND_ORGANIC') {
-      attributionScore -= 10;
+    // Attribution Score - Calculate earned points
+    let attributionEarned = totalPoints.attribution;
+    if (auditData.attribution?.channelsThatCanReceiveCredit && 
+        auditData.attribution.channelsThatCanReceiveCredit !== 'PAID_AND_ORGANIC') {
+      attributionEarned -= 10;
       deductions.attribution.push({ reason: 'Attribution model not set to paid and organic', points: 10 });
     }
 
-    // Integrations Score (starts at 100, deductions apply)
-    let integrationsScore = 100;
+    // Integrations Score - Calculate earned points
+    let integrationsEarned = totalPoints.integrations;
     if (!auditData.googleAdsLinks || auditData.googleAdsLinks.length === 0) {
-      integrationsScore -= 20;
+      integrationsEarned -= 20;
       deductions.integrations.push({ reason: 'Google Ads not connected', points: 20 });
     }
     if (!auditData.searchConsoleDataStatus?.isLinked) {
-      integrationsScore -= 5;
+      integrationsEarned -= 5;
       deductions.integrations.push({ reason: 'Search Console not linked', points: 5 });
     }
     if (!auditData.bigQueryLinks || auditData.bigQueryLinks.length === 0) {
-      integrationsScore -= 5;
+      integrationsEarned -= 5;
       deductions.integrations.push({ reason: 'BigQuery not connected', points: 5 });
     }
 
+    // Calculate percentages based on earned/total points
+    const calculatePercentage = (earned: number, total: number) => {
+      return Math.max(0, Math.round((earned / total) * 100));
+    };
+
     return {
       scores: {
-        configuration: Math.max(0, Math.round(configurationScore)),
-        eventsTracking: Math.max(0, Math.round(eventsTrackingScore)),
-        attribution: Math.max(0, Math.round(attributionScore)),
-        integrations: Math.max(0, Math.round(integrationsScore))
+        configuration: calculatePercentage(configurationEarned, totalPoints.configuration),
+        eventsTracking: calculatePercentage(eventsTrackingEarned, totalPoints.eventsTracking),
+        attribution: calculatePercentage(attributionEarned, totalPoints.attribution),
+        integrations: calculatePercentage(integrationsEarned, totalPoints.integrations)
       },
-      deductions
+      deductions,
+      points: {
+        configuration: { earned: configurationEarned, total: totalPoints.configuration },
+        eventsTracking: { earned: eventsTrackingEarned, total: totalPoints.eventsTracking },
+        attribution: { earned: attributionEarned, total: totalPoints.attribution },
+        integrations: { earned: integrationsEarned, total: totalPoints.integrations }
+      }
     };
   }, [auditData]);
 
-  const { scores: categoryScores, deductions } = calculateCategoryScores();
+  const { scores: categoryScores, deductions, points } = calculateCategoryScores();
   
   // Calculate overall score as average of category scores
   const overallScore = Math.round(
@@ -411,18 +431,22 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           <div className={`text-center p-4 rounded-xl border ${categoryScores.configuration >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.configuration >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
             <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.configuration)}`}>{categoryScores.configuration}%</div>
             <div className="text-sm text-slate-400">Configuration</div>
+            <div className="text-xs text-slate-500">{points.configuration.earned}/{points.configuration.total} pts</div>
           </div>
           <div className={`text-center p-4 rounded-xl border ${categoryScores.eventsTracking >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.eventsTracking >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
             <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.eventsTracking)}`}>{categoryScores.eventsTracking}%</div>
             <div className="text-sm text-slate-400">Events & Tracking</div>
+            <div className="text-xs text-slate-500">{points.eventsTracking.earned}/{points.eventsTracking.total} pts</div>
           </div>
           <div className={`text-center p-4 rounded-xl border ${categoryScores.attribution >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.attribution >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
             <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.attribution)}`}>{categoryScores.attribution}%</div>
             <div className="text-sm text-slate-400">Attribution</div>
+            <div className="text-xs text-slate-500">{points.attribution.earned}/{points.attribution.total} pts</div>
           </div>
           <div className={`text-center p-4 rounded-xl border ${categoryScores.integrations >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.integrations >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
             <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.integrations)}`}>{categoryScores.integrations}%</div>
             <div className="text-sm text-slate-400">Integrations</div>
+            <div className="text-xs text-slate-500">{points.integrations.earned}/{points.integrations.total} pts</div>
           </div>
         </div>
 
@@ -989,7 +1013,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
     const attributionModel = formatAttributionModel(auditData?.attribution?.reportingAttributionModel || '');
     const acquisitionWindow = formatLookbackWindow(auditData?.attribution?.acquisitionConversionEventLookbackWindow || '');
     const otherWindow = formatLookbackWindow(auditData?.attribution?.otherConversionEventLookbackWindow || '');
-    const channelCredit = formatChannelCredit((auditData?.attribution as any)?.channelsThatCanReceiveCredit);
+    const channelCredit = formatChannelCredit(auditData?.attribution?.channelsThatCanReceiveCredit);
     return (
       <div className="space-y-8">
         {/* Attribution Model & Settings */}

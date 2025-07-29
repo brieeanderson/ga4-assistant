@@ -198,6 +198,7 @@ export interface EnhancedGA4Audit {
     reportingAttributionModel: string;
     acquisitionConversionEventLookbackWindow: string;
     otherConversionEventLookbackWindow: string;
+    channelsThatCanReceiveCredit?: string;
   };
   
   // Enhanced data quality properties

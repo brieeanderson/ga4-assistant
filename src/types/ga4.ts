@@ -123,6 +123,7 @@ export interface GA4Audit {
     reportingAttributionModel?: string;
     acquisitionConversionEventLookbackWindow?: string;
     otherConversionEventLookbackWindow?: string;
+    channelsThatCanReceiveCredit?: string;
   };
   dataFilters?: Array<{
     id: string;
