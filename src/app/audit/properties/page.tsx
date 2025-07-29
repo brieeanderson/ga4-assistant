@@ -175,6 +175,20 @@ const PropertiesPage = () => {
           </p>
         </div>
 
+        {/* About the Audit */}
+        <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+          <div className="flex items-start space-x-3">
+            <div className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+            <div>
+              <h4 className="text-blue-400 font-semibold mb-1">About the Audit</h4>
+              <p className="text-gray-300 text-sm">
+                Our audit will analyze your GA4 configuration across privacy, data quality, integrations, and tracking. 
+                The process takes about 30-60 seconds and provides actionable recommendations.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Search */}
         <div className="mb-6">
           <div className="relative">
@@ -244,20 +258,6 @@ const PropertiesPage = () => {
               </div>
             ))
           )}
-        </div>
-
-        {/* Help Text */}
-        <div className="mt-8 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-          <div className="flex items-start space-x-3">
-            <div className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
-            <div>
-              <h4 className="text-blue-400 font-semibold mb-1">About the Audit</h4>
-              <p className="text-gray-300 text-sm">
-                Our audit will analyze your GA4 configuration across privacy, data quality, integrations, and tracking. 
-                The process takes about 30-60 seconds and provides actionable recommendations.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
