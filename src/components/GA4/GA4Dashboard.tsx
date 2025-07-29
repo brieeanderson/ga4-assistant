@@ -250,7 +250,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
     if (auditData && property?.propertyId) {
       const { scores } = calculateCategoryScores();
       const overallScore = Math.round(
-        (scores.propertySettings + scores.dataCollection + scores.keyEvents + scores.integrations) / 4
+        (scores.configuration + scores.eventsTracking + scores.attribution + scores.integrations) / 4
       );
       
       // Save the current score
@@ -267,8 +267,8 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
   // Calculate individual category scores based on audit data using deduction system
   const calculateCategoryScores = useCallback(() => {
     if (!auditData) return { 
-      scores: { propertySettings: 0, dataCollection: 0, keyEvents: 0, integrations: 0 },
-      deductions: { propertySettings: [], dataCollection: [], keyEvents: [], integrations: [] }
+      scores: { configuration: 0, eventsTracking: 0, attribution: 0, integrations: 0 },
+      deductions: { configuration: [], eventsTracking: [], attribution: [], integrations: [] }
     };
 
     // Helper function to check if a parameter is registered as a custom dimension or metric
@@ -279,33 +279,33 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
     };
 
     const deductions = {
-      propertySettings: [] as Array<{ reason: string; points: number }>,
-      dataCollection: [] as Array<{ reason: string; points: number }>,
-      keyEvents: [] as Array<{ reason: string; points: number }>,
+      configuration: [] as Array<{ reason: string; points: number }>,
+      eventsTracking: [] as Array<{ reason: string; points: number }>,
+      attribution: [] as Array<{ reason: string; points: number }>,
       integrations: [] as Array<{ reason: string; points: number }>
     };
 
-    // Property Settings Score (starts at 100, deductions apply)
-    let propertySettingsScore = 100;
+    // Configuration Score (starts at 100, deductions apply)
+    let configurationScore = 100;
     if (!auditData.property?.industryCategory) {
-      propertySettingsScore -= 5;
-      deductions.propertySettings.push({ reason: 'Industry category not set', points: 5 });
+      configurationScore -= 5;
+      deductions.configuration.push({ reason: 'Industry category not set', points: 5 });
     }
     if (auditData.dataRetention?.eventDataRetention !== 'FOURTEEN_MONTHS') {
-      propertySettingsScore -= 20;
-      deductions.propertySettings.push({ reason: 'Data retention not set to 14 months', points: 20 });
+      configurationScore -= 20;
+      deductions.configuration.push({ reason: 'Data retention not set to 14 months', points: 20 });
     }
 
-    // Data Collection Score (starts at 100, deductions apply)
-    let dataCollectionScore = 100;
+    // Events & Tracking Score (starts at 100, deductions apply)
+    let eventsTrackingScore = 100;
     
     // Check form interactions
     const formInteractionsEnabled = auditData.enhancedMeasurement?.some(
       (s: any) => s.settings?.formInteractionsEnabled
     );
     if (formInteractionsEnabled && (!isParamRegistered('form_name') && !isParamRegistered('form_id'))) {
-      dataCollectionScore -= 10;
-      deductions.dataCollection.push({ reason: 'Form interactions enabled but form_name/form_id not registered', points: 10 });
+      eventsTrackingScore -= 10;
+      deductions.eventsTracking.push({ reason: 'Form interactions enabled but form_name/form_id not registered', points: 10 });
     }
 
     // Check video interactions
@@ -313,22 +313,28 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       (s: any) => s.settings?.videoEngagementEnabled
     );
     if (videoInteractionsEnabled && !isParamRegistered('video_percent')) {
-      dataCollectionScore -= 5;
-      deductions.dataCollection.push({ reason: 'Video interactions enabled but video_percent not registered', points: 5 });
+      eventsTrackingScore -= 5;
+      deductions.eventsTracking.push({ reason: 'Video interactions enabled but video_percent not registered', points: 5 });
     }
     if (videoInteractionsEnabled && (!isParamRegistered('video_duration') && !isParamRegistered('video_time'))) {
-      dataCollectionScore -= 5;
-      deductions.dataCollection.push({ reason: 'Video interactions enabled but video_duration/video_time not registered', points: 5 });
+      eventsTrackingScore -= 5;
+      deductions.eventsTracking.push({ reason: 'Video interactions enabled but video_duration/video_time not registered', points: 5 });
     }
 
-    // Key Events Score (starts at 100, deductions apply)
-    let keyEventsScore = 100;
+    // Check key events
     if (!auditData.keyEvents || auditData.keyEvents.length === 0) {
-      keyEventsScore -= 20;
-      deductions.keyEvents.push({ reason: 'No key events configured', points: 20 });
+      eventsTrackingScore -= 20;
+      deductions.eventsTracking.push({ reason: 'No key events configured', points: 20 });
     } else if (auditData.keyEvents.length > 3) {
-      keyEventsScore -= 10;
-      deductions.keyEvents.push({ reason: 'More than 3 key events configured (over-configuration)', points: 10 });
+      eventsTrackingScore -= 10;
+      deductions.eventsTracking.push({ reason: 'More than 3 key events configured (over-configuration)', points: 10 });
+    }
+
+    // Attribution Score (starts at 100, deductions apply)
+    let attributionScore = 100;
+    if (auditData.attribution?.reportingAttributionModel !== 'PAID_AND_ORGANIC') {
+      attributionScore -= 10;
+      deductions.attribution.push({ reason: 'Attribution model not set to paid and organic', points: 10 });
     }
 
     // Integrations Score (starts at 100, deductions apply)
@@ -346,17 +352,11 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       deductions.integrations.push({ reason: 'BigQuery not connected', points: 5 });
     }
 
-    // Check attribution settings
-    if (auditData.attribution?.reportingAttributionModel !== 'PAID_AND_ORGANIC') {
-      integrationsScore -= 10;
-      deductions.integrations.push({ reason: 'Attribution model not set to paid and organic', points: 10 });
-    }
-
     return {
       scores: {
-        propertySettings: Math.max(0, Math.round(propertySettingsScore)),
-        dataCollection: Math.max(0, Math.round(dataCollectionScore)),
-        keyEvents: Math.max(0, Math.round(keyEventsScore)),
+        configuration: Math.max(0, Math.round(configurationScore)),
+        eventsTracking: Math.max(0, Math.round(eventsTrackingScore)),
+        attribution: Math.max(0, Math.round(attributionScore)),
         integrations: Math.max(0, Math.round(integrationsScore))
       },
       deductions
@@ -367,7 +367,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
   
   // Calculate overall score as average of category scores
   const overallScore = Math.round(
-    (categoryScores.propertySettings + categoryScores.dataCollection + categoryScores.keyEvents + categoryScores.integrations) / 4
+    (categoryScores.configuration + categoryScores.eventsTracking + categoryScores.attribution + categoryScores.integrations) / 4
   );
 
   const getScoreColor = (score: number) => {
@@ -408,17 +408,17 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
 
         {/* Score Breakdown - Calculated from audit data */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className={`text-center p-4 rounded-xl border ${categoryScores.propertySettings >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.propertySettings >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
-            <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.propertySettings)}`}>{categoryScores.propertySettings}%</div>
-            <div className="text-sm text-slate-400">Property Settings</div>
+          <div className={`text-center p-4 rounded-xl border ${categoryScores.configuration >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.configuration >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+            <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.configuration)}`}>{categoryScores.configuration}%</div>
+            <div className="text-sm text-slate-400">Configuration</div>
           </div>
-          <div className={`text-center p-4 rounded-xl border ${categoryScores.dataCollection >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.dataCollection >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
-            <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.dataCollection)}`}>{categoryScores.dataCollection}%</div>
-            <div className="text-sm text-slate-400">Data Collection</div>
+          <div className={`text-center p-4 rounded-xl border ${categoryScores.eventsTracking >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.eventsTracking >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+            <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.eventsTracking)}`}>{categoryScores.eventsTracking}%</div>
+            <div className="text-sm text-slate-400">Events & Tracking</div>
           </div>
-          <div className={`text-center p-4 rounded-xl border ${categoryScores.keyEvents >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.keyEvents >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
-            <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.keyEvents)}`}>{categoryScores.keyEvents}%</div>
-            <div className="text-sm text-slate-400">Key Events</div>
+          <div className={`text-center p-4 rounded-xl border ${categoryScores.attribution >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.attribution >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+            <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.attribution)}`}>{categoryScores.attribution}%</div>
+            <div className="text-sm text-slate-400">Attribution</div>
           </div>
           <div className={`text-center p-4 rounded-xl border ${categoryScores.integrations >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.integrations >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
             <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.integrations)}`}>{categoryScores.integrations}%</div>
@@ -427,17 +427,17 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
         </div>
 
         {/* Score Deductions */}
-        {(deductions.propertySettings.length > 0 || deductions.dataCollection.length > 0 || deductions.keyEvents.length > 0 || deductions.integrations.length > 0) && (
+        {(deductions.configuration.length > 0 || deductions.eventsTracking.length > 0 || deductions.attribution.length > 0 || deductions.integrations.length > 0) && (
           <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
             <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
               <AlertTriangle className="w-7 h-7 mr-3 text-red-400" />
               Score Deductions
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {deductions.propertySettings.length > 0 && (
+              {deductions.configuration.length > 0 && (
                 <div className="space-y-3">
-                  <h4 className="text-lg font-semibold text-white mb-3">Property Settings</h4>
-                  {deductions.propertySettings.map((deduction, idx) => (
+                  <h4 className="text-lg font-semibold text-white mb-3">Configuration</h4>
+                  {deductions.configuration.map((deduction, idx) => (
                     <div key={idx} className={`flex items-center justify-between p-3 rounded-lg ${
                       deduction.points >= 10 
                         ? 'bg-red-500/10 border border-red-500/20' 
@@ -452,10 +452,10 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                 </div>
               )}
               
-              {deductions.dataCollection.length > 0 && (
+              {deductions.eventsTracking.length > 0 && (
                 <div className="space-y-3">
-                  <h4 className="text-lg font-semibold text-white mb-3">Data Collection</h4>
-                  {deductions.dataCollection.map((deduction, idx) => (
+                  <h4 className="text-lg font-semibold text-white mb-3">Events & Tracking</h4>
+                  {deductions.eventsTracking.map((deduction, idx) => (
                     <div key={idx} className={`flex items-center justify-between p-3 rounded-lg ${
                       deduction.points >= 10 
                         ? 'bg-red-500/10 border border-red-500/20' 
@@ -470,10 +470,10 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                 </div>
               )}
               
-              {deductions.keyEvents.length > 0 && (
+              {deductions.attribution.length > 0 && (
                 <div className="space-y-3">
-                  <h4 className="text-lg font-semibold text-white mb-3">Key Events</h4>
-                  {deductions.keyEvents.map((deduction, idx) => (
+                  <h4 className="text-lg font-semibold text-white mb-3">Attribution</h4>
+                  {deductions.attribution.map((deduction, idx) => (
                     <div key={idx} className={`flex items-center justify-between p-3 rounded-lg ${
                       deduction.points >= 10 
                         ? 'bg-red-500/10 border border-red-500/20' 
