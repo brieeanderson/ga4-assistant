@@ -148,7 +148,7 @@ const PropertiesPage = () => {
                 className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />
-                <span>Back to Audit</span>
+                <span>Connect to a Different Google Account</span>
               </Link>
             </div>
             <div className="text-white font-semibold">Select Property to Audit</div>
