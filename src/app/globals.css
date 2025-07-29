@@ -60,9 +60,9 @@ h1, h2, h3, .font-bebas {
   pointer-events: none;
 }
 
-/* Fix input text color */
+/* Fix input text color - allow white text on dark backgrounds */
 input {
-  color: #1f2937 !important;
+  color: inherit;
 }
 
 /* URL wrapping utility */
