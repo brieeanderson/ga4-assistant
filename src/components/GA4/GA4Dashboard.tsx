@@ -734,19 +734,19 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                   </button>
                   {expandedPiiSections.critical && (
                     <div className="space-y-2">
-                      {auditData.dataQuality.piiAnalysis.details.critical.slice(0, 5).map((issue: any, index: number) => (
-                        <div key={index} className="p-3 bg-red-500/10 rounded-lg border border-red-500/20">
-                          <div className="text-xs text-red-300 mb-1">
-                            <span className="font-semibold">{issue.type}</span> in {issue.parameter}
-                          </div>
-                          <div className="text-xs text-gray-300 break-all overflow-hidden max-w-full">
-                            {issue.url}
-                          </div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            {issue.pageViews} page views • Value: {issue.value}
-                          </div>
-                        </div>
-                      ))}
+                                             {auditData.dataQuality.piiAnalysis.details.critical.slice(0, 5).map((issue: any, index: number) => (
+                         <div key={index} className="p-3 bg-red-500/10 rounded-lg border border-red-500/20">
+                           <div className="text-xs text-red-300 mb-1">
+                             <span className="font-semibold">{issue.type}</span> in {issue.parameter}
+                           </div>
+                           <div className="text-xs text-gray-300 break-all overflow-hidden max-w-full" title={issue.url} style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+                             {issue.url}
+                           </div>
+                           <div className="text-xs text-gray-400 mt-1">
+                             {issue.pageViews} page views • Value: {issue.value}
+                           </div>
+                         </div>
+                       ))}
                       {auditData.dataQuality.piiAnalysis.details.critical.length > 5 && (
                         <div className="text-xs text-gray-400 italic">
                           ... and {auditData.dataQuality.piiAnalysis.details.critical.length - 5} more critical issues
@@ -769,19 +769,19 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                   </button>
                   {expandedPiiSections.high && (
                     <div className="space-y-2">
-                      {auditData.dataQuality.piiAnalysis.details.high.slice(0, 3).map((issue: any, index: number) => (
-                        <div key={index} className="p-3 bg-orange-500/10 rounded-lg border border-orange-500/20">
-                          <div className="text-xs text-orange-300 mb-1">
-                            <span className="font-semibold">{issue.type}</span> in {issue.parameter}
-                          </div>
-                          <div className="text-xs text-gray-300 break-all overflow-hidden max-w-full">
-                            {issue.url}
-                          </div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            {issue.pageViews} page views • Value: {issue.value}
-                          </div>
-                        </div>
-                      ))}
+                                             {auditData.dataQuality.piiAnalysis.details.high.slice(0, 3).map((issue: any, index: number) => (
+                         <div key={index} className="p-3 bg-orange-500/10 rounded-lg border border-orange-500/20">
+                           <div className="text-xs text-orange-300 mb-1">
+                             <span className="font-semibold">{issue.type}</span> in {issue.parameter}
+                           </div>
+                           <div className="text-xs text-gray-300 break-all overflow-hidden max-w-full" title={issue.url} style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+                             {issue.url}
+                           </div>
+                           <div className="text-xs text-gray-400 mt-1">
+                             {issue.pageViews} page views • Value: {issue.value}
+                           </div>
+                         </div>
+                       ))}
                       {auditData.dataQuality.piiAnalysis.details.high.length > 3 && (
                         <div className="text-xs text-gray-400 italic">
                           ... and {auditData.dataQuality.piiAnalysis.details.high.length - 3} more high issues
@@ -804,19 +804,19 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                   </button>
                   {expandedPiiSections.medium && (
                     <div className="space-y-2">
-                      {auditData.dataQuality.piiAnalysis.details.medium.slice(0, 3).map((issue: any, index: number) => (
-                        <div key={index} className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
-                          <div className="text-xs text-yellow-300 mb-1">
-                            <span className="font-semibold">{issue.type}</span> in {issue.parameter}
-                          </div>
-                          <div className="text-xs text-gray-300 break-all overflow-hidden max-w-full">
-                            {issue.url}
-                          </div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            {issue.pageViews} page views • Value: {issue.value}
-                          </div>
-                        </div>
-                      ))}
+                                             {auditData.dataQuality.piiAnalysis.details.medium.slice(0, 3).map((issue: any, index: number) => (
+                         <div key={index} className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
+                           <div className="text-xs text-yellow-300 mb-1">
+                             <span className="font-semibold">{issue.type}</span> in {issue.parameter}
+                           </div>
+                           <div className="text-xs text-gray-300 break-all overflow-hidden max-w-full" title={issue.url} style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+                             {issue.url}
+                           </div>
+                           <div className="text-xs text-gray-400 mt-1">
+                             {issue.pageViews} page views • Value: {issue.value}
+                           </div>
+                         </div>
+                       ))}
                       {auditData.dataQuality.piiAnalysis.details.medium.length > 3 && (
                         <div className="text-xs text-gray-400 italic">
                           ... and {auditData.dataQuality.piiAnalysis.details.medium.length - 3} more medium issues
