@@ -8,7 +8,6 @@ import {
   Database,
   CheckCircle,
   AlertTriangle,
-  ExternalLink,
   Zap,
   Globe,
   Search,
@@ -733,7 +732,36 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           </div>
         )}
       </div>
-      {/* Enhanced Measurement */}
+
+    </div>
+  );
+
+  const renderEventsTab = () => (
+    <div className="space-y-8">
+      {/* Key Events */}
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+        <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+          <Target className="w-7 h-7 mr-3 text-green-400" />
+          Key Events (Conversions)
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {auditData?.keyEvents?.map((event: KeyEvent, index: number) => (
+            <div key={index} className="p-6 bg-green-500/10 rounded-xl border border-green-500/20">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-green-500/20 rounded-lg">
+                  <Target className="w-5 h-5 text-green-400" />
+                </div>
+                <div className="text-xs text-green-300">
+                  {event.createTime ? new Date(event.createTime).toLocaleDateString() : ''}
+                </div>
+              </div>
+              <div className="text-lg font-semibold text-white mb-2">{event.eventName}</div>
+              <div className="text-sm text-slate-400">Conversion event configured</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Enhanced Measurement Settings */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
         <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
           <Zap className="w-7 h-7 mr-3 text-yellow-400" />
@@ -766,9 +794,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               </div>
             </div>
             <div className="text-sm text-slate-400">
-              {auditData?.enhancedMeasurement?.[0]?.settings?.scrollsEnabled 
-                ? 'Fires when user scrolls 90% of page depth' 
-                : 'Not configured - missing scroll engagement data'}
+              Fires when user scrolls 90% of page depth
             </div>
           </div>
 
@@ -785,9 +811,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               </div>
             </div>
             <div className="text-sm text-slate-400">
-              {auditData?.enhancedMeasurement?.[0]?.settings?.outboundClicksEnabled 
-                ? 'Automatically captures clicks to external domains' 
-                : 'Not configured - missing outbound link tracking'}
+              Automatically captures clicks to external domains
             </div>
           </div>
 
@@ -804,9 +828,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               </div>
             </div>
             <div className="text-sm text-slate-400">
-              {auditData?.enhancedMeasurement?.[0]?.settings?.videoEngagementEnabled 
-                ? 'Tracks YouTube video engagement (start, progress, completion)' 
-                : 'Not configured - missing video engagement data'}
+              Tracks YouTube video engagement (start, progress, completion)
             </div>
           </div>
 
@@ -823,9 +845,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               </div>
             </div>
             <div className="text-sm text-slate-400">
-              {auditData?.enhancedMeasurement?.[0]?.settings?.fileDownloadsEnabled 
-                ? 'Automatically tracks PDF, document, and media downloads' 
-                : 'Not configured - missing file download tracking'}
+              Automatically tracks clicks that end with popular file extensions such as .pdf, .csv, .mp3, etc.
             </div>
           </div>
 
@@ -842,9 +862,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               </div>
             </div>
             <div className="text-sm text-slate-400">
-              {auditData?.enhancedMeasurement?.[0]?.settings?.formInteractionsEnabled 
-                ? 'Tracks form interactions and submissions' 
-                : 'Not configured - missing form engagement data'}
+              Tracks form interactions and submissions
             </div>
           </div>
 
@@ -861,78 +879,14 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               </div>
             </div>
             <div className="text-sm text-slate-400">
-              {auditData?.enhancedMeasurement?.[0]?.settings?.siteSearchEnabled 
-                ? `Query parameters: ${auditData?.dataQuality?.searchImplementation?.searchParameters?.join(', ') || 'q'}${auditData?.dataQuality?.searchImplementation?.hasSiteSearchConfig ? ' (configured)' : ' (needs configuration)'}` 
-                : 'Not configured - missing site search tracking'}
+              Tracks searches that happen on your site using query parameters
             </div>
-            {auditData?.enhancedMeasurement?.[0]?.settings?.siteSearchEnabled && auditData?.dataQuality?.searchImplementation?.hasSiteSearchConfig && (
-              <div className="mt-2 text-xs text-green-400">
-                ✓ Site search has fired in the last 28 days
+            {auditData?.enhancedMeasurement?.[0]?.settings?.siteSearchEnabled && (
+              <div className="mt-2 text-xs text-slate-400">
+                Query parameters: {auditData?.dataQuality?.searchImplementation?.searchParameters?.join(', ') || 'q'} {auditData?.dataQuality?.searchImplementation?.hasSiteSearchConfig ? '(configured)' : '(needs configuration)'}
               </div>
             )}
           </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderEventsTab = () => (
-    <div className="space-y-8">
-      {/* Key Events */}
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
-          <Target className="w-7 h-7 mr-3 text-green-400" />
-          Key Events (Conversions)
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {auditData?.keyEvents?.map((event: KeyEvent, index: number) => (
-            <div key={index} className="p-6 bg-green-500/10 rounded-xl border border-green-500/20">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <Target className="w-5 h-5 text-green-400" />
-                </div>
-                <div className="text-xs text-green-300">
-                  {event.createTime ? new Date(event.createTime).toLocaleDateString() : ''}
-                </div>
-              </div>
-              <div className="text-lg font-semibold text-white mb-2">{event.eventName}</div>
-              <div className="text-sm text-slate-400">Conversion event configured</div>
-            </div>
-          ))}
-        </div>
-      </div>
-      {/* Enhanced Measurement Breakdown */}
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
-          <Activity className="w-7 h-7 mr-3 text-blue-400" />
-          Enhanced Measurement Breakdown
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {auditData?.enhancedMeasurement && auditData.enhancedMeasurement[0] && Object.entries(auditData.enhancedMeasurement[0].settings).map(([key, value]) => {
-            if (key === 'streamEnabled') return null;
-            const icons: any = {
-              scrollsEnabled: Activity,
-              outboundClicksEnabled: ExternalLink,
-              siteSearchEnabled: Search,
-              videoEngagementEnabled: Target,
-              fileDownloadsEnabled: Database,
-              formInteractionsEnabled: Settings,
-              pageChangesEnabled: Globe
-            };
-            const IconComponent = icons[key] || Activity;
-            return (
-              <div key={key} className={`p-6 rounded-xl border transition-all duration-200 ${
-                value ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'
-              }`}>
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`p-2 rounded-lg ${value ? 'bg-green-500/20' : 'bg-red-500/20'}`}> <IconComponent className={`w-5 h-5 ${value ? 'text-green-400' : 'text-red-400'}`} /> </div>
-                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${value ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>{value ? 'Enabled' : 'Disabled'}</div>
-                </div>
-                <div className="text-lg font-semibold text-white mb-2">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).replace('Enabled', '')}</div>
-                <div className="text-sm text-slate-400">{value ? 'Automatically tracking this event type' : 'Not configured - missing valuable data'}</div>
-              </div>
-            );
-          })}
         </div>
       </div>
     </div>
