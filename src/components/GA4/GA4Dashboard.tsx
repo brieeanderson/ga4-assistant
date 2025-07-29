@@ -18,7 +18,9 @@ import {
   LineChart,
   ArrowLeft,
   TrendingUp as TrendingUpIcon,
-  TrendingDown
+  TrendingDown,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { GA4Audit, DataStream, CustomDimension, CustomMetric, KeyEvent } from '@/types/ga4';
 import { useScoreHistory, ScoreComparison } from '@/hooks/useScoreHistory';
@@ -241,6 +243,11 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
   console.log('GA4Dashboard auditData:', auditData);
 
   const [activeTab, setActiveTab] = useState('overview');
+  const [expandedPiiSections, setExpandedPiiSections] = useState<{critical: boolean, high: boolean, medium: boolean}>({
+    critical: false,
+    high: false,
+    medium: false
+  });
   const { saveScore, getScoreComparison } = useScoreHistory();
   const [scoreComparison, setScoreComparison] = useState<ScoreComparison | null>(null);
 
@@ -718,75 +725,105 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               {/* Critical Issues */}
               {auditData.dataQuality.piiAnalysis.details.critical.length > 0 && (
                 <div>
-                  <div className="text-sm font-semibold text-red-400 mb-2">Critical Issues ({auditData.dataQuality.piiAnalysis.details.critical.length}):</div>
-                  <div className="space-y-2">
-                    {auditData.dataQuality.piiAnalysis.details.critical.slice(0, 3).map((issue: any, index: number) => (
-                      <div key={index} className="p-3 bg-red-500/10 rounded-lg border border-red-500/20">
-                        <div className="text-xs text-red-300 mb-1">
-                          <span className="font-semibold">{issue.type}</span> in {issue.parameter}
+                  <button 
+                    onClick={() => setExpandedPiiSections(prev => ({ ...prev, critical: !prev.critical }))}
+                    className="flex items-center justify-between w-full text-sm font-semibold text-red-400 mb-2 hover:text-red-300 transition-colors"
+                  >
+                    <span>Critical Issues ({auditData.dataQuality.piiAnalysis.details.critical.length})</span>
+                    {expandedPiiSections.critical ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                  </button>
+                  {expandedPiiSections.critical && (
+                    <div className="space-y-2">
+                      {auditData.dataQuality.piiAnalysis.details.critical.slice(0, 5).map((issue: any, index: number) => (
+                        <div key={index} className="p-3 bg-red-500/10 rounded-lg border border-red-500/20">
+                          <div className="text-xs text-red-300 mb-1">
+                            <span className="font-semibold">{issue.type}</span> in {issue.parameter}
+                          </div>
+                          <div className="text-xs text-gray-300 break-all overflow-hidden max-w-full">
+                            {issue.url}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            {issue.pageViews} page views • Value: {issue.value}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-300 break-all">{issue.url}</div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          {issue.pageViews} page views • Value: {issue.value}
+                      ))}
+                      {auditData.dataQuality.piiAnalysis.details.critical.length > 5 && (
+                        <div className="text-xs text-gray-400 italic">
+                          ... and {auditData.dataQuality.piiAnalysis.details.critical.length - 5} more critical issues
                         </div>
-                      </div>
-                    ))}
-                    {auditData.dataQuality.piiAnalysis.details.critical.length > 3 && (
-                      <div className="text-xs text-gray-400 italic">
-                        ... and {auditData.dataQuality.piiAnalysis.details.critical.length - 3} more critical issues
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* High Issues */}
               {auditData.dataQuality.piiAnalysis.details.high.length > 0 && (
                 <div>
-                  <div className="text-sm font-semibold text-orange-400 mb-2">High Issues ({auditData.dataQuality.piiAnalysis.details.high.length}):</div>
-                  <div className="space-y-2">
-                    {auditData.dataQuality.piiAnalysis.details.high.slice(0, 2).map((issue: any, index: number) => (
-                      <div key={index} className="p-3 bg-orange-500/10 rounded-lg border border-orange-500/20">
-                        <div className="text-xs text-orange-300 mb-1">
-                          <span className="font-semibold">{issue.type}</span> in {issue.parameter}
+                  <button 
+                    onClick={() => setExpandedPiiSections(prev => ({ ...prev, high: !prev.high }))}
+                    className="flex items-center justify-between w-full text-sm font-semibold text-orange-400 mb-2 hover:text-orange-300 transition-colors"
+                  >
+                    <span>High Issues ({auditData.dataQuality.piiAnalysis.details.high.length})</span>
+                    {expandedPiiSections.high ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                  </button>
+                  {expandedPiiSections.high && (
+                    <div className="space-y-2">
+                      {auditData.dataQuality.piiAnalysis.details.high.slice(0, 3).map((issue: any, index: number) => (
+                        <div key={index} className="p-3 bg-orange-500/10 rounded-lg border border-orange-500/20">
+                          <div className="text-xs text-orange-300 mb-1">
+                            <span className="font-semibold">{issue.type}</span> in {issue.parameter}
+                          </div>
+                          <div className="text-xs text-gray-300 break-all overflow-hidden max-w-full">
+                            {issue.url}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            {issue.pageViews} page views • Value: {issue.value}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-300 break-all">{issue.url}</div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          {issue.pageViews} page views • Value: {issue.value}
+                      ))}
+                      {auditData.dataQuality.piiAnalysis.details.high.length > 3 && (
+                        <div className="text-xs text-gray-400 italic">
+                          ... and {auditData.dataQuality.piiAnalysis.details.high.length - 3} more high issues
                         </div>
-                      </div>
-                    ))}
-                    {auditData.dataQuality.piiAnalysis.details.high.length > 2 && (
-                      <div className="text-xs text-gray-400 italic">
-                        ... and {auditData.dataQuality.piiAnalysis.details.high.length - 2} more high issues
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Medium Issues */}
               {auditData.dataQuality.piiAnalysis.details.medium.length > 0 && (
                 <div>
-                  <div className="text-sm font-semibold text-yellow-400 mb-2">Medium Issues ({auditData.dataQuality.piiAnalysis.details.medium.length}):</div>
-                  <div className="space-y-2">
-                    {auditData.dataQuality.piiAnalysis.details.medium.slice(0, 2).map((issue: any, index: number) => (
-                      <div key={index} className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
-                        <div className="text-xs text-yellow-300 mb-1">
-                          <span className="font-semibold">{issue.type}</span> in {issue.parameter}
+                  <button 
+                    onClick={() => setExpandedPiiSections(prev => ({ ...prev, medium: !prev.medium }))}
+                    className="flex items-center justify-between w-full text-sm font-semibold text-yellow-400 mb-2 hover:text-yellow-300 transition-colors"
+                  >
+                    <span>Medium Issues ({auditData.dataQuality.piiAnalysis.details.medium.length})</span>
+                    {expandedPiiSections.medium ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                  </button>
+                  {expandedPiiSections.medium && (
+                    <div className="space-y-2">
+                      {auditData.dataQuality.piiAnalysis.details.medium.slice(0, 3).map((issue: any, index: number) => (
+                        <div key={index} className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
+                          <div className="text-xs text-yellow-300 mb-1">
+                            <span className="font-semibold">{issue.type}</span> in {issue.parameter}
+                          </div>
+                          <div className="text-xs text-gray-300 break-all overflow-hidden max-w-full">
+                            {issue.url}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            {issue.pageViews} page views • Value: {issue.value}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-300 break-all">{issue.url}</div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          {issue.pageViews} page views • Value: {issue.value}
+                      ))}
+                      {auditData.dataQuality.piiAnalysis.details.medium.length > 3 && (
+                        <div className="text-xs text-gray-400 italic">
+                          ... and {auditData.dataQuality.piiAnalysis.details.medium.length - 3} more medium issues
                         </div>
-                      </div>
-                    ))}
-                    {auditData.dataQuality.piiAnalysis.details.medium.length > 2 && (
-                      <div className="text-xs text-gray-400 italic">
-                        ... and {auditData.dataQuality.piiAnalysis.details.medium.length - 2} more medium issues
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
