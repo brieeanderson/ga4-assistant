@@ -429,7 +429,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
   const topRecommendations = recommendations.filter(r => r.severity === 'critical' || r.severity === 'important').slice(0, 5);
 
   const renderOverviewTab = () => (
-    <div className="space-y-8">
+    <div className="space-y-12">
       {/* Configuration Score Hero */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
         <div className="text-center mb-8">
@@ -552,6 +552,28 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           </div>
         )}
 
+        {/* Admin Fix Wizard Button - Moved right after Score Deductions */}
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-bold text-white mb-2 flex items-center">
+                <Settings className="w-6 h-6 mr-3 text-orange-400" />
+                Need Help Fixing These Issues?
+              </h3>
+              <p className="text-gray-400">
+                Get step-by-step guidance to fix critical GA4 admin settings that most people miss
+              </p>
+            </div>
+            <a 
+              href={`/audit/admin-fixes?propertyId=${property?.propertyId}`}
+              className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:from-orange-600 hover:to-red-600 font-medium transition-all flex items-center"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Launch Fix Wizard
+            </a>
+          </div>
+        </div>
+
         {/* Score History - Disabled for future paid feature */}
         {/* {scoreComparison && scoreComparison.previousScore !== null && (
           <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
@@ -635,28 +657,6 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
             </div>
           </div>
         )}
-
-        {/* Admin Fix Wizard Button */}
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-bold text-white mb-2 flex items-center">
-                <Settings className="w-6 h-6 mr-3 text-orange-400" />
-                Need Help Fixing These Issues?
-              </h3>
-              <p className="text-gray-400">
-                Get step-by-step guidance to fix critical GA4 admin settings that most people miss
-              </p>
-            </div>
-            <a 
-              href={`/audit/admin-fixes?propertyId=${property?.propertyId}`}
-              className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:from-orange-600 hover:to-red-600 font-medium transition-all flex items-center"
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Launch Fix Wizard
-            </a>
-          </div>
-        </div>
       </div>
 
       {/* Critical Issues - Score Killers */}
@@ -666,7 +666,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
   );
 
   const renderConfigurationTab = () => (
-    <div className="space-y-8">
+    <div className="space-y-12">
       {/* Property Info */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
         <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
@@ -877,7 +877,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
   );
 
   const renderEventsTab = () => (
-    <div className="space-y-8">
+    <div className="space-y-12">
       {/* Key Events */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
         <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
@@ -1121,7 +1121,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
     const otherWindow = formatLookbackWindow(auditData?.attribution?.otherConversionEventLookbackWindow || '');
     const channelCredit = formatChannelCredit(auditData?.attribution?.channelsThatCanReceiveCredit || '');
     return (
-      <div className="space-y-8">
+      <div className="space-y-12">
         {/* Attribution Model & Settings */}
         <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
           <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
@@ -1220,7 +1220,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
   };
 
   const renderIntegrationsTab = () => (
-    <div className="space-y-8">
+    <div className="space-y-12">
       {/* Search Console */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
         <h3 className="text-xl font-bold text-white mb-4 flex items-center">
@@ -1302,7 +1302,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
   );
 
   const renderCustomizationsTab = () => (
-    <div className="space-y-8">
+    <div className="space-y-12">
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
         <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
           <Database className="w-7 h-7 mr-3 text-blue-400" />
@@ -1400,7 +1400,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       info: recommendations.filter(r => r.severity === 'info'),
     };
     return (
-      <div className="space-y-8">
+      <div className="space-y-12">
         <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
           <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
             <Shield className="w-7 h-7 mr-3 text-orange-400" />

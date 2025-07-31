@@ -183,7 +183,7 @@ export const PropertyConfigScore: React.FC<{ audit: GA4Audit }> = ({ audit }) =>
   const otherSuggestions = suggestions.filter(s => !['critical', 'very-important', 'important', 'moderate'].includes(s.importance));
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       {/* Main Title Section */}
       <div className="text-center mb-8">
         <div className="flex items-center justify-center mb-4">
