@@ -900,8 +900,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                   {event.createTime ? new Date(event.createTime).toLocaleDateString() : ''}
                 </div>
               </div>
-              <div className="text-lg font-semibold text-white mb-2">{event.eventName}</div>
-              <div className="text-sm text-slate-400">Conversion event configured</div>
+              <div className="text-lg font-semibold text-white">{event.eventName}</div>
             </div>
           ))}
         </div>
