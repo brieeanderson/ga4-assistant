@@ -40,14 +40,9 @@ const AdminFixesPageContent = () => {
 
   useEffect(() => {
     if (propertyId) {
-      // If we already have the audit data, we can use it
-      if (ga4Audit) {
-        const property = ga4Properties.find(p => p.propertyId === propertyId);
-        if (property) {
-          setSelectedProperty(property);
-        } else if (ga4Audit.property) {
-          setSelectedProperty(ga4Audit.property);
-        }
+      // If we already have the audit data for this property, use it immediately
+      if (ga4Audit && ga4Audit.property && ga4Audit.property.name === propertyId) {
+        setSelectedProperty(ga4Audit.property);
         return;
       }
 
@@ -56,7 +51,8 @@ const AdminFixesPageContent = () => {
         const property = ga4Properties.find(p => p.propertyId === propertyId);
         if (property) {
           setSelectedProperty(property);
-          if (!ga4Audit) {
+                      // Only run audit if we don't have audit data for this specific property
+            if (!ga4Audit || (ga4Audit.property && ga4Audit.property.name !== propertyId)) {
             runGA4Audit(accessToken!, propertyId);
           }
         } else {
@@ -79,7 +75,7 @@ const AdminFixesPageContent = () => {
       <div className="min-h-screen flex items-center justify-center bg-black text-white">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p>{isAnalyzing ? 'Running audit...' : 'Loading...'}</p>
+          <p>{isAnalyzing ? 'Preparing fix wizard...' : 'Loading...'}</p>
         </div>
       </div>
     );
