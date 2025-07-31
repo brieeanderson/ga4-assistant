@@ -23,7 +23,8 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { GA4Audit, DataStream, CustomDimension, CustomMetric, KeyEvent } from '@/types/ga4';
-import { useScoreHistory, ScoreComparison } from '@/hooks/useScoreHistory';
+// Score progress functionality disabled for future paid feature
+// import { useScoreHistory, ScoreComparison } from '@/hooks/useScoreHistory';
 
 // Add prop types
 interface GA4DashboardProps {
@@ -248,27 +249,28 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
     high: false,
     medium: false
   });
-  const { saveScore, getScoreComparison } = useScoreHistory();
-  const [scoreComparison, setScoreComparison] = useState<ScoreComparison | null>(null);
+  // Score progress functionality disabled for future paid feature
+  // const { saveScore, getScoreComparison } = useScoreHistory();
+  // const [scoreComparison, setScoreComparison] = useState<ScoreComparison | null>(null);
 
   // Save score and get comparison when audit data changes
-  useEffect(() => {
-    if (auditData && property?.propertyId) {
-      const { scores } = calculateCategoryScores();
-      const overallScore = Math.round(
-        (scores.configuration + scores.eventsTracking + scores.attribution + scores.integrations) / 4
-      );
+  // useEffect(() => {
+  //   if (auditData && property?.propertyId) {
+  //     const { scores } = calculateCategoryScores();
+  //     const overallScore = Math.round(
+  //       (scores.configuration + scores.eventsTracking + scores.attribution + scores.integrations) / 4
+  //     );
       
-      // Save the current score
-      saveScore(property.propertyId, property.displayName, overallScore);
+  //     // Save the current score
+  //     saveScore(property.propertyId, property.displayName, overallScore);
       
-      // Get score comparison
-      const comparison = getScoreComparison(property.propertyId, overallScore);
-      setScoreComparison(comparison);
+  //     // Get score comparison
+  //     const comparison = getScoreComparison(property.propertyId, overallScore);
+  //     setScoreComparison(comparison);
       
-      console.log('📊 Score comparison:', comparison);
-    }
-  }, [auditData, property, saveScore, getScoreComparison]);
+  //     console.log('📊 Score comparison:', comparison);
+  //   }
+  // }, [auditData, property, saveScore, getScoreComparison]);
 
   // Calculate individual category scores based on audit data using point-based system
   const calculateCategoryScores = useCallback(() => {
@@ -551,8 +553,8 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           </div>
         )}
 
-        {/* Score History */}
-        {scoreComparison && scoreComparison.previousScore !== null && (
+        {/* Score History - Disabled for future paid feature */}
+        {/* {scoreComparison && scoreComparison.previousScore !== null && (
           <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
             <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
               <TrendingUpIcon className="w-7 h-7 mr-3 text-blue-400" />
@@ -603,7 +605,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               </div>
             )}
           </div>
-        )}
+        )} */}
 
         {/* Top Recommendations */}
         {topRecommendations.length > 0 && (
@@ -634,6 +636,28 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
             </div>
           </div>
         )}
+
+        {/* Admin Fix Wizard Button */}
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-bold text-white mb-2 flex items-center">
+                <Settings className="w-6 h-6 mr-3 text-orange-400" />
+                Need Help Fixing These Issues?
+              </h3>
+              <p className="text-gray-400">
+                Get step-by-step guidance to fix critical GA4 admin settings that most people miss
+              </p>
+            </div>
+            <a 
+              href="/audit/admin-fixes"
+              className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:from-orange-600 hover:to-red-600 font-medium transition-all flex items-center"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Launch Fix Wizard
+            </a>
+          </div>
+        </div>
       </div>
 
       {/* Critical Issues - Score Killers */}
@@ -1435,7 +1459,8 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                   <div className={`text-2xl font-bold ${getScoreColor(overallScore)}`}>
                     {overallScore}%
                   </div>
-                  {scoreComparison && scoreComparison.previousScore !== null && (
+                  {/* Score comparison disabled for future paid feature */}
+                  {/* {scoreComparison && scoreComparison.previousScore !== null && (
                     <div className="flex items-center space-x-1">
                       {scoreComparison.improvement ? (
                         <TrendingUpIcon className="w-4 h-4 text-green-400" />
@@ -1450,14 +1475,15 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                         </span>
                       )}
                     </div>
-                  )}
+                  )} */}
                 </div>
                 <div className="text-sm text-gray-400">Config Score</div>
-                {scoreComparison && scoreComparison.lastAuditDate && (
+                {/* Score comparison disabled for future paid feature */}
+                {/* {scoreComparison && scoreComparison.lastAuditDate && (
                   <div className="text-xs text-gray-500">
                     Last: {scoreComparison.lastAuditDate}
                   </div>
-                )}
+                )} */}
               </div>
               <button 
                 onClick={onChangeProperty}
