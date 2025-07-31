@@ -1,5 +1,5 @@
+'use client';
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { 
   CheckCircle, 
   Circle, 
@@ -13,6 +13,7 @@ import {
   Target,
   Lightbulb
 } from 'lucide-react';
+import Link from 'next/link';
 import { GA4Audit } from '@/types/ga4';
 
 interface AdminFix {
@@ -43,569 +44,245 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
   const [completedFixes, setCompletedFixes] = useState(new Set<number>());
   const [showingPath, setShowingPath] = useState(false);
 
-  // Generate dynamic admin fixes based on audit data
+  // Generate dynamic admin fixes based on actual score deductions
   const generateAdminFixes = (): AdminFix[] => {
     const fixes: AdminFix[] = [];
 
-    // 1. Data Retention - Critical
-    if (auditData?.dataRetention?.eventDataRetention !== 'FOURTEEN_MONTHS') {
-      fixes.push({
-        id: 'data-retention',
-        title: 'Fix Data Retention Period',
-        category: 'Critical',
-        impact: 'You\'re losing valuable historical data',
-        timeEstimate: '2 minutes',
-        currentProblem: `Event data retention set to ${auditData?.dataRetention?.eventDataRetention === 'TWO_MONTHS' ? 'only 2 months' : 'less than 14 months'}`,
-        solution: 'Change to 14 months (maximum available)',
-        benefits: [
-          'Keep 14 months of detailed data instead of 2',
-          'Enable year-over-year comparisons', 
-          'See seasonal trends and patterns',
-          'Better attribution analysis'
-        ],
-        adminPath: 'Admin > Data Settings > Data Retention',
-        steps: [
-          {
-            instruction: 'Open your GA4 property',
-            detail: 'Make sure you\'re in the correct GA4 property, not Universal Analytics'
-          },
-          {
-            instruction: 'Click "Admin" in the bottom left',
-            detail: 'You\'ll see two columns - Property and Account settings'
-          },
-          {
-            instruction: 'Under Property, click "Data Settings"',
-            detail: 'This will expand to show Data Retention and other options'
-          },
-          {
-            instruction: 'Click "Data Retention"',
-            detail: 'This is where GA4 controls how long to keep your data'
-          },
-          {
-            instruction: 'Change "Event data retention" to "14 months"',
-            detail: 'This is the maximum available. The default is only 2 months!'
-          },
-          {
-            instruction: 'Click "Save"',
-            detail: 'Changes take effect immediately for new data collection'
-          }
-        ],
-        verification: 'You should see "Event data retention: 14 months" in the Data Retention settings',
-        warningNote: 'This only affects NEW data. Past data beyond 2 months is already gone and can\'t be recovered.'
-      });
-    }
+    // Calculate deductions to determine what fixes are needed
+    const deductions = {
+      configuration: [] as any[],
+      eventsTracking: [] as any[],
+      attribution: [] as any[],
+      integrations: [] as any[]
+    };
 
-    // 2. PII Redaction - Critical
-    if (auditData?.audit?.dataCollection?.piiRedaction?.status !== 'good') {
-      fixes.push({
-        id: 'pii-urls',
-        title: 'Remove Personal Information from URLs',
-        category: 'Critical',
-        impact: 'Privacy law violation risk (GDPR, CCPA)',
-        timeEstimate: '15 minutes',
-        currentProblem: 'GA4 is collecting personal information in page URLs',
-        solution: 'Set up URL redaction or modify website to remove PII',
-        benefits: [
-          'Comply with GDPR and privacy laws',
-          'Protect customer personal information',
-          'Avoid potential legal fines',
-          'Build customer trust'
-        ],
-        adminPath: 'Admin > Data Streams > Enhanced Measurement OR modify your website',
-        steps: [
-          {
-            instruction: 'Identify what personal info is in your URLs',
-            detail: 'Common examples: emails, names, phone numbers in query parameters'
-          },
-          {
-            instruction: 'Choose your approach',
-            detail: 'Option 1: Remove PII from website URLs. Option 2: Set up GA4 URL redaction'
-          },
-          {
-            instruction: 'For URL redaction: Go to Admin > Data Streams',
-            detail: 'Click on your website data stream'
-          },
-          {
-            instruction: 'Click "Configure tag settings"',
-            detail: 'This opens advanced configuration options'
-          },
-          {
-            instruction: 'Add custom parameters to redact PII',
-            detail: 'Use regex patterns to automatically remove personal information'
-          },
-          {
-            instruction: 'Test the redaction',
-            detail: 'Check that personal info is no longer visible in GA4 reports'
-          }
-        ],
-        verification: 'Check your Real-time reports - URLs should no longer contain personal information',
-        warningNote: 'This is a compliance issue. If you\'re unsure, consult with your legal team or a privacy expert.'
-      });
-    }
-
-    // 3. Internal Traffic Filtering - Important
-    if (!auditData?.dataFilters || auditData.dataFilters.length === 0) {
-      fixes.push({
-        id: 'internal-traffic',
-        title: 'Filter Out Internal Traffic',
-        category: 'Important',
-        impact: 'Your team visits are counted as customer traffic',
-        timeEstimate: '5 minutes',
-        currentProblem: 'No filters set up to exclude your office/team traffic',
-        solution: 'Create data filter to exclude internal IP addresses',
-        benefits: [
-          'Get accurate visitor counts',
-          'Improve conversion rate accuracy',
-          'Better understand real customer behavior',
-          'More reliable marketing performance data'
-        ],
-        adminPath: 'Admin > Data Settings > Data Filters',
-        steps: [
-          {
-            instruction: 'Find your office IP address',
-            detail: 'Google "what is my IP address" from your office network'
-          },
-          {
-            instruction: 'Go to Admin > Data Settings > Data Filters',
-            detail: 'This is where you exclude unwanted traffic'
-          },
-          {
-            instruction: 'Click "Create Filter"',
-            detail: 'You\'ll create a new filter to exclude internal traffic'
-          },
-          {
-            instruction: 'Name it "Internal Traffic Filter"',
-            detail: 'Give it a descriptive name so you remember what it does'
-          },
-          {
-            instruction: 'Select "Internal Traffic"',
-            detail: 'GA4 has a predefined filter type for this common need'
-          },
-          {
-            instruction: 'Set "ip_override" equals your IP address',
-            detail: 'This tells GA4 to exclude traffic from your office IP'
-          },
-          {
-            instruction: 'Save and activate the filter',
-            detail: 'The filter needs to be both created AND activated to work'
-          }
-        ],
-        verification: 'Test by visiting your website from the office - your visits shouldn\'t appear in Real-time reports',
-        warningNote: 'If your office IP changes frequently, you may need to update this filter.'
-      });
-    }
-
-    // 4. Enhanced Measurement - Important
-    if (!auditData?.enhancedMeasurement || auditData.enhancedMeasurement.length === 0) {
-      fixes.push({
-        id: 'enhanced-measurement',
-        title: 'Enable Enhanced Measurement',
-        category: 'Important',
-        impact: 'Missing automatic event tracking',
-        timeEstimate: '3 minutes',
-        currentProblem: 'Enhanced measurement is not enabled',
-        solution: 'Enable automatic tracking of page views, scrolls, clicks, and more',
-        benefits: [
-          'Automatic tracking without code changes',
-          'Better user behavior insights',
-          'More complete conversion data',
-          'Improved reporting accuracy'
-        ],
-        adminPath: 'Admin > Data Streams > Enhanced Measurement',
-        steps: [
-          {
-            instruction: 'Go to Admin > Data Streams',
-            detail: 'This is where you configure your website tracking'
-          },
-          {
-            instruction: 'Click on your website data stream',
-            detail: 'You\'ll see the stream details and configuration options'
-          },
-          {
-            instruction: 'Click "Enhanced Measurement"',
-            detail: 'This enables automatic event tracking'
-          },
-          {
-            instruction: 'Enable the events you want to track',
-            detail: 'Page views, scrolls, outbound clicks, site search, video engagement, file downloads, form interactions'
-          },
-          {
-            instruction: 'Click "Save"',
-            detail: 'Changes take effect immediately'
-          }
-        ],
-        verification: 'You should see "Enhanced Measurement: On" in your data stream settings',
-        warningNote: 'Enhanced measurement only tracks new data going forward.'
-      });
-    }
-
-    // 5. Industry Category - Improvement
+    // Configuration deductions
     if (!auditData?.property?.industryCategory) {
-      fixes.push({
-        id: 'industry-category',
-        title: 'Set Industry Category',
-        category: 'Improvement',
-        impact: 'Missing out on industry benchmarks and insights',
-        timeEstimate: '1 minute',
-        currentProblem: 'Industry category not set',
-        solution: 'Select your business industry in property settings',
-        benefits: [
-          'Get industry-specific insights',
-          'See how you compare to competitors',
-          'Access relevant benchmarking data',
-          'Better machine learning predictions'
-        ],
-        adminPath: 'Admin > Property Settings > Property details',
-        steps: [
-          {
-            instruction: 'Go to Admin > Property Settings',
-            detail: 'This contains basic information about your GA4 property'
-          },
-          {
-            instruction: 'Click "Property details"',
-            detail: 'Where you set timezone, currency, and other basics'
-          },
-          {
-            instruction: 'Find "Industry category"',
-            detail: 'It\'s in the same section as timezone and currency'
-          },
-          {
-            instruction: 'Select your industry from the dropdown',
-            detail: 'Choose the category that best matches your business'
-          },
-          {
-            instruction: 'Click "Save"',
-            detail: 'This helps Google provide relevant insights and benchmarks'
-          }
-        ],
-        verification: 'Your Property details should show the selected industry category',
-        warningNote: 'This mainly affects future insights and benchmarking features.'
-      });
+      deductions.configuration.push({ reason: 'Industry category not set', points: 5 });
+    }
+    if (auditData?.dataRetention?.eventDataRetention !== 'FOURTEEN_MONTHS') {
+      deductions.configuration.push({ reason: 'Data retention not set to 14 months', points: 20 });
     }
 
-    // 6. Timezone - Critical
-    if (!auditData?.property?.timeZone) {
-      fixes.push({
-        id: 'timezone',
-        title: 'Set Timezone',
-        category: 'Critical',
-        impact: 'Inconsistent time reporting across platforms',
-        timeEstimate: '1 minute',
-        currentProblem: 'Timezone is not set',
-        solution: 'Set your business timezone in property settings',
-        benefits: [
-          'Consistent time reporting',
-          'Better attribution analysis',
-          'Accurate campaign performance data',
-          'Proper data alignment with other tools'
-        ],
-        adminPath: 'Admin > Property Settings > Property details',
-        steps: [
-          {
-            instruction: 'Go to Admin > Property Settings',
-            detail: 'This contains basic property configuration'
-          },
-          {
-            instruction: 'Click "Property details"',
-            detail: 'Where you set timezone, currency, and other basics'
-          },
-          {
-            instruction: 'Find "Timezone"',
-            detail: 'It\'s in the same section as currency and industry'
-          },
-          {
-            instruction: 'Select your business timezone',
-            detail: 'Choose the timezone where your business operates'
-          },
-          {
-            instruction: 'Click "Save"',
-            detail: 'This ensures consistent time reporting'
-          }
-        ],
-        verification: 'Your Property details should show the selected timezone',
-        warningNote: 'This affects how dates and times are displayed in reports.'
-      });
+    // Events & Tracking deductions
+    if (!auditData?.enhancedMeasurement || auditData.enhancedMeasurement.length === 0) {
+      deductions.eventsTracking.push({ reason: 'Enhanced measurement not enabled', points: 10 });
     }
-
-    // 7. Currency - Important
-    if (!auditData?.property?.currencyCode) {
-      fixes.push({
-        id: 'currency',
-        title: 'Set Currency',
-        category: 'Important',
-        impact: 'Incorrect revenue and transaction data',
-        timeEstimate: '1 minute',
-        currentProblem: 'Currency is not set',
-        solution: 'Set your business currency in property settings',
-        benefits: [
-          'Accurate revenue reporting',
-          'Proper transaction data',
-          'Better e-commerce insights',
-          'Consistent financial data'
-        ],
-        adminPath: 'Admin > Property Settings > Property details',
-        steps: [
-          {
-            instruction: 'Go to Admin > Property Settings',
-            detail: 'This contains basic property configuration'
-          },
-          {
-            instruction: 'Click "Property details"',
-            detail: 'Where you set timezone, currency, and other basics'
-          },
-          {
-            instruction: 'Find "Currency"',
-            detail: 'It\'s in the same section as timezone and industry'
-          },
-          {
-            instruction: 'Select your business currency',
-            detail: 'Choose the currency you use for transactions'
-          },
-          {
-            instruction: 'Click "Save"',
-            detail: 'This ensures accurate financial reporting'
-          }
-        ],
-        verification: 'Your Property details should show the selected currency',
-        warningNote: 'This affects how monetary values are displayed in reports.'
-      });
+    if (auditData?.enhancedMeasurement?.some(em => em.settings.formInteractionsEnabled) && 
+        !auditData?.otherEvents?.some(e => e.name === 'form_name' || e.name === 'form_id')) {
+      deductions.eventsTracking.push({ reason: 'Form interactions enabled but form_name/form_id not registered', points: 10 });
     }
-
-    // 8. Key Events - Critical
+    if (auditData?.enhancedMeasurement?.some(em => em.settings.videoEngagementEnabled) && 
+        !auditData?.otherEvents?.some(e => e.name === 'video_percent')) {
+      deductions.eventsTracking.push({ reason: 'Video interactions enabled but video_percent not registered', points: 5 });
+    }
+    if (auditData?.enhancedMeasurement?.some(em => em.settings.videoEngagementEnabled) && 
+        !auditData?.otherEvents?.some(e => e.name === 'video_duration' || e.name === 'video_time')) {
+      deductions.eventsTracking.push({ reason: 'Video interactions enabled but video_duration/video_time not registered', points: 5 });
+    }
     if (!auditData?.keyEvents || auditData.keyEvents.length === 0) {
-      fixes.push({
-        id: 'key-events',
-        title: 'Set Key Events (Conversions)',
-        category: 'Critical',
-        impact: 'Cannot access attribution data without conversions',
-        timeEstimate: '5 minutes',
-        currentProblem: 'No key events (conversions) are configured',
-        solution: 'Mark important events as conversions in GA4',
-        benefits: [
-          'Access attribution reports and data',
-          'Track important business goals',
-          'Enable conversion optimization',
-          'Better marketing performance insights'
-        ],
-        adminPath: 'Admin > Events > All Events',
-        steps: [
-          {
-            instruction: 'Go to Admin > Events',
-            detail: 'This is where you manage all events in GA4'
-          },
-          {
-            instruction: 'Click "All Events"',
-            detail: 'You\'ll see a list of all events being tracked'
-          },
-          {
-            instruction: 'Find important events',
-            detail: 'Look for events like purchase, sign_up, form_submit, etc.'
-          },
-          {
-            instruction: 'Click the toggle next to important events',
-            detail: 'This marks them as conversions (key events)'
-          },
-          {
-            instruction: 'Add custom events if needed',
-            detail: 'If you don\'t see important events, you may need to create them'
-          },
-          {
-            instruction: 'Save your changes',
-            detail: 'Key events are immediately available for reporting'
-          }
-        ],
-        verification: 'Go to Reports > Engagement > Events - you should see your key events marked with a star',
-        warningNote: 'You need at least one key event to access attribution data and conversion reports.'
-      });
+      deductions.eventsTracking.push({ reason: 'No key events configured', points: 20 });
+    }
+    if (auditData?.keyEvents && auditData.keyEvents.length > 3) {
+      deductions.eventsTracking.push({ reason: 'More than 3 key events configured (over-configuration)', points: 10 });
     }
 
-    // 9. Google Ads Integration - Critical
+    // Attribution deductions
+    if (auditData?.attribution?.reportingAttributionModel !== 'PAID_AND_ORGANIC') {
+      deductions.attribution.push({ reason: 'Attribution model not set to paid and organic', points: 10 });
+    }
+
+    // Integrations deductions
     if (!auditData?.googleAdsLinks || auditData.googleAdsLinks.length === 0) {
-      fixes.push({
-        id: 'google-ads',
-        title: 'Connect Google Ads',
-        category: 'Critical',
-        impact: 'Missing conversion data for Google Ads optimization',
-        timeEstimate: '10 minutes',
-        currentProblem: 'Google Ads is not connected to GA4',
-        solution: 'Link your Google Ads account to import conversions',
-        benefits: [
-          'Import conversions for bidding optimization',
-          'Better Google Ads performance',
-          'Accurate conversion tracking',
-          'Improved ROI on ad spend'
-        ],
-        adminPath: 'Admin > Property > Google Ads Links',
-        steps: [
-          {
-            instruction: 'Go to Admin > Property > Google Ads Links',
-            detail: 'This is where you connect external accounts'
-          },
-          {
-            instruction: 'Click "Link"',
-            detail: 'You\'ll see options to link different Google services'
-          },
-          {
-            instruction: 'Select "Google Ads"',
-            detail: 'Choose the Google Ads account you want to connect'
-          },
-          {
-            instruction: 'Choose your Google Ads account',
-            detail: 'Select the account that manages your ads'
-          },
-          {
-            instruction: 'Configure link settings',
-            detail: 'Choose which conversions to import and enable auto-tagging'
-          },
-          {
-            instruction: 'Click "Confirm"',
-            detail: 'The link will be created and conversions will start importing'
-          }
-        ],
-        verification: 'Go to Google Ads > Tools > Conversions - you should see GA4 conversions being imported',
-        warningNote: 'It may take 24-48 hours for conversions to start appearing in Google Ads.'
-      });
+      deductions.integrations.push({ reason: 'Google Ads not connected', points: 20 });
+    }
+    if (!auditData?.searchConsoleDataStatus?.isLinked) {
+      deductions.integrations.push({ reason: 'Search Console not linked', points: 5 });
+    }
+    if (!auditData?.bigQueryLinks || auditData.bigQueryLinks.length === 0) {
+      deductions.integrations.push({ reason: 'BigQuery not connected', points: 5 });
     }
 
-    // 10. Search Console Integration - Important
-    if (!auditData?.searchConsoleDataStatus || !auditData.searchConsoleDataStatus.isLinked) {
-      fixes.push({
-        id: 'search-console',
-        title: 'Connect Search Console',
-        category: 'Important',
-        impact: 'Missing organic search performance data',
-        timeEstimate: '5 minutes',
-        currentProblem: 'Search Console is not connected to GA4',
-        solution: 'Link your Search Console property to GA4',
-        benefits: [
-          'See organic search performance',
-          'Track search queries and clicks',
-          'Monitor website search rankings',
-          'Better SEO insights'
-        ],
-        adminPath: 'Admin > Property > Search Console Links',
-        steps: [
-          {
-            instruction: 'Go to Admin > Property > Search Console Links',
-            detail: 'This is where you connect Search Console'
-          },
-          {
-            instruction: 'Click "Link"',
-            detail: 'You\'ll see options to link Search Console'
-          },
-          {
-            instruction: 'Select your Search Console property',
-            detail: 'Choose the property that matches your website'
-          },
-          {
-            instruction: 'Confirm the link',
-            detail: 'This connects your Search Console data to GA4'
-          },
-          {
-            instruction: 'Enable Search Console collection',
-            detail: 'Go to Reports > Library > Search Console to enable data collection'
-          }
-        ],
-        verification: 'Go to Reports > Library > Search Console - you should see search performance data',
-        warningNote: 'You need to own both the GA4 property and Search Console property to link them.'
-      });
-    }
+    // Generate fixes based on actual deductions
+    deductions.configuration.forEach(deduction => {
+      if (deduction.reason === 'Industry category not set') {
+        fixes.push({
+          id: 'industry-category',
+          title: 'Set Industry Category',
+          category: 'Important',
+          impact: 'Missing out on industry benchmarks and insights',
+          timeEstimate: '1 minute',
+          currentProblem: 'Industry category not set in property settings',
+          solution: 'Select your business industry in property settings',
+          benefits: [
+            'Get industry-specific insights',
+            'See how you compare to competitors',
+            'Access relevant benchmarking data',
+            'Better machine learning predictions'
+          ],
+          adminPath: 'Admin > Property Settings > Property details',
+          steps: [
+            { instruction: 'Go to Admin > Property Settings', detail: 'This contains basic information about your GA4 property' },
+            { instruction: 'Click "Property details"', detail: 'Where you set timezone, currency, and other basics' },
+            { instruction: 'Find "Industry category"', detail: 'It\'s in the same section as timezone and currency' },
+            { instruction: 'Select your industry from the dropdown', detail: 'Choose the category that best matches your business' },
+            { instruction: 'Click "Save"', detail: 'This helps Google provide relevant insights and benchmarks' }
+          ],
+          verification: 'Your Property details should show the selected industry category',
+          warningNote: 'This mainly affects future insights and benchmarking features.'
+        });
+      }
+      
+      if (deduction.reason === 'Data retention not set to 14 months') {
+        fixes.push({
+          id: 'data-retention',
+          title: 'Fix Data Retention Period',
+          category: 'Critical',
+          impact: 'You\'re losing valuable historical data',
+          timeEstimate: '2 minutes',
+          currentProblem: `Event data retention set to ${auditData?.dataRetention?.eventDataRetention === 'TWO_MONTHS' ? 'only 2 months' : 'less than 14 months'}`,
+          solution: 'Change to 14 months (maximum available)',
+          benefits: [
+            'Keep 14 months of detailed data instead of 2',
+            'Enable year-over-year comparisons', 
+            'See seasonal trends and patterns',
+            'Better attribution analysis'
+          ],
+          adminPath: 'Admin > Data Settings > Data Retention',
+          steps: [
+            { instruction: 'Open your GA4 property', detail: 'Make sure you\'re in the correct GA4 property, not Universal Analytics' },
+            { instruction: 'Click "Admin" in the bottom left', detail: 'You\'ll see two columns - Property and Account settings' },
+            { instruction: 'Under Property, click "Data Settings"', detail: 'This will expand to show Data Retention and other options' },
+            { instruction: 'Click "Data Retention"', detail: 'This is where GA4 controls how long to keep your data' },
+            { instruction: 'Change "Event data retention" to "14 months"', detail: 'This is the maximum available. The default is only 2 months!' },
+            { instruction: 'Click "Save"', detail: 'Changes take effect immediately for new data collection' }
+          ],
+          verification: 'You should see "Event data retention: 14 months" in the Data Retention settings',
+          warningNote: 'This only affects NEW data. Past data beyond 2 months is already gone and can\'t be recovered.'
+        });
+      }
+    });
 
-    // 11. Custom Dimensions - Important
-    if (!auditData?.customDimensions || auditData.customDimensions.length === 0) {
-      fixes.push({
-        id: 'custom-dimensions',
-        title: 'Define Custom Dimensions',
-        category: 'Important',
-        impact: 'Cannot analyze important event parameters in reports',
-        timeEstimate: '10 minutes',
-        currentProblem: 'No custom dimensions are defined',
-        solution: 'Register important event parameters as custom dimensions',
-        benefits: [
-          'Analyze event parameters in reports',
-          'Better user behavior insights',
-          'More detailed segmentation',
-          'Custom reporting capabilities'
-        ],
-        adminPath: 'Admin > Property > Custom Definitions > Custom Dimensions',
-        steps: [
-          {
-            instruction: 'Go to Admin > Property > Custom Definitions',
-            detail: 'This is where you define custom dimensions and metrics'
-          },
-          {
-            instruction: 'Click "Custom Dimensions"',
-            detail: 'You\'ll see existing custom dimensions or an empty list'
-          },
-          {
-            instruction: 'Click "Create Custom Dimensions"',
-            detail: 'This starts the process of creating new dimensions'
-          },
-          {
-            instruction: 'Choose "Event" scope',
-            detail: 'Most custom dimensions are event-scoped'
-          },
-          {
-            instruction: 'Enter parameter name',
-            detail: 'Use the exact parameter name from your events (e.g., user_type, page_category)'
-          },
-          {
-            instruction: 'Add description and save',
-            detail: 'The dimension will be available in reports after 24-48 hours'
-          }
-        ],
-        verification: 'Go to Reports > Engagement > Events - you should see your custom dimensions in the dimension selector',
-        warningNote: 'Custom dimensions only work for data collected after they\'re created. Historical data won\'t be affected.'
-      });
-    }
+    deductions.eventsTracking.forEach(deduction => {
+      if (deduction.reason === 'Video interactions enabled but video_percent not registered') {
+        fixes.push({
+          id: 'video-percent',
+          title: 'Fix Video Percent Tracking',
+          category: 'Important',
+          impact: 'Missing video engagement data',
+          timeEstimate: '10 minutes',
+          currentProblem: 'Video interactions enabled but video_percent parameter not being tracked',
+          solution: 'Ensure video_percent parameter is included in video events',
+          benefits: [
+            'Track video completion percentages',
+            'Understand viewer engagement',
+            'Identify most engaging video content',
+            'Improve video marketing effectiveness'
+          ],
+          adminPath: 'Admin > Data Streams > Enhanced Measurement > Video Engagement',
+          steps: [
+            { instruction: 'Go to Admin > Data Streams', detail: 'This is where you configure data collection settings' },
+            { instruction: 'Click on your website data stream', detail: 'Select the stream you want to configure' },
+            { instruction: 'Click "Configure tag settings"', detail: 'This opens advanced configuration options' },
+            { instruction: 'Go to "Enhanced measurement" section', detail: 'Find the video engagement settings' },
+            { instruction: 'Ensure "video_percent" is included in parameters', detail: 'This parameter tracks video completion percentage' },
+            { instruction: 'Test with a video on your site', detail: 'Check that video_percent events are firing in DebugView' }
+          ],
+          verification: 'Check DebugView or Real-time reports - you should see video_percent events when users watch videos',
+          warningNote: 'This requires proper video implementation on your website.'
+        });
+      }
 
-    // 12. Unwanted Referrals - Important
-    if (!auditData?.dataQuality?.trafficSources?.unwantedReferrals || !auditData.dataQuality.trafficSources.unwantedReferrals.detected) {
-      fixes.push({
-        id: 'unwanted-referrals',
-        title: 'Configure Unwanted Referrals',
-        category: 'Important',
-        impact: 'Payment processors and other sources inflating traffic',
-        timeEstimate: '5 minutes',
-        currentProblem: 'Unwanted referral sources are not excluded',
-        solution: 'Add payment processors and other unwanted sources to exclusion list',
-        benefits: [
-          'More accurate traffic data',
-          'Better conversion rate calculations',
-          'Cleaner attribution data',
-          'More reliable marketing insights'
-        ],
-        adminPath: 'Admin > Property > Data Streams > Configure tag settings',
-        steps: [
-          {
-            instruction: 'Go to Admin > Property > Data Streams',
-            detail: 'This is where you configure your website tracking'
-          },
-          {
-            instruction: 'Click on your website data stream',
-            detail: 'You\'ll see the stream details and configuration options'
-          },
-          {
-            instruction: 'Click "Configure tag settings"',
-            detail: 'This opens advanced configuration options'
-          },
-          {
-            instruction: 'Go to "Referral exclusion list"',
-            detail: 'This is where you exclude unwanted referral sources'
-          },
-          {
-            instruction: 'Add common unwanted sources',
-            detail: 'Add: paypal.com, stripe.com, your payment processor domains'
-          },
-          {
-            instruction: 'Save your changes',
-            detail: 'These sources will no longer appear as referral traffic'
-          }
-        ],
-        verification: 'Check your Real-time reports - payment processor visits should no longer appear as referrals',
-        warningNote: 'This only affects new data. Historical referral data won\'t change.'
-      });
-    }
+      if (deduction.reason === 'Video interactions enabled but video_duration/video_time not registered') {
+        fixes.push({
+          id: 'video-duration',
+          title: 'Fix Video Duration Tracking',
+          category: 'Important',
+          impact: 'Missing video duration data',
+          timeEstimate: '10 minutes',
+          currentProblem: 'Video interactions enabled but video_duration/video_time parameters not being tracked',
+          solution: 'Ensure video_duration and video_time parameters are included in video events',
+          benefits: [
+            'Track video watch time',
+            'Understand viewer retention',
+            'Identify video drop-off points',
+            'Optimize video content length'
+          ],
+          adminPath: 'Admin > Data Streams > Enhanced Measurement > Video Engagement',
+          steps: [
+            { instruction: 'Go to Admin > Data Streams', detail: 'This is where you configure data collection settings' },
+            { instruction: 'Click on your website data stream', detail: 'Select the stream you want to configure' },
+            { instruction: 'Click "Configure tag settings"', detail: 'This opens advanced configuration options' },
+            { instruction: 'Go to "Enhanced measurement" section', detail: 'Find the video engagement settings' },
+            { instruction: 'Ensure "video_duration" and "video_time" are included', detail: 'These parameters track video length and current time' },
+            { instruction: 'Test with a video on your site', detail: 'Check that video_duration and video_time events are firing' }
+          ],
+          verification: 'Check DebugView or Real-time reports - you should see video_duration and video_time events when users watch videos',
+          warningNote: 'This requires proper video implementation on your website.'
+        });
+      }
+
+      if (deduction.reason === 'More than 3 key events configured (over-configuration)') {
+        fixes.push({
+          id: 'key-events-overconfig',
+          title: 'Optimize Key Events Configuration',
+          category: 'Important',
+          impact: 'Too many key events can dilute conversion tracking',
+          timeEstimate: '15 minutes',
+          currentProblem: `You have ${auditData?.keyEvents?.length || 0} key events configured (recommended: 3 or fewer)`,
+          solution: 'Review and remove unnecessary key events, keeping only the most important conversions',
+          benefits: [
+            'Focus on your most important conversions',
+            'Improve conversion rate accuracy',
+            'Better campaign optimization',
+            'Cleaner reporting'
+          ],
+          adminPath: 'Admin > Events > Key Events',
+          steps: [
+            { instruction: 'Go to Admin > Events', detail: 'This is where you manage your key events' },
+            { instruction: 'Click "Key Events"', detail: 'View all currently configured key events' },
+            { instruction: 'Review each key event', detail: 'Ask: "Is this truly a conversion for my business?"' },
+            { instruction: 'Remove unnecessary events', detail: 'Keep only purchase, lead generation, and other critical conversions' },
+            { instruction: 'Prioritize by business impact', detail: 'Focus on events that directly impact revenue or goals' },
+            { instruction: 'Save your changes', detail: 'Changes take effect immediately' }
+          ],
+          verification: 'You should have 3 or fewer key events configured, all representing important business conversions',
+          warningNote: 'Only remove events that are not true conversions for your business.'
+        });
+      }
+    });
+
+    deductions.integrations.forEach(deduction => {
+      if (deduction.reason === 'BigQuery not connected') {
+        fixes.push({
+          id: 'bigquery-connection',
+          title: 'Connect BigQuery for Advanced Analytics',
+          category: 'Important',
+          impact: 'Missing advanced data analysis capabilities',
+          timeEstimate: '20 minutes',
+          currentProblem: 'BigQuery not connected to your GA4 property',
+          solution: 'Link BigQuery to enable advanced data analysis and custom reporting',
+          benefits: [
+            'Advanced data analysis capabilities',
+            'Custom reporting and dashboards',
+            'Data retention beyond GA4 limits',
+            'Integration with other data sources'
+          ],
+          adminPath: 'Admin > Property > Product Links > BigQuery',
+          steps: [
+            { instruction: 'Go to Admin > Property', detail: 'This is where you manage property-level settings' },
+            { instruction: 'Click "Product Links"', detail: 'This shows all available integrations' },
+            { instruction: 'Click "BigQuery"', detail: 'This opens the BigQuery linking interface' },
+            { instruction: 'Click "Link" next to BigQuery', detail: 'This starts the linking process' },
+            { instruction: 'Select your BigQuery project', detail: 'Choose the project where you want to store GA4 data' },
+            { instruction: 'Configure data location and frequency', detail: 'Choose where and how often to export data' },
+            { instruction: 'Click "Confirm"', detail: 'This completes the BigQuery connection' }
+          ],
+          verification: 'You should see "BigQuery" listed as "Linked" in your Product Links section',
+          warningNote: 'BigQuery has associated costs for data storage and queries.'
+        });
+      }
+    });
 
     return fixes;
   };
@@ -658,56 +335,35 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
                 </div>
                 <div className="flex items-center text-green-300">
                   <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-                  PII redaction settings
-                </div>
-                <div className="flex items-center text-green-300">
-                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-                  Internal traffic filters
-                </div>
-                <div className="flex items-center text-green-300">
-                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-                  Enhanced measurement
-                </div>
-                <div className="flex items-center text-green-300">
-                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
                   Industry category
                 </div>
                 <div className="flex items-center text-green-300">
                   <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-                  Timezone settings
+                  Video tracking parameters
                 </div>
                 <div className="flex items-center text-green-300">
                   <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-                  Currency settings
+                  Key events configuration
                 </div>
                 <div className="flex items-center text-green-300">
                   <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-                  Key events (conversions)
+                  BigQuery integration
                 </div>
                 <div className="flex items-center text-green-300">
                   <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-                  Google Ads integration
-                </div>
-                <div className="flex items-center text-green-300">
-                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-                  Search Console integration
-                </div>
-                <div className="flex items-center text-green-300">
-                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-                  Custom dimensions
-                </div>
-                <div className="flex items-center text-green-300">
-                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-                  Unwanted referrals
+                  Attribution settings
                 </div>
               </div>
             </div>
-            <Link 
-              href="/audit/properties"
-              className="inline-block mt-8 px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 font-medium transition-all"
-            >
-              Back to Audit Results
-            </Link>
+            <div className="mt-8">
+              <Link 
+                href="/audit/properties"
+                className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-medium transition-all"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Audit Results
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -735,15 +391,15 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
   };
 
   const getCategoryColor = (category: string) => {
-    if (category.includes('Critical')) return 'bg-red-500/20 text-red-400 border-red-500/30';
-    if (category.includes('Important')) return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
-    return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+    if (category.includes('Critical')) return 'bg-red-100 text-red-800';
+    if (category.includes('Important')) return 'bg-orange-100 text-orange-800';
+    return 'bg-blue-100 text-blue-800';
   };
 
   const getCategoryBgColor = (category: string) => {
-    if (category.includes('Critical')) return 'bg-gradient-to-br from-red-500/10 to-red-600/5 border-red-500/20';
-    if (category.includes('Important')) return 'bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-500/20';
-    return 'bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20';
+    if (category.includes('Critical')) return 'bg-red-500/10 border-red-500/20';
+    if (category.includes('Important')) return 'bg-orange-500/10 border-orange-500/20';
+    return 'bg-blue-500/10 border-blue-500/20';
   };
 
   return (
@@ -752,15 +408,15 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
       <div className="border-b border-slate-700 bg-slate-900">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-6">
-                <Link 
-                  href="/audit/properties"
-                  className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  <span>Back to Audit Results</span>
-                </Link>
-              </div>
+            <div className="flex items-center space-x-6">
+              <Link 
+                href="/audit/properties"
+                className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Audit Results</span>
+              </Link>
+            </div>
             <div className="text-right">
               <h1 className="text-3xl font-bold text-white">
                 <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">GA4Helper</span>
@@ -774,31 +430,34 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto p-6">
-        {/* Progress Header */}
+      <div className="max-w-4xl mx-auto p-6">
+        {/* Header */}
         <div className="mb-8">
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
-            <div className="flex items-start justify-between mb-6">
+          <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-xl p-6 border border-red-200">
+            <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="text-2xl font-bold text-white mb-2">Fix Critical Admin Settings</h2>
-                <p className="text-gray-400 mb-4">
+                <h1 className="text-2xl font-bold text-gray-800 mb-2">Fix Critical Admin Settings</h1>
+                <p className="text-gray-600 mb-4">
                   Step-by-step guide to fix the hidden GA4 settings that most people miss
                 </p>
               </div>
               
               <div className="text-right">
-                <div className="text-3xl font-bold text-orange-400">{adminFixes.length - completedFixes.size}</div>
-                <div className="text-sm text-gray-400">Issues Remaining</div>
+                <div className="text-3xl font-bold text-red-600">{adminFixes.length - completedFixes.size}</div>
+                <div className="text-sm text-red-600">Issues Remaining</div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-6 text-sm">
-              <div className="flex items-center text-gray-400">
-                <Clock className="w-4 h-4 mr-2" />
-                Total time: ~25 minutes
+            <div className="flex items-center space-x-4 text-sm">
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 mr-1 text-gray-500" />
+                Total time: ~{adminFixes.reduce((total, fix) => {
+                  const time = parseInt(fix.timeEstimate.split(' ')[0]);
+                  return total + time;
+                }, 0)} minutes
               </div>
-              <div className="flex items-center text-gray-400">
-                <Target className="w-4 h-4 mr-2" />
+              <div className="flex items-center">
+                <Target className="w-4 h-4 mr-1 text-gray-500" />
                 {completedFixes.size} of {adminFixes.length} fixed
               </div>
             </div>
@@ -808,39 +467,39 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
         {/* Fix Navigation */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">Issues to Fix</h3>
-            <div className="text-sm text-gray-400">
+            <h2 className="text-lg font-semibold text-white">Issues to Fix</h2>
+            <div className="text-sm text-gray-500">
               {currentFix + 1} of {adminFixes.length}
             </div>
           </div>
           
-          <div className="flex space-x-3 overflow-x-auto pb-2">
+          <div className="flex space-x-2 overflow-x-auto pb-2">
             {adminFixes.map((fix, index) => (
               <button
                 key={fix.id}
                 onClick={() => setCurrentFix(index)}
-                className={`flex-shrink-0 p-4 rounded-xl border-2 transition-all ${
+                className={`flex-shrink-0 p-3 rounded-lg border-2 transition-all ${
                   index === currentFix 
-                    ? 'border-orange-500 bg-orange-500/10' 
+                    ? 'border-blue-500 bg-blue-50' 
                     : completedFixes.has(index)
-                    ? 'border-green-500 bg-green-500/10'
-                    : 'border-slate-600 hover:border-slate-500 bg-slate-800/50'
+                    ? 'border-green-500 bg-green-50'
+                    : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
                   {completedFixes.has(index) ? (
-                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <CheckCircle className="w-4 h-4 text-green-600" />
                   ) : (
-                    <Circle className={`w-5 h-5 ${index === currentFix ? 'text-orange-400' : 'text-gray-400'}`} />
+                    <Circle className={`w-4 h-4 ${index === currentFix ? 'text-blue-600' : 'text-gray-400'}`} />
                   )}
                   <div className="text-left">
                     <div className={`text-sm font-medium ${
-                      index === currentFix ? 'text-orange-400' : 
-                      completedFixes.has(index) ? 'text-green-400' : 'text-gray-300'
+                      index === currentFix ? 'text-blue-800' : 
+                      completedFixes.has(index) ? 'text-green-800' : 'text-gray-700'
                     }`}>
                       {fix.title}
                     </div>
-                    <div className={`text-xs px-2 py-1 rounded mt-1 border ${getCategoryColor(fix.category)}`}>
+                    <div className={`text-xs ${getCategoryColor(fix.category)} px-2 py-1 rounded mt-1`}>
                       {fix.category}
                     </div>
                   </div>
@@ -851,31 +510,31 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
         </div>
 
         {/* Current Fix Content */}
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
           {/* Fix Header */}
-          <div className={`p-8 ${getCategoryBgColor(currentFixData.category)}`}>
-            <div className="flex items-start justify-between mb-6">
+          <div className={`p-6 ${getCategoryBgColor(currentFixData.category)}`}>
+            <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="text-2xl font-bold text-white mb-3">{currentFixData.title}</h3>
-                <div className="flex items-center space-x-4 mb-4">
-                  <span className={`px-3 py-1 text-sm font-medium rounded border ${getCategoryColor(currentFixData.category)}`}>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">{currentFixData.title}</h3>
+                <div className="flex items-center space-x-3 mb-3">
+                  <span className={`px-3 py-1 text-sm font-medium rounded ${getCategoryColor(currentFixData.category)}`}>
                     {currentFixData.category}
                   </span>
-                  <span className="text-sm text-gray-400 flex items-center">
-                    <Clock className="w-4 h-4 mr-2" />
+                  <span className="text-sm text-gray-600 flex items-center">
+                    <Clock className="w-3 h-3 mr-1" />
                     {currentFixData.timeEstimate}
                   </span>
                 </div>
-                <p className="text-gray-300 font-medium">{currentFixData.impact}</p>
+                <p className="text-gray-700 font-medium">{currentFixData.impact}</p>
               </div>
               
               <button
                 onClick={markComplete}
                 disabled={completedFixes.has(currentFix)}
-                className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
                   completedFixes.has(currentFix)
-                    ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-not-allowed'
-                    : 'bg-slate-800 text-gray-300 border border-slate-600 hover:bg-slate-700 hover:border-slate-500'
+                    ? 'bg-green-100 text-green-800 cursor-not-allowed'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                 }`}
               >
                 {completedFixes.has(currentFix) ? (
@@ -890,64 +549,58 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-slate-800/50 rounded-xl p-4 border border-red-500/30">
-                <h4 className="font-semibold text-red-400 mb-2 flex items-center">
-                  <AlertTriangle className="w-4 h-4 mr-2" />
-                  Current Problem
-                </h4>
-                <p className="text-red-300">{currentFixData.currentProblem}</p>
+              <div className="bg-white rounded-lg p-4 border border-red-200">
+                <h4 className="font-semibold text-red-800 mb-2">❌ Current Problem</h4>
+                <p className="text-red-700">{currentFixData.currentProblem}</p>
               </div>
-              <div className="bg-slate-800/50 rounded-xl p-4 border border-green-500/30">
-                <h4 className="font-semibold text-green-400 mb-2 flex items-center">
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Solution
-                </h4>
-                <p className="text-green-300">{currentFixData.solution}</p>
+              <div className="bg-white rounded-lg p-4 border border-green-200">
+                <h4 className="font-semibold text-green-800 mb-2">✅ Solution</h4>
+                <p className="text-green-700">{currentFixData.solution}</p>
               </div>
             </div>
           </div>
 
           {/* Benefits */}
-          <div className="p-8 border-b border-slate-700">
-            <h4 className="font-semibold text-white mb-4 flex items-center">
-              <Lightbulb className="w-5 h-5 mr-3 text-yellow-400" />
+          <div className="p-6 border-b border-gray-200">
+            <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
+              <Lightbulb className="w-4 h-4 mr-2 text-yellow-500" />
               What you'll gain by fixing this
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {currentFixData.benefits.map((benefit, index) => (
                 <div key={index} className="flex items-start">
-                  <CheckCircle className="w-4 h-4 text-green-400 mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-300">{benefit}</span>
+                  <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700">{benefit}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Admin Path */}
-          <div className="p-8 border-b border-slate-700">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-white flex items-center">
-                <MapPin className="w-5 h-5 mr-3 text-blue-400" />
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-semibold text-gray-800 flex items-center">
+                <MapPin className="w-4 h-4 mr-2 text-blue-500" />
                 Where to find this in GA4
               </h4>
               <button
                 onClick={() => setShowingPath(!showingPath)}
-                className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                className="text-sm text-blue-600 hover:text-blue-800"
               >
                 {showingPath ? 'Hide' : 'Show'} navigation path
               </button>
             </div>
-            <div className="bg-slate-800/50 rounded-xl p-4 border border-blue-500/30">
-              <p className="text-blue-300 font-mono text-sm">{currentFixData.adminPath}</p>
+            <div className="bg-blue-50 rounded-lg p-3">
+              <p className="text-blue-800 font-mono text-sm">{currentFixData.adminPath}</p>
             </div>
             
             {showingPath && (
-              <div className="mt-4 p-4 bg-slate-800/30 rounded-xl border border-slate-600">
-                <p className="text-sm text-gray-400 mb-3">🧭 Step-by-step navigation:</p>
-                <ol className="text-sm text-gray-300 space-y-2">
+              <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-600 mb-2">🧭 Step-by-step navigation:</p>
+                <ol className="text-sm text-gray-700 space-y-1">
                   {currentFixData.adminPath.split(' > ').map((step, index) => (
                     <li key={index} className="flex items-center">
-                      <span className="w-6 h-6 bg-blue-500/20 text-blue-400 rounded-full text-xs flex items-center justify-center mr-3 border border-blue-500/30">
+                      <span className="w-4 h-4 bg-blue-100 text-blue-800 rounded-full text-xs flex items-center justify-center mr-2">
                         {index + 1}
                       </span>
                       Click "{step}"
@@ -959,74 +612,74 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
           </div>
 
           {/* Detailed Steps */}
-          <div className="p-8">
-            <h4 className="font-semibold text-white mb-6 flex items-center">
-              <Settings className="w-5 h-5 mr-3 text-green-400" />
+          <div className="p-6">
+            <h4 className="font-semibold text-gray-800 mb-4 flex items-center">
+              <Settings className="w-4 h-4 mr-2 text-green-500" />
               Step-by-step instructions
             </h4>
             
             <div className="space-y-4">
               {currentFixData.steps.map((step, index) => (
-                <div key={index} className="flex items-start space-x-4 p-6 bg-slate-800/30 rounded-xl border border-slate-600">
-                  <div className="flex-shrink-0 w-10 h-10 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center font-semibold border border-blue-500/30">
+                <div key={index} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center font-semibold">
                     {index + 1}
                   </div>
                   <div className="flex-1">
-                    <h5 className="font-medium text-white mb-2">{step.instruction}</h5>
-                    <p className="text-sm text-gray-400">{step.detail}</p>
+                    <h5 className="font-medium text-gray-800 mb-1">{step.instruction}</h5>
+                    <p className="text-sm text-gray-600">{step.detail}</p>
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Verification */}
-            <div className="mt-8 p-6 bg-green-500/10 rounded-xl border border-green-500/30">
-              <h5 className="font-semibold text-green-400 mb-3 flex items-center">
-                <Eye className="w-5 h-5 mr-3" />
+            <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
+              <h5 className="font-semibold text-green-800 mb-2 flex items-center">
+                <Eye className="w-4 h-4 mr-2" />
                 How to verify it worked
               </h5>
-              <p className="text-green-300">{currentFixData.verification}</p>
+              <p className="text-green-700">{currentFixData.verification}</p>
             </div>
 
             {/* Warning */}
             {currentFixData.warningNote && (
-              <div className="mt-6 p-6 bg-yellow-500/10 rounded-xl border border-yellow-500/30">
-                <h5 className="font-semibold text-yellow-400 mb-3 flex items-center">
-                  <AlertTriangle className="w-5 h-5 mr-3" />
+              <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <h5 className="font-semibold text-yellow-800 mb-2 flex items-center">
+                  <AlertTriangle className="w-4 h-4 mr-2" />
                   Important note
                 </h5>
-                <p className="text-yellow-300">{currentFixData.warningNote}</p>
+                <p className="text-yellow-700">{currentFixData.warningNote}</p>
               </div>
             )}
           </div>
 
           {/* Navigation */}
-          <div className="border-t border-slate-700 p-8 bg-slate-800/30">
+          <div className="border-t border-gray-200 p-6 bg-gray-50">
             <div className="flex items-center justify-between">
               <button
                 onClick={prevFix}
                 disabled={currentFix === 0}
-                className={`flex items-center px-6 py-3 rounded-xl font-medium transition-all ${
+                className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all ${
                   currentFix === 0
-                    ? 'text-gray-500 cursor-not-allowed'
-                    : 'text-gray-300 hover:text-white hover:bg-slate-700'
+                    ? 'text-gray-400 cursor-not-allowed'
+                    : 'text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Previous Issue
               </button>
 
-              <div className="text-sm text-gray-400">
+              <div className="text-sm text-gray-500">
                 Issue {currentFix + 1} of {adminFixes.length}
               </div>
 
               <button
                 onClick={nextFix}
                 disabled={currentFix === adminFixes.length - 1}
-                className={`flex items-center px-6 py-3 rounded-xl font-medium transition-all ${
+                className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all ${
                   currentFix === adminFixes.length - 1
-                    ? 'text-gray-500 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600'
+                    ? 'text-gray-400 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}
               >
                 {currentFix === adminFixes.length - 1 ? 'All Done!' : 'Next Issue'}
@@ -1038,15 +691,19 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
 
         {/* Completion Summary */}
         {completedFixes.size === adminFixes.length && (
-          <div className="mt-8 bg-gradient-to-br from-green-500/10 to-green-600/5 rounded-2xl p-8 border border-green-500/30 text-center">
-            <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-green-400 mb-3">🎉 All Admin Issues Fixed!</h3>
-            <p className="text-green-300 mb-6">
+          <div className="mt-8 bg-green-50 rounded-xl p-6 border border-green-200 text-center">
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-green-800 mb-2">🎉 All Admin Issues Fixed!</h3>
+            <p className="text-green-700 mb-4">
               Your GA4 admin configuration is now properly set up. These changes will improve your data quality immediately.
             </p>
-            <button className="px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 font-medium transition-all">
+            <Link 
+              href="/audit/properties"
+              className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-medium transition-all"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
               View Updated Audit Results
-            </button>
+            </Link>
           </div>
         )}
       </div>
