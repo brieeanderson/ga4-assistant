@@ -430,41 +430,41 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
 
   const renderOverviewTab = () => (
     <div className="space-y-16">
-              {/* Configuration Score Hero */}
+                      {/* Configuration Score Hero */}
         <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-10 border border-slate-700">
-        <div className="text-center mb-8">
+          <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-slate-800 to-slate-900 rounded-full border-4 border-slate-700 mb-6">
             <div className="text-5xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
               {overallScore}%
             </div>
           </div>
-          <h2 className="text-3xl font-bold text-white mb-2">Configuration Score</h2>
-          <p className="text-lg text-slate-400">Your GA4 setup is <span className={getScoreColor(overallScore)}>
+          <h2 className="text-3xl font-bold text-white mb-4">Configuration Score</h2>
+          <p className="text-lg text-slate-400 mb-8">Your GA4 setup is <span className={getScoreColor(overallScore)}>
             {overallScore >= 80 ? 'well configured' : 
              overallScore >= 60 ? 'needs improvement' : 'needs attention'}
           </span></p>
         </div>
 
         {/* Score Breakdown - Calculated from audit data */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className={`text-center p-4 rounded-xl border ${categoryScores.configuration >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.configuration >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
-            <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.configuration)}`}>{categoryScores.configuration}%</div>
-            <div className="text-sm text-slate-400">Configuration</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+          <div className={`text-center p-6 rounded-xl border ${categoryScores.configuration >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.configuration >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+            <div className={`text-2xl font-bold mb-2 ${getScoreColor(categoryScores.configuration)}`}>{categoryScores.configuration}%</div>
+            <div className="text-sm text-slate-400 mb-1">Configuration</div>
             <div className="text-xs text-slate-500">{points?.configuration?.earned || 0}/{points?.configuration?.total || 25} pts</div>
           </div>
-          <div className={`text-center p-4 rounded-xl border ${categoryScores.eventsTracking >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.eventsTracking >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
-            <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.eventsTracking)}`}>{categoryScores.eventsTracking}%</div>
-            <div className="text-sm text-slate-400">Events & Tracking</div>
+          <div className={`text-center p-6 rounded-xl border ${categoryScores.eventsTracking >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.eventsTracking >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+            <div className={`text-2xl font-bold mb-2 ${getScoreColor(categoryScores.eventsTracking)}`}>{categoryScores.eventsTracking}%</div>
+            <div className="text-sm text-slate-400 mb-1">Events & Tracking</div>
             <div className="text-xs text-slate-500">{points?.eventsTracking?.earned || 0}/{points?.eventsTracking?.total || 50} pts</div>
           </div>
-          <div className={`text-center p-4 rounded-xl border ${categoryScores.attribution >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.attribution >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
-            <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.attribution)}`}>{categoryScores.attribution}%</div>
-            <div className="text-sm text-slate-400">Attribution</div>
+          <div className={`text-center p-6 rounded-xl border ${categoryScores.attribution >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.attribution >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+            <div className={`text-2xl font-bold mb-2 ${getScoreColor(categoryScores.attribution)}`}>{categoryScores.attribution}%</div>
+            <div className="text-sm text-slate-400 mb-1">Attribution</div>
             <div className="text-xs text-slate-500">{points?.attribution?.earned || 0}/{points?.attribution?.total || 10} pts</div>
           </div>
-          <div className={`text-center p-4 rounded-xl border ${categoryScores.integrations >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.integrations >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
-            <div className={`text-2xl font-bold mb-1 ${getScoreColor(categoryScores.integrations)}`}>{categoryScores.integrations}%</div>
-            <div className="text-sm text-slate-400">Integrations</div>
+          <div className={`text-center p-6 rounded-xl border ${categoryScores.integrations >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.integrations >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+            <div className={`text-2xl font-bold mb-2 ${getScoreColor(categoryScores.integrations)}`}>{categoryScores.integrations}%</div>
+            <div className="text-sm text-slate-400 mb-1">Integrations</div>
             <div className="text-xs text-slate-500">{points?.integrations?.earned || 0}/{points?.integrations?.total || 30} pts</div>
           </div>
         </div>
@@ -478,10 +478,10 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {deductions.configuration.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="text-lg font-semibold text-white mb-3">Configuration</h4>
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-white mb-4">Configuration</h4>
                   {deductions.configuration.map((deduction, idx) => (
-                    <div key={idx} className={`flex items-center justify-between p-3 rounded-lg ${
+                    <div key={idx} className={`flex items-center justify-between p-4 rounded-lg ${
                       deduction.points >= 10 
                         ? 'bg-red-500/10 border border-red-500/20' 
                         : 'bg-yellow-500/10 border border-yellow-500/20'
@@ -496,10 +496,10 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               )}
               
               {deductions.eventsTracking.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="text-lg font-semibold text-white mb-3">Events & Tracking</h4>
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-white mb-4">Events & Tracking</h4>
                   {deductions.eventsTracking.map((deduction, idx) => (
-                    <div key={idx} className={`flex items-center justify-between p-3 rounded-lg ${
+                    <div key={idx} className={`flex items-center justify-between p-4 rounded-lg ${
                       deduction.points >= 10 
                         ? 'bg-red-500/10 border border-red-500/20' 
                         : 'bg-yellow-500/10 border border-yellow-500/20'
@@ -514,10 +514,10 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               )}
               
               {deductions.attribution.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="text-lg font-semibold text-white mb-3">Attribution</h4>
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-white mb-4">Attribution</h4>
                   {deductions.attribution.map((deduction, idx) => (
-                    <div key={idx} className={`flex items-center justify-between p-3 rounded-lg ${
+                    <div key={idx} className={`flex items-center justify-between p-4 rounded-lg ${
                       deduction.points >= 10 
                         ? 'bg-red-500/10 border border-red-500/20' 
                         : 'bg-yellow-500/10 border border-yellow-500/20'
@@ -532,10 +532,10 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               )}
               
               {deductions.integrations.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="text-lg font-semibold text-white mb-3">Integrations</h4>
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-white mb-4">Integrations</h4>
                   {deductions.integrations.map((deduction, idx) => (
-                    <div key={idx} className={`flex items-center justify-between p-3 rounded-lg ${
+                    <div key={idx} className={`flex items-center justify-between p-4 rounded-lg ${
                       deduction.points >= 10 
                         ? 'bg-red-500/10 border border-red-500/20' 
                         : 'bg-yellow-500/10 border border-yellow-500/20'
