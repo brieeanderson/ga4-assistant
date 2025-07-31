@@ -17,7 +17,7 @@ import {
   RefreshCw,
   LineChart,
   ArrowLeft,
-  TrendingUp as TrendingUpIcon,
+
   ChevronDown,
   ChevronRight
 } from 'lucide-react';
