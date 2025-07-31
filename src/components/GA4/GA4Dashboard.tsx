@@ -564,6 +564,8 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                 Get step-by-step guidance to fix critical GA4 admin settings that most people miss
               </p>
             </div>
+            {/* Admin Fix Wizard Button - Temporarily commented out for MVP */}
+            {/* 
             <a 
               href={`/audit/admin-fixes?propertyId=${property?.propertyId}`}
               className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:from-orange-600 hover:to-red-600 font-medium transition-all flex items-center"
@@ -571,6 +573,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               <Settings className="w-4 h-4 mr-2" />
               Launch Fix Wizard
             </a>
+            */}
           </div>
         </div>
 
