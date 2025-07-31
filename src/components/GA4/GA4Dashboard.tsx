@@ -72,8 +72,10 @@ const generateRecommendations = (auditData: GA4Audit) => {
       docsUrl: 'https://support.google.com/analytics/answer/7667196?hl=en'
     });
   }
-  // 5. PII redaction
-  if (auditData?.audit?.dataCollection?.piiRedaction?.status !== 'good') {
+  // 5. PII redaction - only show if PII is actually detected
+  if (auditData?.audit?.dataCollection?.piiRedaction?.status === 'critical' || 
+      (auditData?.audit?.dataCollection?.piiRedaction?.status === 'warning' && 
+       auditData?.audit?.dataCollection?.piiRedaction?.details?.includes('PII detected'))) {
     recs.push({
       title: 'Redact PII from URLs',
       description: 'Remove email addresses, phone numbers from URL parameters for GDPR compliance.',
@@ -552,30 +554,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           </div>
         )}
 
-        {/* Admin Fix Wizard Button - Moved right after Score Deductions */}
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-10 border border-slate-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-bold text-white mb-2 flex items-center">
-                <Settings className="w-6 h-6 mr-3 text-orange-400" />
-                Need Help Fixing These Issues?
-              </h3>
-              <p className="text-gray-400">
-                Get step-by-step guidance to fix critical GA4 admin settings that most people miss
-              </p>
-            </div>
-            {/* Admin Fix Wizard Button - Temporarily commented out for MVP */}
-            {/* 
-            <a 
-              href={`/audit/admin-fixes?propertyId=${property?.propertyId}`}
-              className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:from-orange-600 hover:to-red-600 font-medium transition-all flex items-center"
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Launch Fix Wizard
-            </a>
-            */}
-          </div>
-        </div>
+
 
         {/* Score History - Disabled for future paid feature */}
         {/* {scoreComparison && scoreComparison.previousScore !== null && (
@@ -634,10 +613,18 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
         {/* Top Recommendations */}
         {topRecommendations.length > 0 && (
           <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-10 border border-slate-700">
-            <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
-              <Shield className="w-7 h-7 mr-3 text-orange-400" />
-              Priority Recommendations
-            </h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-white flex items-center">
+                <Shield className="w-7 h-7 mr-3 text-orange-400" />
+                Priority Recommendations
+              </h3>
+              <button
+                onClick={() => setActiveTab('recommendations')}
+                className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors text-sm"
+              >
+                View All Recommendations
+              </button>
+            </div>
             <div className="space-y-4">
               {topRecommendations.map((rec, idx) => (
                 <div key={idx} className={`p-6 rounded-xl border ${rec.severity === 'critical' ? 'bg-red-500/10 border-red-500/20' : rec.severity === 'important' ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-blue-500/10 border-blue-500/20'}`}>
