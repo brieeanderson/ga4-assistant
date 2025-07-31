@@ -433,31 +433,31 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
-          <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-xl p-6 border border-red-200">
+          <div className="bg-gradient-to-r from-slate-800 to-slate-700 rounded-xl p-6 border border-slate-600">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800 mb-2">Fix Critical Admin Settings</h1>
-                <p className="text-gray-600 mb-4">
+                <h1 className="text-2xl font-bold text-white mb-2">Fix Critical Admin Settings</h1>
+                <p className="text-slate-300 mb-4">
                   Step-by-step guide to fix the hidden GA4 settings that most people miss
                 </p>
               </div>
               
               <div className="text-right">
-                <div className="text-3xl font-bold text-red-600">{adminFixes.length - completedFixes.size}</div>
-                <div className="text-sm text-red-600">Issues Remaining</div>
+                <div className="text-3xl font-bold text-red-400">{adminFixes.length - completedFixes.size}</div>
+                <div className="text-sm text-red-400">Issues Remaining</div>
               </div>
             </div>
             
             <div className="flex items-center space-x-4 text-sm">
-              <div className="flex items-center">
-                <Clock className="w-4 h-4 mr-1 text-gray-500" />
+              <div className="flex items-center text-slate-300">
+                <Clock className="w-4 h-4 mr-1" />
                 Total time: ~{adminFixes.reduce((total, fix) => {
                   const time = parseInt(fix.timeEstimate.split(' ')[0]);
                   return total + time;
                 }, 0)} minutes
               </div>
-              <div className="flex items-center">
-                <Target className="w-4 h-4 mr-1 text-gray-500" />
+              <div className="flex items-center text-slate-300">
+                <Target className="w-4 h-4 mr-1" />
                 {completedFixes.size} of {adminFixes.length} fixed
               </div>
             </div>
@@ -510,22 +510,22 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
         </div>
 
         {/* Current Fix Content */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="bg-slate-800 rounded-xl shadow-lg border border-slate-600 overflow-hidden">
           {/* Fix Header */}
           <div className={`p-6 ${getCategoryBgColor(currentFixData.category)}`}>
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">{currentFixData.title}</h3>
+                <h3 className="text-xl font-bold text-white mb-2">{currentFixData.title}</h3>
                 <div className="flex items-center space-x-3 mb-3">
                   <span className={`px-3 py-1 text-sm font-medium rounded ${getCategoryColor(currentFixData.category)}`}>
                     {currentFixData.category}
                   </span>
-                  <span className="text-sm text-gray-600 flex items-center">
+                  <span className="text-sm text-slate-300 flex items-center">
                     <Clock className="w-3 h-3 mr-1" />
                     {currentFixData.timeEstimate}
                   </span>
                 </div>
-                <p className="text-gray-700 font-medium">{currentFixData.impact}</p>
+                <p className="text-slate-200 font-medium">{currentFixData.impact}</p>
               </div>
               
               <button
@@ -533,8 +533,8 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
                 disabled={completedFixes.has(currentFix)}
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${
                   completedFixes.has(currentFix)
-                    ? 'bg-green-100 text-green-800 cursor-not-allowed'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    ? 'bg-green-600 text-white cursor-not-allowed'
+                    : 'bg-slate-700 text-white border border-slate-500 hover:bg-slate-600'
                 }`}
               >
                 {completedFixes.has(currentFix) ? (
@@ -549,58 +549,58 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white rounded-lg p-4 border border-red-200">
-                <h4 className="font-semibold text-red-800 mb-2">❌ Current Problem</h4>
-                <p className="text-red-700">{currentFixData.currentProblem}</p>
+              <div className="bg-slate-700 rounded-lg p-4 border border-red-400">
+                <h4 className="font-semibold text-red-300 mb-2">❌ Current Problem</h4>
+                <p className="text-red-200">{currentFixData.currentProblem}</p>
               </div>
-              <div className="bg-white rounded-lg p-4 border border-green-200">
-                <h4 className="font-semibold text-green-800 mb-2">✅ Solution</h4>
-                <p className="text-green-700">{currentFixData.solution}</p>
+              <div className="bg-slate-700 rounded-lg p-4 border border-green-400">
+                <h4 className="font-semibold text-green-300 mb-2">✅ Solution</h4>
+                <p className="text-green-200">{currentFixData.solution}</p>
               </div>
             </div>
           </div>
 
           {/* Benefits */}
-          <div className="p-6 border-b border-gray-200">
-            <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
-              <Lightbulb className="w-4 h-4 mr-2 text-yellow-500" />
+          <div className="p-6 border-b border-slate-600">
+            <h4 className="font-semibold text-white mb-3 flex items-center">
+              <Lightbulb className="w-4 h-4 mr-2 text-yellow-400" />
               What you'll gain by fixing this
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {currentFixData.benefits.map((benefit, index) => (
                 <div key={index} className="flex items-start">
-                  <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">{benefit}</span>
+                  <CheckCircle className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" />
+                  <span className="text-slate-200">{benefit}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Admin Path */}
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-6 border-b border-slate-600">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="font-semibold text-gray-800 flex items-center">
-                <MapPin className="w-4 h-4 mr-2 text-blue-500" />
+              <h4 className="font-semibold text-white flex items-center">
+                <MapPin className="w-4 h-4 mr-2 text-blue-400" />
                 Where to find this in GA4
               </h4>
               <button
                 onClick={() => setShowingPath(!showingPath)}
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-sm text-blue-400 hover:text-blue-300"
               >
                 {showingPath ? 'Hide' : 'Show'} navigation path
               </button>
             </div>
-            <div className="bg-blue-50 rounded-lg p-3">
-              <p className="text-blue-800 font-mono text-sm">{currentFixData.adminPath}</p>
+            <div className="bg-slate-700 rounded-lg p-3">
+              <p className="text-blue-300 font-mono text-sm">{currentFixData.adminPath}</p>
             </div>
             
             {showingPath && (
-              <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-600 mb-2">🧭 Step-by-step navigation:</p>
-                <ol className="text-sm text-gray-700 space-y-1">
+              <div className="mt-3 p-3 bg-slate-700 rounded-lg">
+                <p className="text-sm text-slate-300 mb-2">🧭 Step-by-step navigation:</p>
+                <ol className="text-sm text-slate-200 space-y-1">
                   {currentFixData.adminPath.split(' > ').map((step, index) => (
                     <li key={index} className="flex items-center">
-                      <span className="w-4 h-4 bg-blue-100 text-blue-800 rounded-full text-xs flex items-center justify-center mr-2">
+                      <span className="w-4 h-4 bg-blue-600 text-white rounded-full text-xs flex items-center justify-center mr-2">
                         {index + 1}
                       </span>
                       Click "{step}"
@@ -613,63 +613,63 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
 
           {/* Detailed Steps */}
           <div className="p-6">
-            <h4 className="font-semibold text-gray-800 mb-4 flex items-center">
-              <Settings className="w-4 h-4 mr-2 text-green-500" />
+            <h4 className="font-semibold text-white mb-4 flex items-center">
+              <Settings className="w-4 h-4 mr-2 text-green-400" />
               Step-by-step instructions
             </h4>
             
             <div className="space-y-4">
               {currentFixData.steps.map((step, index) => (
-                <div key={index} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center font-semibold">
+                <div key={index} className="flex items-start space-x-4 p-4 bg-slate-700 rounded-lg">
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">
                     {index + 1}
                   </div>
                   <div className="flex-1">
-                    <h5 className="font-medium text-gray-800 mb-1">{step.instruction}</h5>
-                    <p className="text-sm text-gray-600">{step.detail}</p>
+                    <h5 className="font-medium text-white mb-1">{step.instruction}</h5>
+                    <p className="text-sm text-slate-300">{step.detail}</p>
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Verification */}
-            <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
-              <h5 className="font-semibold text-green-800 mb-2 flex items-center">
+            <div className="mt-6 p-4 bg-green-900/20 rounded-lg border border-green-400">
+              <h5 className="font-semibold text-green-300 mb-2 flex items-center">
                 <Eye className="w-4 h-4 mr-2" />
                 How to verify it worked
               </h5>
-              <p className="text-green-700">{currentFixData.verification}</p>
+              <p className="text-green-200">{currentFixData.verification}</p>
             </div>
 
             {/* Warning */}
             {currentFixData.warningNote && (
-              <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                <h5 className="font-semibold text-yellow-800 mb-2 flex items-center">
+              <div className="mt-4 p-4 bg-yellow-900/20 rounded-lg border border-yellow-400">
+                <h5 className="font-semibold text-yellow-300 mb-2 flex items-center">
                   <AlertTriangle className="w-4 h-4 mr-2" />
                   Important note
                 </h5>
-                <p className="text-yellow-700">{currentFixData.warningNote}</p>
+                <p className="text-yellow-200">{currentFixData.warningNote}</p>
               </div>
             )}
           </div>
 
           {/* Navigation */}
-          <div className="border-t border-gray-200 p-6 bg-gray-50">
+          <div className="border-t border-slate-600 p-6 bg-slate-700">
             <div className="flex items-center justify-between">
               <button
                 onClick={prevFix}
                 disabled={currentFix === 0}
                 className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all ${
                   currentFix === 0
-                    ? 'text-gray-400 cursor-not-allowed'
-                    : 'text-gray-700 hover:bg-gray-200'
+                    ? 'text-slate-500 cursor-not-allowed'
+                    : 'text-slate-200 hover:bg-slate-600'
                 }`}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Previous Issue
               </button>
 
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-slate-400">
                 Issue {currentFix + 1} of {adminFixes.length}
               </div>
 
@@ -678,7 +678,7 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
                 disabled={currentFix === adminFixes.length - 1}
                 className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all ${
                   currentFix === adminFixes.length - 1
-                    ? 'text-gray-400 cursor-not-allowed'
+                    ? 'text-slate-500 cursor-not-allowed'
                     : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}
               >
@@ -691,10 +691,10 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _p
 
         {/* Completion Summary */}
         {completedFixes.size === adminFixes.length && (
-          <div className="mt-8 bg-green-50 rounded-xl p-6 border border-green-200 text-center">
-            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-green-800 mb-2">🎉 All Admin Issues Fixed!</h3>
-            <p className="text-green-700 mb-4">
+          <div className="mt-8 bg-green-900/20 rounded-xl p-6 border border-green-400 text-center">
+            <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-green-300 mb-2">🎉 All Admin Issues Fixed!</h3>
+            <p className="text-green-200 mb-4">
               Your GA4 admin configuration is now properly set up. These changes will improve your data quality immediately.
             </p>
             <Link 
