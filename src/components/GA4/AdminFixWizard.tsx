@@ -38,7 +38,7 @@ interface AdminFixWizardProps {
   property?: any;
 }
 
-const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, _property }) => {
+const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property: _property }) => {
   const [currentFix, setCurrentFix] = useState(0);
   const [completedFixes, setCompletedFixes] = useState(new Set<number>());
   const [showingPath, setShowingPath] = useState(false);

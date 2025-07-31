@@ -1,11 +1,11 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useOAuth } from '@/hooks/useOAuth';
 import { useGA4Audit } from '@/hooks/useGA4Audit';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AdminFixWizard from '@/components/GA4/AdminFixWizard';
 
-const AdminFixesPage = () => {
+const AdminFixesPageContent = () => {
   const searchParams = useSearchParams();
   const propertyId = searchParams.get('propertyId');
   const { isAuthenticated, accessToken, logout, isLoading } = useOAuth();
@@ -107,7 +107,22 @@ const AdminFixesPage = () => {
     );
   }
 
-  return <AdminFixWizard auditData={ga4Audit} property={selectedProperty} />;
+  return <AdminFixWizard auditData={ga4Audit || undefined} property={selectedProperty} />;
+};
+
+const AdminFixesPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    }>
+      <AdminFixesPageContent />
+    </Suspense>
+  );
 };
 
 export default AdminFixesPage; 
