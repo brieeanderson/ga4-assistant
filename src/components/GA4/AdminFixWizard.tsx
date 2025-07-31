@@ -378,6 +378,242 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property }) 
       });
     }
 
+    // 8. Key Events - Critical
+    if (!auditData?.keyEvents || auditData.keyEvents.length === 0) {
+      fixes.push({
+        id: 'key-events',
+        title: 'Set Key Events (Conversions)',
+        category: 'Critical',
+        impact: 'Cannot access attribution data without conversions',
+        timeEstimate: '5 minutes',
+        currentProblem: 'No key events (conversions) are configured',
+        solution: 'Mark important events as conversions in GA4',
+        benefits: [
+          'Access attribution reports and data',
+          'Track important business goals',
+          'Enable conversion optimization',
+          'Better marketing performance insights'
+        ],
+        adminPath: 'Admin > Events > All Events',
+        steps: [
+          {
+            instruction: 'Go to Admin > Events',
+            detail: 'This is where you manage all events in GA4'
+          },
+          {
+            instruction: 'Click "All Events"',
+            detail: 'You\'ll see a list of all events being tracked'
+          },
+          {
+            instruction: 'Find important events',
+            detail: 'Look for events like purchase, sign_up, form_submit, etc.'
+          },
+          {
+            instruction: 'Click the toggle next to important events',
+            detail: 'This marks them as conversions (key events)'
+          },
+          {
+            instruction: 'Add custom events if needed',
+            detail: 'If you don\'t see important events, you may need to create them'
+          },
+          {
+            instruction: 'Save your changes',
+            detail: 'Key events are immediately available for reporting'
+          }
+        ],
+        verification: 'Go to Reports > Engagement > Events - you should see your key events marked with a star',
+        warningNote: 'You need at least one key event to access attribution data and conversion reports.'
+      });
+    }
+
+    // 9. Google Ads Integration - Critical
+    if (!auditData?.googleAdsLinks || auditData.googleAdsLinks.length === 0) {
+      fixes.push({
+        id: 'google-ads',
+        title: 'Connect Google Ads',
+        category: 'Critical',
+        impact: 'Missing conversion data for Google Ads optimization',
+        timeEstimate: '10 minutes',
+        currentProblem: 'Google Ads is not connected to GA4',
+        solution: 'Link your Google Ads account to import conversions',
+        benefits: [
+          'Import conversions for bidding optimization',
+          'Better Google Ads performance',
+          'Accurate conversion tracking',
+          'Improved ROI on ad spend'
+        ],
+        adminPath: 'Admin > Property > Google Ads Links',
+        steps: [
+          {
+            instruction: 'Go to Admin > Property > Google Ads Links',
+            detail: 'This is where you connect external accounts'
+          },
+          {
+            instruction: 'Click "Link"',
+            detail: 'You\'ll see options to link different Google services'
+          },
+          {
+            instruction: 'Select "Google Ads"',
+            detail: 'Choose the Google Ads account you want to connect'
+          },
+          {
+            instruction: 'Choose your Google Ads account',
+            detail: 'Select the account that manages your ads'
+          },
+          {
+            instruction: 'Configure link settings',
+            detail: 'Choose which conversions to import and enable auto-tagging'
+          },
+          {
+            instruction: 'Click "Confirm"',
+            detail: 'The link will be created and conversions will start importing'
+          }
+        ],
+        verification: 'Go to Google Ads > Tools > Conversions - you should see GA4 conversions being imported',
+        warningNote: 'It may take 24-48 hours for conversions to start appearing in Google Ads.'
+      });
+    }
+
+    // 10. Search Console Integration - Important
+    if (!auditData?.searchConsoleDataStatus || !auditData.searchConsoleDataStatus.isLinked) {
+      fixes.push({
+        id: 'search-console',
+        title: 'Connect Search Console',
+        category: 'Important',
+        impact: 'Missing organic search performance data',
+        timeEstimate: '5 minutes',
+        currentProblem: 'Search Console is not connected to GA4',
+        solution: 'Link your Search Console property to GA4',
+        benefits: [
+          'See organic search performance',
+          'Track search queries and clicks',
+          'Monitor website search rankings',
+          'Better SEO insights'
+        ],
+        adminPath: 'Admin > Property > Search Console Links',
+        steps: [
+          {
+            instruction: 'Go to Admin > Property > Search Console Links',
+            detail: 'This is where you connect Search Console'
+          },
+          {
+            instruction: 'Click "Link"',
+            detail: 'You\'ll see options to link Search Console'
+          },
+          {
+            instruction: 'Select your Search Console property',
+            detail: 'Choose the property that matches your website'
+          },
+          {
+            instruction: 'Confirm the link',
+            detail: 'This connects your Search Console data to GA4'
+          },
+          {
+            instruction: 'Enable Search Console collection',
+            detail: 'Go to Reports > Library > Search Console to enable data collection'
+          }
+        ],
+        verification: 'Go to Reports > Library > Search Console - you should see search performance data',
+        warningNote: 'You need to own both the GA4 property and Search Console property to link them.'
+      });
+    }
+
+    // 11. Custom Dimensions - Important
+    if (!auditData?.customDimensions || auditData.customDimensions.length === 0) {
+      fixes.push({
+        id: 'custom-dimensions',
+        title: 'Define Custom Dimensions',
+        category: 'Important',
+        impact: 'Cannot analyze important event parameters in reports',
+        timeEstimate: '10 minutes',
+        currentProblem: 'No custom dimensions are defined',
+        solution: 'Register important event parameters as custom dimensions',
+        benefits: [
+          'Analyze event parameters in reports',
+          'Better user behavior insights',
+          'More detailed segmentation',
+          'Custom reporting capabilities'
+        ],
+        adminPath: 'Admin > Property > Custom Definitions > Custom Dimensions',
+        steps: [
+          {
+            instruction: 'Go to Admin > Property > Custom Definitions',
+            detail: 'This is where you define custom dimensions and metrics'
+          },
+          {
+            instruction: 'Click "Custom Dimensions"',
+            detail: 'You\'ll see existing custom dimensions or an empty list'
+          },
+          {
+            instruction: 'Click "Create Custom Dimensions"',
+            detail: 'This starts the process of creating new dimensions'
+          },
+          {
+            instruction: 'Choose "Event" scope',
+            detail: 'Most custom dimensions are event-scoped'
+          },
+          {
+            instruction: 'Enter parameter name',
+            detail: 'Use the exact parameter name from your events (e.g., user_type, page_category)'
+          },
+          {
+            instruction: 'Add description and save',
+            detail: 'The dimension will be available in reports after 24-48 hours'
+          }
+        ],
+        verification: 'Go to Reports > Engagement > Events - you should see your custom dimensions in the dimension selector',
+        warningNote: 'Custom dimensions only work for data collected after they\'re created. Historical data won\'t be affected.'
+      });
+    }
+
+    // 12. Unwanted Referrals - Important
+    if (!auditData?.dataQuality?.trafficSources?.unwantedReferrals || !auditData.dataQuality.trafficSources.unwantedReferrals.detected) {
+      fixes.push({
+        id: 'unwanted-referrals',
+        title: 'Configure Unwanted Referrals',
+        category: 'Important',
+        impact: 'Payment processors and other sources inflating traffic',
+        timeEstimate: '5 minutes',
+        currentProblem: 'Unwanted referral sources are not excluded',
+        solution: 'Add payment processors and other unwanted sources to exclusion list',
+        benefits: [
+          'More accurate traffic data',
+          'Better conversion rate calculations',
+          'Cleaner attribution data',
+          'More reliable marketing insights'
+        ],
+        adminPath: 'Admin > Property > Data Streams > Configure tag settings',
+        steps: [
+          {
+            instruction: 'Go to Admin > Property > Data Streams',
+            detail: 'This is where you configure your website tracking'
+          },
+          {
+            instruction: 'Click on your website data stream',
+            detail: 'You\'ll see the stream details and configuration options'
+          },
+          {
+            instruction: 'Click "Configure tag settings"',
+            detail: 'This opens advanced configuration options'
+          },
+          {
+            instruction: 'Go to "Referral exclusion list"',
+            detail: 'This is where you exclude unwanted referral sources'
+          },
+          {
+            instruction: 'Add common unwanted sources',
+            detail: 'Add: paypal.com, stripe.com, your payment processor domains'
+          },
+          {
+            instruction: 'Save your changes',
+            detail: 'These sources will no longer appear as referral traffic'
+          }
+        ],
+        verification: 'Check your Real-time reports - payment processor visits should no longer appear as referrals',
+        warningNote: 'This only affects new data. Historical referral data won\'t change.'
+      });
+    }
+
     return fixes;
   };
 
@@ -450,6 +686,26 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property }) 
                 <div className="flex items-center text-green-300">
                   <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
                   Currency settings
+                </div>
+                <div className="flex items-center text-green-300">
+                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+                  Key events (conversions)
+                </div>
+                <div className="flex items-center text-green-300">
+                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+                  Google Ads integration
+                </div>
+                <div className="flex items-center text-green-300">
+                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+                  Search Console integration
+                </div>
+                <div className="flex items-center text-green-300">
+                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+                  Custom dimensions
+                </div>
+                <div className="flex items-center text-green-300">
+                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+                  Unwanted referrals
                 </div>
               </div>
             </div>
