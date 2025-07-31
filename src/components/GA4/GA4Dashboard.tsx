@@ -1401,34 +1401,59 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
         )}
         
         <div className="space-y-3">
-          {auditData?.keyEvents?.map((event: KeyEvent, index: number) => (
-            <div key={index} className="p-4 bg-green-500/10 rounded-xl border border-green-500/20">
-              <div className="flex items-center justify-between mb-2">
-                <div className="font-medium text-white">{event.eventName}</div>
+          {/* Combine key events and other events, removing duplicates */}
+          {(() => {
+            const allEvents = new Map();
+            
+            // Add key events first
+            auditData?.keyEvents?.forEach((event: KeyEvent) => {
+              allEvents.set(event.eventName, { ...event, isKeyEvent: true });
+            });
+            
+            // Add other events (don't overwrite key events)
+            auditData?.otherEvents?.forEach((event: { name: string; count: number }) => {
+              if (!allEvents.has(event.name)) {
+                allEvents.set(event.name, { eventName: event.name, count: event.count, isKeyEvent: false });
+              }
+            });
+            
+            return Array.from(allEvents.values()).map((event: any, index: number) => (
+              <div key={index} className={`p-4 rounded-xl border ${event.isKeyEvent ? 'bg-green-500/10 border-green-500/20' : 'bg-blue-500/10 border-blue-500/20'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-white">{event.eventName}</div>
+                  <div className="flex items-center space-x-2">
+                    {event.isKeyEvent && (
+                      <span className="px-2 py-1 bg-green-500/20 text-green-300 rounded text-xs">Key Event</span>
+                    )}
+                    {event.count && (
+                      <span className="px-2 py-1 bg-slate-700 text-slate-300 rounded text-xs">{event.count} events</span>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Show event create rules that create this event */}
+                {auditData?.eventCreateRules && auditData.eventCreateRules.map((stream, streamIndex) => 
+                  stream.rules
+                    .filter(rule => rule.destinationEvent === event.eventName)
+                    .map((rule, ruleIndex) => (
+                      <div key={`${streamIndex}-${ruleIndex}`} className="mt-3 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
+                        <div className="text-xs text-slate-400 mb-1">Created by rule: {rule.displayName || rule.name}</div>
+                        {rule.eventConditions && rule.eventConditions.length > 0 && (
+                          <div className="text-xs text-slate-300">
+                            <div className="font-medium mb-1">Conditions:</div>
+                            {rule.eventConditions.map((condition, condIndex) => (
+                              <div key={condIndex} className="ml-2 text-slate-400">
+                                {condition.field} {condition.comparisonType} "{condition.value}"
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                )}
               </div>
-              
-              {/* Show event create rules that create this event */}
-              {auditData?.eventCreateRules && auditData.eventCreateRules.map((stream, streamIndex) => 
-                stream.rules
-                  .filter(rule => rule.destinationEvent === event.eventName)
-                  .map((rule, ruleIndex) => (
-                    <div key={`${streamIndex}-${ruleIndex}`} className="mt-3 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
-                      <div className="text-xs text-slate-400 mb-1">Created by rule: {rule.displayName || rule.name}</div>
-                      {rule.eventConditions && rule.eventConditions.length > 0 && (
-                        <div className="text-xs text-slate-300">
-                          <div className="font-medium mb-1">Conditions:</div>
-                          {rule.eventConditions.map((condition, condIndex) => (
-                            <div key={condIndex} className="ml-2 text-slate-400">
-                              {condition.field} {condition.comparisonType} "{condition.value}"
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))
-              )}
-            </div>
-          ))}
+            ));
+          })()}
         </div>
       </div>
     </div>
