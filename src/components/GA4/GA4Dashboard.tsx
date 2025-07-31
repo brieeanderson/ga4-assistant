@@ -650,7 +650,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               </p>
             </div>
             <a 
-              href="/audit/admin-fixes"
+              href={`/audit/admin-fixes?propertyId=${property?.propertyId}`}
               className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:from-orange-600 hover:to-red-600 font-medium transition-all flex items-center"
             >
               <Settings className="w-4 h-4 mr-2" />

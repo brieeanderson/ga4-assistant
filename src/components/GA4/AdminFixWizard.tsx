@@ -20,6 +20,7 @@ import {
   Globe,
   Building2
 } from 'lucide-react';
+import { GA4Audit } from '@/types/ga4';
 
 interface AdminFix {
   id: string;
@@ -39,234 +40,430 @@ interface AdminFix {
   warningNote?: string;
 }
 
-const AdminFixWizard: React.FC = () => {
+interface AdminFixWizardProps {
+  auditData?: GA4Audit;
+  property?: any;
+}
+
+const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property }) => {
   const [currentFix, setCurrentFix] = useState(0);
   const [completedFixes, setCompletedFixes] = useState(new Set<number>());
   const [showingPath, setShowingPath] = useState(false);
 
-  // Focus on the critical admin fixes
-  const adminFixes: AdminFix[] = [
-    {
-      id: 'data-retention',
-      title: 'Fix Data Retention Period',
-      category: 'Critical',
-      impact: 'You\'re losing valuable historical data',
-      timeEstimate: '2 minutes',
-      currentProblem: 'Event data retention set to only 2 months',
-      solution: 'Change to 14 months (maximum available)',
-      benefits: [
-        'Keep 14 months of detailed data instead of 2',
-        'Enable year-over-year comparisons', 
-        'See seasonal trends and patterns',
-        'Better attribution analysis'
-      ],
-      adminPath: 'Admin > Data Settings > Data Retention',
-      steps: [
-        {
-          instruction: 'Open your GA4 property',
-          detail: 'Make sure you\'re in the correct GA4 property, not Universal Analytics'
-        },
-        {
-          instruction: 'Click "Admin" in the bottom left',
-          detail: 'You\'ll see two columns - Property and Account settings'
-        },
-        {
-          instruction: 'Under Property, click "Data Settings"',
-          detail: 'This will expand to show Data Retention and other options'
-        },
-        {
-          instruction: 'Click "Data Retention"',
-          detail: 'This is where GA4 controls how long to keep your data'
-        },
-        {
-          instruction: 'Change "Event data retention" to "14 months"',
-          detail: 'This is the maximum available. The default is only 2 months!'
-        },
-        {
-          instruction: 'Click "Save"',
-          detail: 'Changes take effect immediately for new data collection'
-        }
-      ],
-      verification: 'You should see "Event data retention: 14 months" in the Data Retention settings',
-      warningNote: 'This only affects NEW data. Past data beyond 2 months is already gone and can\'t be recovered.'
-    },
-    {
-      id: 'pii-urls',
-      title: 'Remove Personal Information from URLs',
-      category: 'Critical',
-      impact: 'Privacy law violation risk (GDPR, CCPA)',
-      timeEstimate: '15 minutes',
-      currentProblem: 'GA4 is collecting personal information in page URLs',
-      solution: 'Set up URL redaction or modify website to remove PII',
-      benefits: [
-        'Comply with GDPR and privacy laws',
-        'Protect customer personal information',
-        'Avoid potential legal fines',
-        'Build customer trust'
-      ],
-      adminPath: 'Admin > Data Streams > Enhanced Measurement OR modify your website',
-      steps: [
-        {
-          instruction: 'Identify what personal info is in your URLs',
-          detail: 'Common examples: emails, names, phone numbers in query parameters'
-        },
-        {
-          instruction: 'Choose your approach',
-          detail: 'Option 1: Remove PII from website URLs. Option 2: Set up GA4 URL redaction'
-        },
-        {
-          instruction: 'For URL redaction: Go to Admin > Data Streams',
-          detail: 'Click on your website data stream'
-        },
-        {
-          instruction: 'Click "Configure tag settings"',
-          detail: 'This opens advanced configuration options'
-        },
-        {
-          instruction: 'Add custom parameters to redact PII',
-          detail: 'Use regex patterns to automatically remove personal information'
-        },
-        {
-          instruction: 'Test the redaction',
-          detail: 'Check that personal info is no longer visible in GA4 reports'
-        }
-      ],
-      verification: 'Check your Real-time reports - URLs should no longer contain personal information',
-      warningNote: 'This is a compliance issue. If you\'re unsure, consult with your legal team or a privacy expert.'
-    },
-    {
-      id: 'internal-traffic',
-      title: 'Filter Out Internal Traffic',
-      category: 'Important',
-      impact: 'Your team visits are counted as customer traffic',
-      timeEstimate: '5 minutes',
-      currentProblem: 'No filters set up to exclude your office/team traffic',
-      solution: 'Create data filter to exclude internal IP addresses',
-      benefits: [
-        'Get accurate visitor counts',
-        'Improve conversion rate accuracy',
-        'Better understand real customer behavior',
-        'More reliable marketing performance data'
-      ],
-      adminPath: 'Admin > Data Settings > Data Filters',
-      steps: [
-        {
-          instruction: 'Find your office IP address',
-          detail: 'Google "what is my IP address" from your office network'
-        },
-        {
-          instruction: 'Go to Admin > Data Settings > Data Filters',
-          detail: 'This is where you exclude unwanted traffic'
-        },
-        {
-          instruction: 'Click "Create Filter"',
-          detail: 'You\'ll create a new filter to exclude internal traffic'
-        },
-        {
-          instruction: 'Name it "Internal Traffic Filter"',
-          detail: 'Give it a descriptive name so you remember what it does'
-        },
-        {
-          instruction: 'Select "Internal Traffic"',
-          detail: 'GA4 has a predefined filter type for this common need'
-        },
-        {
-          instruction: 'Set "ip_override" equals your IP address',
-          detail: 'This tells GA4 to exclude traffic from your office IP'
-        },
-        {
-          instruction: 'Save and activate the filter',
-          detail: 'The filter needs to be both created AND activated to work'
-        }
-      ],
-      verification: 'Test by visiting your website from the office - your visits shouldn\'t appear in Real-time reports',
-      warningNote: 'If your office IP changes frequently, you may need to update this filter.'
-    },
-    {
-      id: 'attribution-window',
-      title: 'Review Attribution Lookback Window',
-      category: 'Important',
-      impact: 'Marketing channels getting wrong credit for conversions',
-      timeEstimate: '3 minutes',
-      currentProblem: 'Default 30-day window may not match your sales cycle',
-      solution: 'Adjust conversion lookback window to match your business',
-      benefits: [
-        'More accurate marketing attribution',
-        'Better budget allocation decisions',
-        'Understand true customer journey length',
-        'Optimize campaigns based on actual influence'
-      ],
-      adminPath: 'Admin > Attribution Settings',
-      steps: [
-        {
-          instruction: 'Think about your sales cycle length',
-          detail: 'How long from first visit to purchase? Days? Weeks? Months?'
-        },
-        {
-          instruction: 'Go to Admin > Attribution Settings',
-          detail: 'This controls how GA4 gives credit to marketing channels'
-        },
-        {
-          instruction: 'Review "Lookback window"',
-          detail: 'Currently set to 30 days - is this right for your business?'
-        },
-        {
-          instruction: 'If your sales cycle is longer, increase the window',
-          detail: 'E.g., if customers take 60 days to decide, use 60-day window'
-        },
-        {
-          instruction: 'If your sales cycle is shorter, consider decreasing',
-          detail: 'E.g., for impulse purchases, 7-14 days might be more accurate'
-        },
-        {
-          instruction: 'Save your changes',
-          detail: 'New attribution settings apply to future conversions'
-        }
-      ],
-      verification: 'Your Attribution Settings should show the lookback window that matches your typical sales cycle',
-      warningNote: 'This change only affects future data. Historical attribution won\'t change.'
-    },
-    {
-      id: 'industry-category',
-      title: 'Set Industry Category',
-      category: 'Improvement',
-      impact: 'Missing out on industry benchmarks and insights',
-      timeEstimate: '1 minute',
-      currentProblem: 'Industry category not set',
-      solution: 'Select your business industry in property settings',
-      benefits: [
-        'Get industry-specific insights',
-        'See how you compare to competitors',
-        'Access relevant benchmarking data',
-        'Better machine learning predictions'
-      ],
-      adminPath: 'Admin > Property Settings > Property details',
-      steps: [
-        {
-          instruction: 'Go to Admin > Property Settings',
-          detail: 'This contains basic information about your GA4 property'
-        },
-        {
-          instruction: 'Click "Property details"',
-          detail: 'Where you set timezone, currency, and other basics'
-        },
-        {
-          instruction: 'Find "Industry category"',
-          detail: 'It\'s in the same section as timezone and currency'
-        },
-        {
-          instruction: 'Select your industry from the dropdown',
-          detail: 'Choose the category that best matches your business'
-        },
-        {
-          instruction: 'Click "Save"',
-          detail: 'This helps Google provide relevant insights and benchmarks'
-        }
-      ],
-      verification: 'Your Property details should show the selected industry category',
-      warningNote: 'This mainly affects future insights and benchmarking features.'
+  // Generate dynamic admin fixes based on audit data
+  const generateAdminFixes = (): AdminFix[] => {
+    const fixes: AdminFix[] = [];
+
+    // 1. Data Retention - Critical
+    if (auditData?.dataRetention?.eventDataRetention !== 'FOURTEEN_MONTHS') {
+      fixes.push({
+        id: 'data-retention',
+        title: 'Fix Data Retention Period',
+        category: 'Critical',
+        impact: 'You\'re losing valuable historical data',
+        timeEstimate: '2 minutes',
+        currentProblem: `Event data retention set to ${auditData?.dataRetention?.eventDataRetention === 'TWO_MONTHS' ? 'only 2 months' : 'less than 14 months'}`,
+        solution: 'Change to 14 months (maximum available)',
+        benefits: [
+          'Keep 14 months of detailed data instead of 2',
+          'Enable year-over-year comparisons', 
+          'See seasonal trends and patterns',
+          'Better attribution analysis'
+        ],
+        adminPath: 'Admin > Data Settings > Data Retention',
+        steps: [
+          {
+            instruction: 'Open your GA4 property',
+            detail: 'Make sure you\'re in the correct GA4 property, not Universal Analytics'
+          },
+          {
+            instruction: 'Click "Admin" in the bottom left',
+            detail: 'You\'ll see two columns - Property and Account settings'
+          },
+          {
+            instruction: 'Under Property, click "Data Settings"',
+            detail: 'This will expand to show Data Retention and other options'
+          },
+          {
+            instruction: 'Click "Data Retention"',
+            detail: 'This is where GA4 controls how long to keep your data'
+          },
+          {
+            instruction: 'Change "Event data retention" to "14 months"',
+            detail: 'This is the maximum available. The default is only 2 months!'
+          },
+          {
+            instruction: 'Click "Save"',
+            detail: 'Changes take effect immediately for new data collection'
+          }
+        ],
+        verification: 'You should see "Event data retention: 14 months" in the Data Retention settings',
+        warningNote: 'This only affects NEW data. Past data beyond 2 months is already gone and can\'t be recovered.'
+      });
     }
-  ];
+
+    // 2. PII Redaction - Critical
+    if (auditData?.audit?.dataCollection?.piiRedaction?.status !== 'good') {
+      fixes.push({
+        id: 'pii-urls',
+        title: 'Remove Personal Information from URLs',
+        category: 'Critical',
+        impact: 'Privacy law violation risk (GDPR, CCPA)',
+        timeEstimate: '15 minutes',
+        currentProblem: 'GA4 is collecting personal information in page URLs',
+        solution: 'Set up URL redaction or modify website to remove PII',
+        benefits: [
+          'Comply with GDPR and privacy laws',
+          'Protect customer personal information',
+          'Avoid potential legal fines',
+          'Build customer trust'
+        ],
+        adminPath: 'Admin > Data Streams > Enhanced Measurement OR modify your website',
+        steps: [
+          {
+            instruction: 'Identify what personal info is in your URLs',
+            detail: 'Common examples: emails, names, phone numbers in query parameters'
+          },
+          {
+            instruction: 'Choose your approach',
+            detail: 'Option 1: Remove PII from website URLs. Option 2: Set up GA4 URL redaction'
+          },
+          {
+            instruction: 'For URL redaction: Go to Admin > Data Streams',
+            detail: 'Click on your website data stream'
+          },
+          {
+            instruction: 'Click "Configure tag settings"',
+            detail: 'This opens advanced configuration options'
+          },
+          {
+            instruction: 'Add custom parameters to redact PII',
+            detail: 'Use regex patterns to automatically remove personal information'
+          },
+          {
+            instruction: 'Test the redaction',
+            detail: 'Check that personal info is no longer visible in GA4 reports'
+          }
+        ],
+        verification: 'Check your Real-time reports - URLs should no longer contain personal information',
+        warningNote: 'This is a compliance issue. If you\'re unsure, consult with your legal team or a privacy expert.'
+      });
+    }
+
+    // 3. Internal Traffic Filtering - Important
+    if (!auditData?.dataFilters || auditData.dataFilters.length === 0) {
+      fixes.push({
+        id: 'internal-traffic',
+        title: 'Filter Out Internal Traffic',
+        category: 'Important',
+        impact: 'Your team visits are counted as customer traffic',
+        timeEstimate: '5 minutes',
+        currentProblem: 'No filters set up to exclude your office/team traffic',
+        solution: 'Create data filter to exclude internal IP addresses',
+        benefits: [
+          'Get accurate visitor counts',
+          'Improve conversion rate accuracy',
+          'Better understand real customer behavior',
+          'More reliable marketing performance data'
+        ],
+        adminPath: 'Admin > Data Settings > Data Filters',
+        steps: [
+          {
+            instruction: 'Find your office IP address',
+            detail: 'Google "what is my IP address" from your office network'
+          },
+          {
+            instruction: 'Go to Admin > Data Settings > Data Filters',
+            detail: 'This is where you exclude unwanted traffic'
+          },
+          {
+            instruction: 'Click "Create Filter"',
+            detail: 'You\'ll create a new filter to exclude internal traffic'
+          },
+          {
+            instruction: 'Name it "Internal Traffic Filter"',
+            detail: 'Give it a descriptive name so you remember what it does'
+          },
+          {
+            instruction: 'Select "Internal Traffic"',
+            detail: 'GA4 has a predefined filter type for this common need'
+          },
+          {
+            instruction: 'Set "ip_override" equals your IP address',
+            detail: 'This tells GA4 to exclude traffic from your office IP'
+          },
+          {
+            instruction: 'Save and activate the filter',
+            detail: 'The filter needs to be both created AND activated to work'
+          }
+        ],
+        verification: 'Test by visiting your website from the office - your visits shouldn\'t appear in Real-time reports',
+        warningNote: 'If your office IP changes frequently, you may need to update this filter.'
+      });
+    }
+
+    // 4. Enhanced Measurement - Important
+    if (!auditData?.enhancedMeasurement || auditData.enhancedMeasurement.length === 0) {
+      fixes.push({
+        id: 'enhanced-measurement',
+        title: 'Enable Enhanced Measurement',
+        category: 'Important',
+        impact: 'Missing automatic event tracking',
+        timeEstimate: '3 minutes',
+        currentProblem: 'Enhanced measurement is not enabled',
+        solution: 'Enable automatic tracking of page views, scrolls, clicks, and more',
+        benefits: [
+          'Automatic tracking without code changes',
+          'Better user behavior insights',
+          'More complete conversion data',
+          'Improved reporting accuracy'
+        ],
+        adminPath: 'Admin > Data Streams > Enhanced Measurement',
+        steps: [
+          {
+            instruction: 'Go to Admin > Data Streams',
+            detail: 'This is where you configure your website tracking'
+          },
+          {
+            instruction: 'Click on your website data stream',
+            detail: 'You\'ll see the stream details and configuration options'
+          },
+          {
+            instruction: 'Click "Enhanced Measurement"',
+            detail: 'This enables automatic event tracking'
+          },
+          {
+            instruction: 'Enable the events you want to track',
+            detail: 'Page views, scrolls, outbound clicks, site search, video engagement, file downloads, form interactions'
+          },
+          {
+            instruction: 'Click "Save"',
+            detail: 'Changes take effect immediately'
+          }
+        ],
+        verification: 'You should see "Enhanced Measurement: On" in your data stream settings',
+        warningNote: 'Enhanced measurement only tracks new data going forward.'
+      });
+    }
+
+    // 5. Industry Category - Improvement
+    if (!auditData?.property?.industryCategory) {
+      fixes.push({
+        id: 'industry-category',
+        title: 'Set Industry Category',
+        category: 'Improvement',
+        impact: 'Missing out on industry benchmarks and insights',
+        timeEstimate: '1 minute',
+        currentProblem: 'Industry category not set',
+        solution: 'Select your business industry in property settings',
+        benefits: [
+          'Get industry-specific insights',
+          'See how you compare to competitors',
+          'Access relevant benchmarking data',
+          'Better machine learning predictions'
+        ],
+        adminPath: 'Admin > Property Settings > Property details',
+        steps: [
+          {
+            instruction: 'Go to Admin > Property Settings',
+            detail: 'This contains basic information about your GA4 property'
+          },
+          {
+            instruction: 'Click "Property details"',
+            detail: 'Where you set timezone, currency, and other basics'
+          },
+          {
+            instruction: 'Find "Industry category"',
+            detail: 'It\'s in the same section as timezone and currency'
+          },
+          {
+            instruction: 'Select your industry from the dropdown',
+            detail: 'Choose the category that best matches your business'
+          },
+          {
+            instruction: 'Click "Save"',
+            detail: 'This helps Google provide relevant insights and benchmarks'
+          }
+        ],
+        verification: 'Your Property details should show the selected industry category',
+        warningNote: 'This mainly affects future insights and benchmarking features.'
+      });
+    }
+
+    // 6. Timezone - Critical
+    if (!auditData?.property?.timeZone) {
+      fixes.push({
+        id: 'timezone',
+        title: 'Set Timezone',
+        category: 'Critical',
+        impact: 'Inconsistent time reporting across platforms',
+        timeEstimate: '1 minute',
+        currentProblem: 'Timezone is not set',
+        solution: 'Set your business timezone in property settings',
+        benefits: [
+          'Consistent time reporting',
+          'Better attribution analysis',
+          'Accurate campaign performance data',
+          'Proper data alignment with other tools'
+        ],
+        adminPath: 'Admin > Property Settings > Property details',
+        steps: [
+          {
+            instruction: 'Go to Admin > Property Settings',
+            detail: 'This contains basic property configuration'
+          },
+          {
+            instruction: 'Click "Property details"',
+            detail: 'Where you set timezone, currency, and other basics'
+          },
+          {
+            instruction: 'Find "Timezone"',
+            detail: 'It\'s in the same section as currency and industry'
+          },
+          {
+            instruction: 'Select your business timezone',
+            detail: 'Choose the timezone where your business operates'
+          },
+          {
+            instruction: 'Click "Save"',
+            detail: 'This ensures consistent time reporting'
+          }
+        ],
+        verification: 'Your Property details should show the selected timezone',
+        warningNote: 'This affects how dates and times are displayed in reports.'
+      });
+    }
+
+    // 7. Currency - Important
+    if (!auditData?.property?.currencyCode) {
+      fixes.push({
+        id: 'currency',
+        title: 'Set Currency',
+        category: 'Important',
+        impact: 'Incorrect revenue and transaction data',
+        timeEstimate: '1 minute',
+        currentProblem: 'Currency is not set',
+        solution: 'Set your business currency in property settings',
+        benefits: [
+          'Accurate revenue reporting',
+          'Proper transaction data',
+          'Better e-commerce insights',
+          'Consistent financial data'
+        ],
+        adminPath: 'Admin > Property Settings > Property details',
+        steps: [
+          {
+            instruction: 'Go to Admin > Property Settings',
+            detail: 'This contains basic property configuration'
+          },
+          {
+            instruction: 'Click "Property details"',
+            detail: 'Where you set timezone, currency, and other basics'
+          },
+          {
+            instruction: 'Find "Currency"',
+            detail: 'It\'s in the same section as timezone and industry'
+          },
+          {
+            instruction: 'Select your business currency',
+            detail: 'Choose the currency you use for transactions'
+          },
+          {
+            instruction: 'Click "Save"',
+            detail: 'This ensures accurate financial reporting'
+          }
+        ],
+        verification: 'Your Property details should show the selected currency',
+        warningNote: 'This affects how monetary values are displayed in reports.'
+      });
+    }
+
+    return fixes;
+  };
+
+  const adminFixes = generateAdminFixes();
+
+  // If no fixes are needed, show a success message
+  if (adminFixes.length === 0) {
+    return (
+      <div className="min-h-screen bg-black">
+        {/* Header */}
+        <div className="border-b border-slate-700 bg-slate-900">
+          <div className="max-w-7xl mx-auto px-6 py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-6">
+                <a 
+                  href="/audit/properties"
+                  className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Back to Audit Results</span>
+                </a>
+              </div>
+              <div className="text-right">
+                <h1 className="text-3xl font-bold text-white">
+                  <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">GA4Helper</span>
+                  <span className="text-white ml-2">Admin Fix Wizard</span>
+                </h1>
+                <p className="text-gray-400 mt-2">
+                  Step-by-step guide to fix critical GA4 admin settings
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto p-6">
+          <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 rounded-2xl p-12 border border-green-500/30 text-center">
+            <CheckCircle className="w-20 h-20 text-green-400 mx-auto mb-6" />
+            <h2 className="text-3xl font-bold text-green-400 mb-4">🎉 All Admin Settings Are Perfect!</h2>
+            <p className="text-green-300 mb-8 text-lg">
+              Your GA4 admin configuration is already properly set up. All critical settings are configured correctly!
+            </p>
+            <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-600">
+              <h3 className="text-xl font-semibold text-white mb-4">What we checked:</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                <div className="flex items-center text-green-300">
+                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+                  Data retention period
+                </div>
+                <div className="flex items-center text-green-300">
+                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+                  PII redaction settings
+                </div>
+                <div className="flex items-center text-green-300">
+                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+                  Internal traffic filters
+                </div>
+                <div className="flex items-center text-green-300">
+                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+                  Enhanced measurement
+                </div>
+                <div className="flex items-center text-green-300">
+                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+                  Industry category
+                </div>
+                <div className="flex items-center text-green-300">
+                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+                  Timezone settings
+                </div>
+                <div className="flex items-center text-green-300">
+                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+                  Currency settings
+                </div>
+              </div>
+            </div>
+            <a 
+              href="/audit/properties"
+              className="inline-block mt-8 px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 font-medium transition-all"
+            >
+              Back to Audit Results
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const currentFixData = adminFixes[currentFix];
   
