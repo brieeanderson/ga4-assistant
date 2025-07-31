@@ -39,7 +39,7 @@ const PropertiesPage = () => {
     console.log('Properties page loaded - clearing state on mount');
     setSelectedProperty(null);
     clearAuditStateExceptSelected();
-  }, []); // Only run when component mounts
+  }, [clearAuditStateExceptSelected]); // Only run when component mounts
 
   useEffect(() => {
     if (selectedProperty && accessToken) {

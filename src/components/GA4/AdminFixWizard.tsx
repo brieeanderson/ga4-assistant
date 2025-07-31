@@ -1,24 +1,17 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { 
   CheckCircle, 
   Circle, 
   ArrowLeft, 
   ArrowRight, 
-  ExternalLink,
   AlertTriangle,
-  Info,
   Clock,
   MapPin,
   Eye,
   Settings,
-  Shield,
   Target,
-  Lightbulb,
-  Copy,
-  TrendingUp,
-  Zap,
-  Globe,
-  Building2
+  Lightbulb
 } from 'lucide-react';
 import { GA4Audit } from '@/types/ga4';
 
@@ -45,7 +38,7 @@ interface AdminFixWizardProps {
   property?: any;
 }
 
-const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property }) => {
+const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, _property }) => {
   const [currentFix, setCurrentFix] = useState(0);
   const [completedFixes, setCompletedFixes] = useState(new Set<number>());
   const [showingPath, setShowingPath] = useState(false);
@@ -628,13 +621,13 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property }) 
           <div className="max-w-7xl mx-auto px-6 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-6">
-                <a 
+                <Link 
                   href="/audit/properties"
                   className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   <span>Back to Audit Results</span>
-                </a>
+                </Link>
               </div>
               <div className="text-right">
                 <h1 className="text-3xl font-bold text-white">
@@ -709,12 +702,12 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property }) 
                 </div>
               </div>
             </div>
-            <a 
+            <Link 
               href="/audit/properties"
               className="inline-block mt-8 px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 font-medium transition-all"
             >
               Back to Audit Results
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -759,15 +752,15 @@ const AdminFixWizard: React.FC<AdminFixWizardProps> = ({ auditData, property }) 
       <div className="border-b border-slate-700 bg-slate-900">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <a 
-                href="/audit/properties"
-                className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back to Audit Results</span>
-              </a>
-            </div>
+                          <div className="flex items-center space-x-6">
+                <Link 
+                  href="/audit/properties"
+                  className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Back to Audit Results</span>
+                </Link>
+              </div>
             <div className="text-right">
               <h1 className="text-3xl font-bold text-white">
                 <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">GA4Helper</span>

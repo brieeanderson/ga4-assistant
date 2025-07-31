@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   TrendingUp,
   Settings,
@@ -18,7 +18,6 @@ import {
   LineChart,
   ArrowLeft,
   TrendingUp as TrendingUpIcon,
-  TrendingDown,
   ChevronDown,
   ChevronRight
 } from 'lucide-react';
