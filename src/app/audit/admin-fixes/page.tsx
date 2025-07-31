@@ -22,6 +22,7 @@ const AdminFixesPageContent = () => {
   } = useGA4Audit();
 
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   useEffect(() => {
     if (isLoading) {
@@ -38,31 +39,45 @@ const AdminFixesPageContent = () => {
     }
   }, [isLoading, isAuthenticated, accessToken, ga4Properties.length, fetchGA4Properties, router]);
 
+  // Add timeout to prevent infinite loading
   useEffect(() => {
-    if (propertyId) {
-      // If we already have the audit data for this property, use it immediately
-      if (ga4Audit && ga4Audit.property && ga4Audit.property.name === propertyId) {
-        setSelectedProperty(ga4Audit.property);
-        return;
+    const timer = setTimeout(() => {
+      if (isAnalyzing || isLoading) {
+        setLoadingTimeout(true);
       }
+    }, 10000); // 10 second timeout
 
-      // If we have properties list, find the property
-      if (ga4Properties.length > 0) {
-        const property = ga4Properties.find(p => p.propertyId === propertyId);
-        if (property) {
-          setSelectedProperty(property);
-                      // Only run audit if we don't have audit data for this specific property
-            if (!ga4Audit || (ga4Audit.property && ga4Audit.property.name !== propertyId)) {
-            runGA4Audit(accessToken!, propertyId);
-          }
-        } else {
-          router.push('/audit/properties');
-        }
-      } else if (accessToken) {
-        fetchGA4Properties(accessToken);
-      }
+    return () => clearTimeout(timer);
+  }, [isAnalyzing, isLoading]);
+
+  useEffect(() => {
+    if (!propertyId || !accessToken) {
+      return;
     }
-  }, [ga4Properties, propertyId, ga4Audit, accessToken, runGA4Audit, router, fetchGA4Properties]);
+
+    // If we already have the audit data for this property, use it immediately
+    if (ga4Audit && ga4Audit.property && ga4Audit.property.name === propertyId) {
+      setSelectedProperty(ga4Audit.property);
+      return;
+    }
+
+    // If we have properties list, find the property
+    if (ga4Properties.length > 0) {
+      const property = ga4Properties.find(p => p.propertyId === propertyId);
+      if (property) {
+        setSelectedProperty(property);
+        // Only run audit if we don't have audit data for this specific property
+        if (!ga4Audit || (ga4Audit.property && ga4Audit.property.name !== propertyId)) {
+          runGA4Audit(accessToken, propertyId);
+        }
+      } else {
+        router.push('/audit/properties');
+      }
+    } else {
+      // Fetch properties if we don't have them yet
+      fetchGA4Properties(accessToken);
+    }
+  }, [propertyId, accessToken, ga4Properties, ga4Audit, runGA4Audit, router, fetchGA4Properties]);
 
   useEffect(() => {
     if (error && typeof error === 'string' && error.toLowerCase().includes('invalid or expired access token')) {
@@ -76,6 +91,17 @@ const AdminFixesPageContent = () => {
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p>{isAnalyzing ? 'Preparing fix wizard...' : 'Loading...'}</p>
+          {loadingTimeout && (
+            <div className="mt-4 text-yellow-400">
+              <p>Taking longer than expected...</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="mt-2 px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+              >
+                Reload Page
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -103,6 +129,24 @@ const AdminFixesPageContent = () => {
     );
   }
 
+  // If we have audit data, render the wizard even without selected property
+  if (ga4Audit) {
+    return <AdminFixWizard auditData={ga4Audit} property={selectedProperty} />;
+  }
+
+  // If we have a selected property but no audit data, show a message
+  if (selectedProperty && !ga4Audit) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p>Loading audit data for {selectedProperty.displayName}...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback - render with whatever data we have
   return <AdminFixWizard auditData={ga4Audit || undefined} property={selectedProperty} />;
 };
 
