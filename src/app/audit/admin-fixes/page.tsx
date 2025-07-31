@@ -23,6 +23,7 @@ const AdminFixesPageContent = () => {
 
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const [auditRequested, setAuditRequested] = useState(false);
 
   useEffect(() => {
     if (isLoading) {
@@ -50,14 +51,31 @@ const AdminFixesPageContent = () => {
     return () => clearTimeout(timer);
   }, [isAnalyzing, isLoading]);
 
+  // Reset audit requested flag when propertyId changes
+  useEffect(() => {
+    setAuditRequested(false);
+    setLoadingTimeout(false);
+  }, [propertyId]);
+
   useEffect(() => {
     if (!propertyId || !accessToken) {
       return;
     }
 
+    console.log('Admin Fix Wizard useEffect triggered:', {
+      propertyId,
+      hasAuditData: !!ga4Audit,
+      auditPropertyName: ga4Audit?.property?.name,
+      auditRequested,
+      isAnalyzing,
+      propertiesCount: ga4Properties.length
+    });
+
     // If we already have the audit data for this property, use it immediately
     if (ga4Audit && ga4Audit.property && ga4Audit.property.name === propertyId) {
+      console.log('Using existing audit data for property:', propertyId);
       setSelectedProperty(ga4Audit.property);
+      setAuditRequested(false); // Reset flag when we have the data
       return;
     }
 
@@ -66,18 +84,24 @@ const AdminFixesPageContent = () => {
       const property = ga4Properties.find(p => p.propertyId === propertyId);
       if (property) {
         setSelectedProperty(property);
-        // Only run audit if we don't have audit data for this specific property
-        if (!ga4Audit || (ga4Audit.property && ga4Audit.property.name !== propertyId)) {
+        // Only run audit if we don't have audit data for this specific property AND haven't already requested it
+        if (!auditRequested && (!ga4Audit || (ga4Audit.property && ga4Audit.property.name !== propertyId))) {
+          console.log('Requesting audit for property:', propertyId);
+          setAuditRequested(true);
           runGA4Audit(accessToken, propertyId);
+        } else {
+          console.log('Skipping audit request:', { auditRequested, hasAuditData: !!ga4Audit });
         }
       } else {
+        console.log('Property not found, redirecting to properties page');
         router.push('/audit/properties');
       }
     } else {
+      console.log('No properties found, fetching properties');
       // Fetch properties if we don't have them yet
       fetchGA4Properties(accessToken);
     }
-  }, [propertyId, accessToken, ga4Properties, ga4Audit, runGA4Audit, router, fetchGA4Properties]);
+  }, [propertyId, accessToken, ga4Properties, ga4Audit, auditRequested, isAnalyzing, runGA4Audit, router, fetchGA4Properties]);
 
   useEffect(() => {
     if (error && typeof error === 'string' && error.toLowerCase().includes('invalid or expired access token')) {
