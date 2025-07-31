@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   TrendingUp,
   Settings,
@@ -17,13 +17,10 @@ import {
   RefreshCw,
   LineChart,
   ArrowLeft,
-
   ChevronDown,
   ChevronRight
 } from 'lucide-react';
 import { GA4Audit, DataStream, CustomDimension, CustomMetric, KeyEvent } from '@/types/ga4';
-// Score progress functionality disabled for future paid feature
-// import { useScoreHistory, ScoreComparison } from '@/hooks/useScoreHistory';
 
 // Add prop types
 interface GA4DashboardProps {
@@ -250,9 +247,11 @@ const generateRecommendations = (auditData: GA4Audit) => {
   return recs;
 };
 
-const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChangeProperty }) => {
-  // Debug: Log the auditData every time the dashboard renders
-  console.log('GA4Dashboard auditData:', auditData);
+  const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChangeProperty }) => {
+  // Debug: Log the auditData every time the dashboard renders (development only)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('GA4Dashboard auditData:', auditData);
+  }
 
   const [activeTab, setActiveTab] = useState('overview');
   const [expandedPiiSections, setExpandedPiiSections] = useState<{critical: boolean, high: boolean, medium: boolean}>({
@@ -260,6 +259,19 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
     high: false,
     medium: false
   });
+
+  // Memoize expensive calculations
+  const memoizedScores = useMemo(() => {
+    const result = calculateCategoryScores();
+    const overall = Math.round(
+      (result.scores.configuration + result.scores.eventsTracking + result.scores.attribution + result.scores.integrations) / 4
+    );
+    return { ...result, overallScore: overall };
+  }, [auditData]);
+
+  // Memoize recommendations
+  const memoizedRecommendations = useMemo(() => generateRecommendations(auditData), [auditData]);
+  const memoizedTopRecommendations = useMemo(() => memoizedRecommendations.slice(0, 4), [memoizedRecommendations]);
   // Score progress functionality disabled for future paid feature
   // const { saveScore, getScoreComparison } = useScoreHistory();
   // const [scoreComparison, setScoreComparison] = useState<ScoreComparison | null>(null);
@@ -414,12 +426,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
     };
   }, [auditData]);
 
-  const { scores: categoryScores, deductions, points } = calculateCategoryScores();
-  
-  // Calculate overall score as average of category scores
-  const overallScore = Math.round(
-    (categoryScores.configuration + categoryScores.eventsTracking + categoryScores.attribution + categoryScores.integrations) / 4
-  );
+  const { scores: categoryScores, deductions, points, overallScore } = memoizedScores;
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-400';
@@ -437,8 +444,8 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
     { id: 'recommendations', label: 'Recommendations', icon: Shield }
   ];
 
-  const recommendations = generateRecommendations(auditData);
-  const topRecommendations = recommendations.filter(r => r.severity === 'critical' || r.severity === 'important').slice(0, 5);
+  const recommendations = memoizedRecommendations;
+  const topRecommendations = memoizedTopRecommendations;
 
   const renderOverviewTab = () => (
     <div className="space-y-16">
