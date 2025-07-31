@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   TrendingUp,
   Settings,
@@ -260,18 +260,7 @@ const generateRecommendations = (auditData: GA4Audit) => {
     medium: false
   });
 
-  // Memoize expensive calculations
-  const memoizedScores = useMemo(() => {
-    const result = calculateCategoryScores();
-    const overall = Math.round(
-      (result.scores.configuration + result.scores.eventsTracking + result.scores.attribution + result.scores.integrations) / 4
-    );
-    return { ...result, overallScore: overall };
-  }, [auditData]);
 
-  // Memoize recommendations
-  const memoizedRecommendations = useMemo(() => generateRecommendations(auditData), [auditData]);
-  const memoizedTopRecommendations = useMemo(() => memoizedRecommendations.slice(0, 4), [memoizedRecommendations]);
   // Score progress functionality disabled for future paid feature
   // const { saveScore, getScoreComparison } = useScoreHistory();
   // const [scoreComparison, setScoreComparison] = useState<ScoreComparison | null>(null);
@@ -426,7 +415,12 @@ const generateRecommendations = (auditData: GA4Audit) => {
     };
   }, [auditData]);
 
-  const { scores: categoryScores, deductions, points, overallScore } = memoizedScores;
+  const { scores: categoryScores, deductions, points } = calculateCategoryScores();
+  
+  // Calculate overall score as average of category scores
+  const overallScore = Math.round(
+    (categoryScores.configuration + categoryScores.eventsTracking + categoryScores.attribution + categoryScores.integrations) / 4
+  );
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-400';
@@ -444,8 +438,8 @@ const generateRecommendations = (auditData: GA4Audit) => {
     { id: 'recommendations', label: 'Recommendations', icon: Shield }
   ];
 
-  const recommendations = memoizedRecommendations;
-  const topRecommendations = memoizedTopRecommendations;
+  const recommendations = generateRecommendations(auditData);
+  const topRecommendations = recommendations.filter(r => r.severity === 'critical' || r.severity === 'important').slice(0, 5);
 
   const renderOverviewTab = () => (
     <div className="space-y-16">
