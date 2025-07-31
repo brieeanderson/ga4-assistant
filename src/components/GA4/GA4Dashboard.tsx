@@ -237,6 +237,16 @@ const generateRecommendations = (auditData: GA4Audit) => {
       });
     }
   }
+  // 21. GA4-created events - check if event create rules exist
+  const totalEventCreateRules = auditData?.eventCreateRules?.reduce((total, stream) => total + stream.rules.length, 0) || 0;
+  if (totalEventCreateRules > 0) {
+    recs.push({
+      title: 'Review GA4-created events',
+      description: `${totalEventCreateRules} event create rules detected. GA4-created events should be reviewed by a GA4 expert as they are often incorrectly configured.`,
+      severity: 'important',
+      docsUrl: 'https://support.google.com/analytics/answer/11160918?hl=en'
+    });
+  }
   return recs;
 };
 
@@ -678,7 +688,12 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           </div>
           <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
             <div className="text-sm text-slate-400 mb-2">Industry</div>
-            <div className="text-white font-semibold">{auditData?.property?.industryCategory}</div>
+            <div className="text-white font-semibold break-words">
+              {auditData?.property?.industryCategory 
+                ? auditData.property.industryCategory.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())
+                : 'Not Set'
+              }
+            </div>
           </div>
         </div>
       </div>
@@ -1369,12 +1384,49 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           <Activity className="w-7 h-7 mr-3 text-green-400" />
           Custom Events
         </h3>
+        
+        {/* Warning about GA4-created events */}
+        {auditData?.eventCreateRules && auditData.eventCreateRules.some(stream => stream.rules.length > 0) && (
+          <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+            <div className="flex items-start space-x-3">
+              <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <div className="text-yellow-300 font-medium mb-1">GA4-Created Events Detected</div>
+                <div className="text-sm text-yellow-200">
+                  This property has event create rules that automatically generate events. These should be reviewed by a GA4 expert as they are often incorrectly configured.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div className="space-y-3">
           {auditData?.keyEvents?.map((event: KeyEvent, index: number) => (
             <div key={index} className="p-4 bg-green-500/10 rounded-xl border border-green-500/20">
               <div className="flex items-center justify-between mb-2">
                 <div className="font-medium text-white">{event.eventName}</div>
               </div>
+              
+              {/* Show event create rules that create this event */}
+              {auditData?.eventCreateRules && auditData.eventCreateRules.map((stream, streamIndex) => 
+                stream.rules
+                  .filter(rule => rule.destinationEvent === event.eventName)
+                  .map((rule, ruleIndex) => (
+                    <div key={`${streamIndex}-${ruleIndex}`} className="mt-3 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
+                      <div className="text-xs text-slate-400 mb-1">Created by rule: {rule.displayName || rule.name}</div>
+                      {rule.eventConditions && rule.eventConditions.length > 0 && (
+                        <div className="text-xs text-slate-300">
+                          <div className="font-medium mb-1">Conditions:</div>
+                          {rule.eventConditions.map((condition, condIndex) => (
+                            <div key={condIndex} className="ml-2 text-slate-400">
+                              {condition.field} {condition.comparisonType} "{condition.value}"
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))
+              )}
             </div>
           ))}
         </div>
