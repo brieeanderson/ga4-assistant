@@ -4,22 +4,6 @@ import { Shield, CheckCircle, AlertTriangle, BarChart3, Users, Zap, ArrowRight, 
 import Link from 'next/link';
 
 const LandingPage = () => {
-  const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-
-  const handleNewsletterSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    // TODO: Implement newsletter signup logic
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    setEmail('');
-  };
-
   const upcomingFeatures = [
     {
       icon: Shield,
@@ -119,33 +103,21 @@ const LandingPage = () => {
             </p>
           </div>
           
-          {!isSubmitted ? (
-            <form onSubmit={handleNewsletterSignup} className="max-w-md mx-auto">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email address"
-                  required
-                  className="flex-1 px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? 'Signing up...' : 'Get Access'}
-                </button>
-              </div>
-            </form>
-          ) : (
-            <div className="text-center">
-              <CheckCircle className="h-12 w-12 text-green-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">Welcome aboard!</h3>
-              <p className="text-gray-300">We'll notify you when new features are available.</p>
-            </div>
-          )}
+          <div className="flex justify-center">
+            <iframe 
+              src="https://ga4fun.substack.com/embed" 
+              width="480" 
+              height="320" 
+              style={{
+                border: '1px solid #EEE', 
+                background: 'white',
+                borderRadius: '8px',
+                maxWidth: '100%'
+              }} 
+              frameBorder="0" 
+              scrolling="no"
+            />
+          </div>
         </div>
       </div>
 
