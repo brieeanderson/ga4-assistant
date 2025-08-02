@@ -1066,58 +1066,46 @@ const generateRecommendations = (auditData: GA4Audit) => {
             </div>
           </div>
           
-          {/* Show all key events with their sources */}
-          {auditData?.keyEvents?.map((event, index) => {
-            // Find if this event is created by a rule
-            const ruleInfo = auditData?.eventCreateRules?.flatMap(stream => 
-              stream.rules.filter(rule => rule.destinationEvent === event.eventName)
-            )[0];
-            
-            return (
-              <div key={index} className="border border-gray-600/50 rounded-xl overflow-hidden">
-                <div className="p-4 hover:bg-gray-800/30 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center space-x-2">
-                        {ruleInfo && (
+          {/* Show all event create rules */}
+          {auditData?.eventCreateRules?.flatMap(stream => 
+            stream.rules.map((rule, index) => {
+              // Check if this event is also a key event
+              const isKeyEvent = auditData?.keyEvents?.some(keyEvent => keyEvent.eventName === rule.destinationEvent);
+              
+              return (
+                <div key={`${stream.streamId}-${index}`} className="border border-gray-600/50 rounded-xl overflow-hidden">
+                  <div className="p-4 hover:bg-gray-800/30 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-2">
                           <Settings className="w-4 h-4 text-orange-400" />
-                        )}
-                        {!ruleInfo && (
-                          <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-                        )}
-                      </div>
-                      <div>
-                        <h4 className="text-lg font-semibold text-white">{event.eventName}</h4>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <span className="px-2 py-1 rounded text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30">
-                            Key Event
-                          </span>
-                          {ruleInfo && (
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-semibold text-white">{rule.destinationEvent}</h4>
+                          <div className="flex items-center space-x-2 mt-1">
                             <span className="px-2 py-1 rounded text-xs font-medium bg-orange-500/20 text-orange-300 border border-orange-500/30">
                               Rule Created
                             </span>
-                          )}
-                          {!ruleInfo && (
-                            <span className="px-2 py-1 rounded text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                              Manual/Auto
-                            </span>
-                          )}
+                            {isKeyEvent && (
+                              <span className="px-2 py-1 rounded text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30">
+                                Key Event
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Show rule details if available */}
-                  {ruleInfo && (
+                    
+                    {/* Show rule details */}
                     <div className="mt-4 pt-4 border-t border-gray-600/50">
                       <div className="text-sm text-gray-400 mb-2">
-                        Created by rule: {ruleInfo.name?.split('/').pop() || 'Unknown'}
+                        Created by rule: {rule.name?.split('/').pop() || 'Unknown'}
                       </div>
-                      {ruleInfo.eventConditions && ruleInfo.eventConditions.length > 0 && (
+                      {rule.eventConditions && rule.eventConditions.length > 0 && (
                         <div>
                           <div className="text-sm font-medium text-gray-300 mb-2">Conditions:</div>
                           <div className="space-y-1">
-                            {ruleInfo.eventConditions.map((condition, condIndex) => (
+                            {rule.eventConditions.map((condition, condIndex) => (
                               <div key={condIndex} className="text-sm bg-slate-700/50 px-2 py-1 rounded">
                                 <code className="text-gray-200">
                                   {condition.field} {condition.comparisonType} "{condition.value}"
@@ -1127,12 +1115,56 @@ const generateRecommendations = (auditData: GA4Audit) => {
                           </div>
                         </div>
                       )}
+                      {rule.parameterMutations && rule.parameterMutations.length > 0 && (
+                        <div className="mt-3">
+                          <div className="text-sm font-medium text-gray-300 mb-2">Parameter Mutations:</div>
+                          <div className="space-y-1">
+                            {rule.parameterMutations.map((mod, modIndex) => (
+                              <div key={modIndex} className="text-sm bg-blue-900/30 px-2 py-1 rounded border border-blue-500/30">
+                                <code className="text-blue-200">
+                                  {mod.parameter}: {mod.parameterValue}
+                                </code>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+          
+          {/* Show key events that are NOT created by rules */}
+          {auditData?.keyEvents?.filter(keyEvent => 
+            !auditData?.eventCreateRules?.some(stream => 
+              stream.rules.some(rule => rule.destinationEvent === keyEvent.eventName)
+            )
+          ).map((event, index) => (
+            <div key={`key-event-${index}`} className="border border-gray-600/50 rounded-xl overflow-hidden">
+              <div className="p-4 hover:bg-gray-800/30 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-semibold text-white">{event.eventName}</h4>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <span className="px-2 py-1 rounded text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30">
+                          Key Event
+                        </span>
+                        <span className="px-2 py-1 rounded text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                          Manual/Auto
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
         
         {/* Legend */}
