@@ -562,7 +562,7 @@ async function getEventCreateRulesForStreams(accessToken: string, propertyId: st
       console.log(`Fetching event create rules for stream: ${streamId} (${stream.displayName})`);
       
       const response = await fetch(
-        `https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/dataStreams/${streamId}/eventCreateRules`,
+        `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/dataStreams/${streamId}/eventCreateRules`,
         {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         }
@@ -608,7 +608,7 @@ async function getEventEditRulesForStreams(accessToken: string, propertyId: stri
       console.log(`Fetching event edit rules for stream: ${streamId} (${stream.displayName})`);
       
       const response = await fetch(
-        `https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/dataStreams/${streamId}/eventEditRules`,
+        `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/dataStreams/${streamId}/eventEditRules`,
         {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         }
