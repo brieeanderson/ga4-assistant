@@ -132,6 +132,7 @@ export interface GA4Audit {
     industryCategory?: string;
   };
   propertyAccess?: PropertyAccess[];
+  allEvents?: any[];
   dataStreams: DataStream[];
   keyEvents: KeyEvent[];
   customDimensions: CustomDimension[];
