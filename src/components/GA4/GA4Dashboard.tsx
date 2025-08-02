@@ -1022,7 +1022,7 @@ const generateRecommendations = (auditData: GA4Audit) => {
       </div>
       
       {/* Created Events with Rules */}
-      {auditData?.eventCreateRules && auditData.eventCreateRules.length > 0 && (
+      {auditData?.eventCreateRules && auditData.eventCreateRules.length > 0 ? (
         <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
           <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
             <Settings className="w-7 h-7 mr-3 text-orange-400" />
@@ -1078,6 +1078,21 @@ const generateRecommendations = (auditData: GA4Audit) => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      ) : (
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+          <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+            <Settings className="w-7 h-7 mr-3 text-orange-400" />
+            Created Events
+          </h3>
+          <div className="text-center py-8">
+            <div className="text-gray-400 mb-4">
+              <strong>Debug Info:</strong> No event create rules found
+            </div>
+            <div className="text-sm text-gray-500">
+              Event create rules data: {JSON.stringify(auditData?.eventCreateRules, null, 2)}
+            </div>
           </div>
         </div>
       )}
