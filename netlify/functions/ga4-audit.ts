@@ -642,8 +642,9 @@ async function getAllEvents(accessToken: string, propertyId: string) {
 // Helper function to get property access information
 async function getPropertyAccess(accessToken: string, propertyId: string) {
   try {
+    // Try the correct GA4 Admin API endpoint for property access
     const response = await fetch(
-      `https://analyticsadmin.googleapis.com/v1alpha/${propertyId}/accessBindings`,
+      `https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/accessBindings`,
       {
         headers: { 'Authorization': `Bearer ${accessToken}` }
       }
@@ -652,6 +653,8 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
     if (response.ok) {
       const data = await response.json();
       const accessBindings = data.accessBindings || [];
+      
+      console.log(`Found ${accessBindings.length} access bindings for property ${propertyId}`);
       
       // Process access bindings to extract user information
       const propertyAccess: Array<{
@@ -662,6 +665,8 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
       }> = [];
       
       for (const binding of accessBindings) {
+        console.log('Processing binding:', JSON.stringify(binding, null, 2));
+        
         if (binding.user && binding.user.email) {
           const roles = binding.roles || [];
           const roleNames = roles.map((role: any) => role.name || role);
@@ -675,7 +680,12 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
         }
       }
       
+      console.log(`Processed ${propertyAccess.length} property access entries`);
       return propertyAccess;
+    } else {
+      console.error(`Property access API returned status: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Error response:', errorText);
     }
   } catch (error) {
     console.error('Error fetching property access:', error);
