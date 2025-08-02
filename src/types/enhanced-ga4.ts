@@ -287,12 +287,6 @@ export interface EnhancedWebsiteAnalysis {
       status: 'good' | 'warning' | 'critical';
       recommendation: string;
     };
-    sessionTimeout: {
-      hasCustomTimeout: boolean;
-      timeoutValue: number | null;
-      status: 'good' | 'warning' | 'critical';
-      recommendation: string;
-    };
     enhancedMeasurementConfig: {
       hasSiteSearchConfig: boolean;
       searchParameters: string[];

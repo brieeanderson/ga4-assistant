@@ -48,7 +48,6 @@ export interface DataStream {
   crossDomainSettings?: {
     domains: string[];
   };
-  sessionTimeout?: number;
 }
 
 export interface KeyEvent {
@@ -93,6 +92,37 @@ export interface EventCreateRuleStream {
   rules: EventCreateRule[];
 }
 
+export interface EventEditRule {
+  name?: string;
+  displayName: string;
+  eventConditions?: Array<{
+    field: string;
+    comparisonType: string;
+    value: string;
+  }>;
+  parameterMutations?: Array<{
+    parameter: string;
+    parameterValue: string;
+  }>;
+  // Additional fields that might be available from the API
+  sourceCopyParameters?: boolean;
+  createTime?: string;
+  etag?: string;
+}
+
+export interface EventEditRuleStream {
+  streamId?: string;
+  streamName: string;
+  rules: EventEditRule[];
+}
+
+export interface PropertyAccess {
+  email: string;
+  roles: string[];
+  accessType: 'direct' | 'inherited';
+  source?: string;
+}
+
 export interface GA4Audit {
   property: {
     displayName: string;
@@ -101,6 +131,7 @@ export interface GA4Audit {
     currencyCode?: string;
     industryCategory?: string;
   };
+  propertyAccess?: PropertyAccess[];
   dataStreams: DataStream[];
   keyEvents: KeyEvent[];
   customDimensions: CustomDimension[];
@@ -111,6 +142,7 @@ export interface GA4Audit {
     secrets: Array<{ displayName: string }>;
   }>;
   eventCreateRules: EventCreateRuleStream[];
+  eventEditRules: EventEditRuleStream[];
   searchConsoleDataStatus: SearchConsoleDataStatus;
   googleAdsLinks: Array<any>;
   bigQueryLinks: Array<any>;
@@ -118,6 +150,7 @@ export interface GA4Audit {
   dataRetention: { 
     eventDataRetention?: string; 
     userDataRetention?: string; 
+    resetUserDataOnNewActivity?: boolean;
   };
   attribution: { 
     reportingAttributionModel?: string;
@@ -125,12 +158,7 @@ export interface GA4Audit {
     otherConversionEventLookbackWindow?: string;
     channelsThatCanReceiveCredit?: string;
   };
-  dataFilters?: Array<{
-    id: string;
-    name: string;
-    type: string;
-    expression: string;
-  }>;
+
   hostnames?: string[];
   dataQuality?: {
     piiAnalysis?: any;

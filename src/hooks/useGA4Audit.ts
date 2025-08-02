@@ -15,13 +15,14 @@ export const useGA4Audit = () => {
     if (!ga4Audit) return 0;
     
     let score = 0;
-    const total = 8;
+    const total = 9;
     
     // Property Configuration
     if (ga4Audit.property.timeZone && ga4Audit.property.currencyCode) score += 1;
     
     // Data Retention  
     if (ga4Audit.dataRetention.eventDataRetention === "FOURTEEN_MONTHS") score += 1;
+    if (ga4Audit.dataRetention.resetUserDataOnNewActivity === true) score += 1;
     
     // Enhanced Measurement
     if (ga4Audit.enhancedMeasurement.length > 0) score += 1;

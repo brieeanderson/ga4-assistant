@@ -19,13 +19,13 @@ const AuditLandingPage = () => {
       icon: Shield,
       title: "Privacy & Compliance",
       description: "GDPR-critical settings like PII redaction, Google Signals configuration, and data retention policies.",
-      items: ["PII URL Redaction", "Google Signals Setup", "Data Retention Settings", "IP Filtering"]
+      items: ["PII URL Redaction", "Google Signals Setup", "Data Retention Settings"]
     },
     {
       icon: BarChart3,
       title: "Data Quality",
       description: "Enhanced measurement, attribution settings, and tracking configurations for reliable data.",
-      items: ["Enhanced Measurement", "Attribution Models", "Session Timeout", "Cross-Domain Tracking"]
+      items: ["Enhanced Measurement", "Attribution Models", "Cross-Domain Tracking"]
     },
     {
       icon: Globe,

@@ -282,6 +282,16 @@ const handler: Handler = async (event, context) => {
       dataStreams.dataStreams || []
     );
 
+    // Get event edit rules for all data streams
+    const eventEditRules = await getEventEditRulesForStreams(
+      accessToken, 
+      propertyId, 
+      dataStreams.dataStreams || []
+    );
+
+    // Get property access information
+    const propertyAccess = await getPropertyAccess(accessToken, propertyId);
+
     // Use Data API for Search Console detection
     const searchConsoleDataStatus = await checkSearchConsoleDataAvailability(
       accessToken,
@@ -311,36 +321,13 @@ const handler: Handler = async (event, context) => {
       };
     }
 
-    // Fetch Data Filters for the property
-    async function getDataFilters(accessToken: string, propertyId: string) {
-      try {
-        const response = await fetch(
-          `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/dataFilters`,
-          {
-            headers: { 'Authorization': `Bearer ${accessToken}` }
-          }
-        );
-        if (response.ok) {
-          const data = await response.json();
-          return (data.dataFilters || []).map((filter: any) => ({
-            id: filter.name,
-            name: filter.displayName,
-            type: filter.filterType,
-            expression: filter.filterExpression?.expressionValue || ''
-          }));
-        }
-      } catch (error) {
-        console.error('Error fetching data filters:', error);
-      }
-      return [];
-    }
 
-    // Fetch crossDomainSettings and sessionTimeout for each data stream
+
+    // Fetch crossDomainSettings for each data stream
     async function getDataStreamsWithCrossDomain(accessToken: string, propertyId: string, streams: any[]) {
       return await Promise.all(
         streams.map(async (stream) => {
           let crossDomainSettings = undefined;
-          let sessionTimeout = undefined;
           try {
             const response = await fetch(
               `https://analyticsadmin.googleapis.com/v1alpha/${stream.name}`,
@@ -351,26 +338,11 @@ const handler: Handler = async (event, context) => {
               if (details.crossDomainSettings && details.crossDomainSettings.domains) {
                 crossDomainSettings = { domains: details.crossDomainSettings.domains };
               }
-              // Try to extract session timeout (web streams only)
-              if (stream.type === 'WEB_DATA_STREAM') {
-                // Try common field names
-                if (typeof details.sessionTimeoutDuration === 'number') {
-                  sessionTimeout = details.sessionTimeoutDuration;
-                } else if (typeof details.sessionTimeoutDuration === 'string') {
-                  // Sometimes this is an ISO 8601 duration string, e.g. 'PT30M'
-                  const match = details.sessionTimeoutDuration.match(/PT(\d+)M/);
-                  if (match) sessionTimeout = parseInt(match[1], 10) * 60;
-                } else if (typeof details.sessionTimeout === 'number') {
-                  sessionTimeout = details.sessionTimeout;
-                }
-                // Default to 1800 (30 min) if not found
-                if (!sessionTimeout) sessionTimeout = 1800;
-              }
             }
           } catch (error) {
-            console.error(`Error fetching crossDomainSettings/sessionTimeout for stream ${stream.name}:`, error);
+            console.error(`Error fetching crossDomainSettings for stream ${stream.name}:`, error);
           }
-          return { ...stream, crossDomainSettings, sessionTimeout };
+          return { ...stream, crossDomainSettings };
         })
       );
     }
@@ -409,7 +381,6 @@ const handler: Handler = async (event, context) => {
 
     // After fetching dataStreams
     const rawStreams = dataStreams.dataStreams || [];
-    const dataFilters = await getDataFilters(accessToken, propertyId);
     const dataStreamsWithCrossDomain = await getDataStreamsWithCrossDomain(accessToken, propertyId, rawStreams);
     const hostnames = await getHostnames(accessToken, propertyId);
 
@@ -430,8 +401,9 @@ const handler: Handler = async (event, context) => {
       enhancedMeasurement: enhancedMeasurementDetails,
       measurementProtocolSecrets,
       eventCreateRules,
+      eventEditRules,
+      propertyAccess,
       searchConsoleDataStatus,
-      dataFilters,
       hostnames,
       
       // 🚀 NEW: Add enhanced data quality results
@@ -608,6 +580,83 @@ async function getEventCreateRulesForStreams(accessToken: string, propertyId: st
   }
   
   return eventCreateRulesData;
+}
+
+// Helper function to get event edit rules for all data streams
+async function getEventEditRulesForStreams(accessToken: string, propertyId: string, streams: Array<Record<string, unknown>>) {
+  const eventEditRulesData: Array<Record<string, unknown>> = [];
+  
+  for (const stream of streams) {
+    try {
+      const streamId = (stream.name as string)?.split('/').pop();
+      const response = await fetch(
+        `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/dataStreams/${streamId}/eventEditRules`,
+        {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        }
+      );
+      
+      if (response.ok) {
+        const rules = await response.json();
+        if (rules.eventEditRules && rules.eventEditRules.length > 0) {
+          eventEditRulesData.push({
+            streamId,
+            streamName: stream.displayName,
+            rules: rules.eventEditRules
+          });
+        }
+      }
+    } catch (error) {
+      console.error(`Error fetching event edit rules for stream ${stream.name}:`, error);
+    }
+  }
+  
+  return eventEditRulesData;
+}
+
+// Helper function to get property access information
+async function getPropertyAccess(accessToken: string, propertyId: string) {
+  try {
+    const response = await fetch(
+      `https://analyticsadmin.googleapis.com/v1alpha/${propertyId}/accessBindings`,
+      {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      }
+    );
+    
+    if (response.ok) {
+      const data = await response.json();
+      const accessBindings = data.accessBindings || [];
+      
+      // Process access bindings to extract user information
+      const propertyAccess: Array<{
+        email: string;
+        roles: string[];
+        accessType: 'direct' | 'inherited';
+        source?: string;
+      }> = [];
+      
+      for (const binding of accessBindings) {
+        if (binding.user && binding.user.email) {
+          const roles = binding.roles || [];
+          const roleNames = roles.map((role: any) => role.name || role);
+          
+          propertyAccess.push({
+            email: binding.user.email,
+            roles: roleNames,
+            accessType: 'direct', // Property-level access is always direct
+            source: 'Property Level'
+          });
+        }
+      }
+      
+      return propertyAccess;
+    }
+  } catch (error) {
+    console.error('Error fetching property access:', error);
+  }
+  
+  return [];
 }
 
 // Search Console detection using Data API with proper dimensions

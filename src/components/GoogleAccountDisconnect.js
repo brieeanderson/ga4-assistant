@@ -28,7 +28,7 @@ const GoogleAccountDisconnect = () => {
             <h3 className="font-semibold text-blue-800 mb-2">How to disconnect:</h3>
             <ol className="text-sm text-blue-700 space-y-2 list-decimal list-inside">
               <li>Click the button below to open Google Account settings</li>
-              <li>Find "GA4 Assistant" or your app in the list of connected apps</li>
+              <li>Find "GTM Tools" in the list of connected apps</li>
               <li>Click "Remove Access" or "Disconnect"</li>
               <li>Confirm the action when prompted</li>
             </ol>

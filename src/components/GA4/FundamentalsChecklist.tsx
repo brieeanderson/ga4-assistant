@@ -86,6 +86,9 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
 
   // Get total count of event create rules
   const totalEventCreateRules = audit.eventCreateRules?.reduce((total, stream) => total + stream.rules.length, 0) || 0;
+  
+  // Get total count of event edit rules
+  const totalEventEditRules = audit.eventEditRules?.reduce((total, stream) => total + stream.rules.length, 0) || 0;
 
   // Build the checklist sections based on audit data
   const sections: ChecklistSection[] = [
@@ -148,27 +151,21 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           adminPath: 'Admin > Data Settings > Data Retention'
         },
         {
-          id: 'session-timeout',
-          name: 'Session Timeout',
-          status: audit.dataStreams?.[0]?.sessionTimeout ? (audit.dataStreams[0].sessionTimeout === 1800 ? 'complete' : 'warning') : 'opportunity',
-          value: audit.dataStreams?.[0]?.sessionTimeout ? `${Math.round(audit.dataStreams[0].sessionTimeout / 60)} min` : 'Default',
-          description: 'Controls how long a session lasts before timing out. Default is 30 minutes.',
-          recommendation: audit.dataStreams?.[0]?.sessionTimeout === 1800 ? 'Session timeout is set to 30 minutes (default)' : 'Review session timeout for your business needs',
-          priority: 'optional',
-          adminPath: 'Admin > Data Streams > [Stream] > More tagging settings > Session timeout'
-        },
-        {
-          id: 'data-filters',
-          name: 'Data Filters',
-          status: audit.dataFilters && audit.dataFilters.length > 0 ? 'complete' : 'warning',
-          value: audit.dataFilters && audit.dataFilters.length > 0 ? `${audit.dataFilters.length} filter(s)` : 'None',
-          description: 'Checks if any data filters (e.g., internal traffic, dev traffic, unwanted referrals) are configured.',
-          recommendation: audit.dataFilters && audit.dataFilters.length > 0
-            ? 'Data filters are present. Review to ensure all necessary filters are configured (internal/dev traffic, unwanted referrals).'
-            : 'No data filters found. Add filters to exclude internal/dev traffic and unwanted referrals.',
+          id: 'reset-user-data',
+          name: 'Reset User Data on New Activity',
+          status: audit.dataRetention.resetUserDataOnNewActivity === true ? 'complete' : 
+                  audit.dataRetention.resetUserDataOnNewActivity === false ? 'warning' : 'opportunity',
+          value: audit.dataRetention.resetUserDataOnNewActivity === true ? 'Enabled' :
+                 audit.dataRetention.resetUserDataOnNewActivity === false ? 'Disabled' : 'Unknown',
+          description: 'Automatically reset user data when a user starts a new session after 14 months of inactivity',
+          recommendation: audit.dataRetention.resetUserDataOnNewActivity === true ? 
+            'User data reset is enabled for better privacy compliance' : 
+            'Consider enabling user data reset for better privacy compliance and data freshness',
           priority: 'important',
-          adminPath: 'Admin > Data Settings > Data Filters'
+          adminPath: 'Admin > Data Settings > Data Retention'
         },
+
+
         {
           id: 'pii-redaction',
           name: 'PII in URLs',
@@ -355,6 +352,18 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           adminPath: 'Admin > Events > Event Create Rules'
         },
         {
+          id: 'custom-ga4-edit-events',
+          name: 'Custom GA4 Edit Events',
+          status: totalEventEditRules > 3 ? 'critical' : totalEventEditRules > 0 ? 'warning' : 'complete',
+          value: `${totalEventEditRules} rules`,
+          description: 'Rules to modify existing events and parameters',
+          recommendation: totalEventEditRules > 0 ? 
+            'Custom GA4 edit events are configured' : 
+            'Consider using event edit rules to modify existing events for better data quality',
+          priority: 'optional',
+          adminPath: 'Admin > Events > Event Edit Rules'
+        },
+        {
           id: 'site-search-parameters',
           name: 'Site Search Parameters',
           status: audit.enhancedMeasurement && audit.enhancedMeasurement.some(s => s.settings.siteSearchEnabled) ? 'complete' : 'opportunity',
@@ -373,6 +382,18 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           recommendation: audit.attribution && audit.attribution.reportingAttributionModel ? 'Attribution model is set.' : 'Review and set the attribution model for your business.',
           priority: 'important',
           adminPath: 'Admin > Attribution Settings'
+        },
+        {
+          id: 'property-access',
+          name: 'Property Access Review',
+          status: audit.propertyAccess && audit.propertyAccess.length > 0 ? 'complete' : 'opportunity',
+          value: audit.propertyAccess && audit.propertyAccess.length > 0 ? `${audit.propertyAccess.length} user(s)` : 'No direct access found',
+          description: 'Review users with direct access to this GA4 property and their permission levels.',
+          recommendation: audit.propertyAccess && audit.propertyAccess.length > 0 ? 
+            'Property access is configured. Review permissions regularly for security.' : 
+            'Consider reviewing account-level permissions for broader access control.',
+          priority: 'important',
+          adminPath: 'Admin > Property Access Management'
         }
       ]
     }

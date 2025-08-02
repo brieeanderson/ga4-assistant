@@ -20,7 +20,10 @@ import {
   ChevronDown,
   ChevronRight
 } from 'lucide-react';
-import { GA4Audit, DataStream, CustomDimension, CustomMetric, KeyEvent } from '@/types/ga4';
+import { GA4Audit, CustomDimension, CustomMetric, KeyEvent } from '@/types/ga4';
+import { formatLabel } from '@/lib/formatLabel';
+import { EventEditRulesDisplay } from './EventEditRulesDisplay';
+import { PropertyAccessTable } from './PropertyAccessTable';
 
 // Add prop types
 interface GA4DashboardProps {
@@ -69,6 +72,15 @@ const generateRecommendations = (auditData: GA4Audit) => {
       docsUrl: 'https://support.google.com/analytics/answer/7667196?hl=en'
     });
   }
+  // 4.5. Reset user data on new activity
+  if (auditData?.dataRetention?.resetUserDataOnNewActivity === false) {
+    recs.push({
+      title: 'Enable user data reset on new activity',
+      description: 'Automatically reset user data after 14 months of inactivity for better privacy compliance.',
+      severity: 'important',
+      docsUrl: 'https://support.google.com/analytics/answer/7667196?hl=en'
+    });
+  }
   // 5. PII redaction - only show if PII is actually detected
   if (auditData?.audit?.dataCollection?.piiRedaction?.status === 'critical' || 
       (auditData?.audit?.dataCollection?.piiRedaction?.status === 'warning' && 
@@ -82,16 +94,7 @@ const generateRecommendations = (auditData: GA4Audit) => {
   }
   // 6. Cross-domain tracking - removed API-based detection since it's not available
   // Cross-domain tracking requires manual verification in GA4 interface
-  // 7. Data Filters - Check for IP filters specifically
-  if (!auditData?.dataFilters || auditData.dataFilters.length === 0) {
-    recs.push({
-      title: 'Create IP Address Data Filters',
-      description: 'Filter out office/employee traffic by IP address for accurate data.',
-      severity: 'important',
-      docsUrl: 'https://support.google.com/analytics/answer/13296761?hl=en'
-    });
-  }
-  // 8. Unwanted referrals - Check if they're properly configured
+  // 7. Unwanted referrals - Check if they're properly configured
   if (!auditData?.dataQuality?.trafficSources?.unwantedReferrals || !auditData.dataQuality.trafficSources.unwantedReferrals.detected) {
     recs.push({
       title: 'Configure Unwanted Referrals',
@@ -100,16 +103,7 @@ const generateRecommendations = (auditData: GA4Audit) => {
       docsUrl: 'https://support.google.com/analytics/answer/10327750?hl=en'
     });
   }
-  // 9. Session timeout
-  if (auditData?.dataStreams && auditData.dataStreams.some((s: DataStream) => s.sessionTimeout && s.sessionTimeout !== 1800)) {
-    recs.push({
-      title: 'Adjust session timeout',
-      description: 'Default is 30 minutes. Lower values can cause a lot of (not set) data.',
-      severity: 'info',
-      docsUrl: 'https://support.google.com/analytics/answer/12131703?hl=en'
-    });
-  }
-  // 10. Google Signals
+  // 9. Google Signals
   if (!auditData?.googleSignals || auditData.googleSignals.state !== 'GOOGLE_SIGNALS_ENABLED') {
     recs.push({
       title: 'Configure Google Signals',
@@ -243,6 +237,33 @@ const generateRecommendations = (auditData: GA4Audit) => {
       severity: 'important',
       docsUrl: 'https://support.google.com/analytics/answer/11160918?hl=en'
     });
+  }
+  
+  // 22. GA4-edit events - check if event edit rules exist
+  const totalEventEditRules = auditData?.eventEditRules?.reduce((total, stream) => total + stream.rules.length, 0) || 0;
+  if (totalEventEditRules > 0) {
+    recs.push({
+      title: 'Review GA4-edit events',
+      description: `${totalEventEditRules} event edit rules detected. Event edit rules can modify existing events and create complex rule chains that should be reviewed by a GA4 expert.`,
+      severity: 'important',
+      docsUrl: 'https://support.google.com/analytics/answer/11160918?hl=en'
+    });
+  }
+  
+  // 23. Property access review
+  if (auditData?.propertyAccess && auditData.propertyAccess.length > 0) {
+    const adminUsers = auditData.propertyAccess.filter(user => 
+      user.roles.some(role => role.includes('admin'))
+    );
+    
+    if (adminUsers.length > 2) {
+      recs.push({
+        title: 'Review property access permissions',
+        description: `${auditData.propertyAccess.length} users have access to this property, including ${adminUsers.length} with admin privileges. Consider reviewing access permissions for security.`,
+        severity: 'important',
+        docsUrl: 'https://support.google.com/analytics/answer/1033981?hl=en'
+      });
+    }
   }
   return recs;
 };
@@ -704,8 +725,51 @@ const generateRecommendations = (auditData: GA4Audit) => {
           <Clock className="w-6 h-6 mr-2 text-orange-400" />
           Data Retention
         </h3>
-        <div className="text-white text-lg font-semibold">{auditData?.dataRetention?.eventDataRetention === 'FOURTEEN_MONTHS' ? '14 months' : auditData?.dataRetention?.eventDataRetention === 'TWO_MONTHS' ? '2 months' : 'Unknown'}</div>
-        <div className="text-sm text-slate-400 mt-2">Controls how long event-level data is available for analysis. <span className="font-semibold">Recommended: 14 months</span></div>
+        
+        {/* Event Data Retention */}
+        <div className="mb-6">
+          <div className="text-sm text-slate-400 mb-2">Event Data Retention</div>
+          <div className="text-white text-lg font-semibold">
+            {auditData?.dataRetention?.eventDataRetention === 'FOURTEEN_MONTHS' ? '14 months' : 
+             auditData?.dataRetention?.eventDataRetention === 'TWO_MONTHS' ? '2 months' : 
+             auditData?.dataRetention?.eventDataRetention ? formatLabel(auditData.dataRetention.eventDataRetention) : 'Unknown'}
+          </div>
+          <div className="text-sm text-slate-400 mt-2">
+            Controls how long event-level data is available for analysis. <span className="font-semibold">Recommended: 14 months</span>
+          </div>
+        </div>
+
+        {/* Reset User Data on New Activity */}
+        <div className="mb-4">
+          <div className="text-sm text-slate-400 mb-2">Reset User Data on New Activity</div>
+          <div className="text-white text-lg font-semibold">
+            {auditData?.dataRetention?.resetUserDataOnNewActivity !== undefined 
+              ? (auditData.dataRetention.resetUserDataOnNewActivity ? 'Enabled' : 'Disabled')
+              : 'Unknown'
+            }
+          </div>
+          <div className="text-sm text-slate-400 mt-2">
+            When enabled, user data is reset when a user starts a new session after 14 months of inactivity. 
+            <span className="font-semibold"> Recommended: Enabled</span> for better privacy compliance.
+          </div>
+          {auditData?.dataRetention?.resetUserDataOnNewActivity === false && (
+            <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+              <div className="text-sm text-yellow-300 font-medium mb-1">⚠️ User data reset is disabled</div>
+              <div className="text-xs text-gray-300">
+                Consider enabling this setting to automatically reset user data after 14 months of inactivity, 
+                which helps with privacy compliance and data freshness.
+              </div>
+            </div>
+          )}
+          {auditData?.dataRetention?.resetUserDataOnNewActivity === true && (
+            <div className="mt-3 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <div className="text-sm text-green-300 font-medium mb-1">✅ User data reset is enabled</div>
+              <div className="text-xs text-gray-300">
+                User data will automatically reset after 14 months of inactivity, improving privacy compliance.
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       {/* Cross-Domain Tracking */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
@@ -878,6 +942,56 @@ const generateRecommendations = (auditData: GA4Audit) => {
           </div>
         )}
       </div>
+
+      {/* Google Signals */}
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+        <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+          <Target className="w-6 h-6 mr-2 text-green-400" />
+          Google Signals
+        </h3>
+        <div className="text-white text-lg font-semibold">
+          {auditData?.googleSignals?.state ? formatLabel(auditData.googleSignals.state) : 'Not Configured'}
+        </div>
+        <div className="text-sm text-slate-400 mt-2">
+          Google Signals enables demographic and interest data collection. When enabled, you'll see demographic data in your reports, but it may cause data thresholding and requires privacy policy updates.
+        </div>
+        {auditData?.googleSignals?.state === 'GOOGLE_SIGNALS_ENABLED' && (
+          <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+            <div className="text-sm text-yellow-300 font-medium mb-2">⚠️ Google Signals is enabled</div>
+            <div className="text-xs text-gray-300 space-y-1">
+              <div>• You can see demographic data (age, gender, interests) in your reports</div>
+              <div>• <span className="font-semibold text-yellow-200">IMPORTANT:</span> Consult with a privacy expert/lawyer to ensure compliance</div>
+              <div>• Update your privacy policy to cover Google Signals usage</div>
+              <div>• Be aware that data thresholding may occur for small audiences</div>
+            </div>
+          </div>
+        )}
+        {auditData?.googleSignals?.state && auditData.googleSignals.state !== 'GOOGLE_SIGNALS_ENABLED' && (
+          <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <div className="text-sm text-blue-300 font-medium mb-2">ℹ️ Google Signals is not enabled</div>
+            <div className="text-xs text-gray-300 space-y-1">
+              <div>• You will not see demographic data (age, gender, interests) in your reports</div>
+              <div>• <span className="font-semibold text-blue-200">RECOMMENDED:</span> If you can do without demographic data, it's better to keep it off</div>
+              <div>• This reduces privacy compliance requirements and data thresholding</div>
+              <div>• Path: Admin → Data Streams → [Stream] → Google Signals</div>
+            </div>
+          </div>
+        )}
+        {!auditData?.googleSignals?.state && (
+          <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <div className="text-sm text-blue-300 font-medium mb-2">ℹ️ Google Signals status unknown</div>
+            <div className="text-xs text-gray-300 space-y-1">
+              <div>• Check Google Signals configuration in your GA4 property</div>
+              <div>• <span className="font-semibold text-blue-200">NOTE:</span> Consider whether you actually need demographic data</div>
+              <div>• Keeping it off reduces privacy compliance requirements</div>
+              <div>• Path: Admin → Data Streams → [Stream] → Google Signals</div>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Property Access Table */}
+      <PropertyAccessTable propertyAccess={auditData?.propertyAccess || []} />
 
     </div>
   );
@@ -1456,6 +1570,9 @@ const generateRecommendations = (auditData: GA4Audit) => {
           })()}
         </div>
       </div>
+      
+      {/* Event Edit Rules */}
+      <EventEditRulesDisplay audit={auditData} />
     </div>
   );
 

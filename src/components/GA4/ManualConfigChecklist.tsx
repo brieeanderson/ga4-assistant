@@ -109,21 +109,7 @@ export const ManualConfigChecklist: React.FC<ManualConfigChecklistProps> = ({ au
       ],
       successText: 'Proper attribution settings help you understand the true customer journey.'
     },
-    {
-      id: 'data-filters',
-      title: 'Set Up Data Filters',
-      description: 'Configure filters to exclude internal traffic, developer traffic, and unwanted referrals',
-      priority: 'important',
-      category: 'tracking',
-      adminPath: 'Admin > Data Settings > Data Filters',
-      docs: [
-        {
-          title: 'Data Filters Setup',
-          url: 'https://support.google.com/analytics/answer/10364103'
-        }
-      ],
-      warningText: 'Without proper filters, internal traffic can skew your analytics data.'
-    },
+
     {
       id: 'audiences',
       title: 'Create Strategic Audiences',
@@ -188,9 +174,7 @@ export const ManualConfigChecklist: React.FC<ManualConfigChecklistProps> = ({ au
     detectedIssues.add('enhanced-measurement-review');
   }
   
-  if (!audit.searchConsoleDataStatus.isLinked && !audit.googleAdsLinks.length) {
-    detectedIssues.add('data-filters');
-  }
+
 
   if (audit.dataStreams.length > 1) {
     detectedIssues.add('cross-domain-tracking');
