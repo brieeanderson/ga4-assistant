@@ -558,11 +558,15 @@ async function getMeasurementProtocolSecrets(accessToken: string, propertyId: st
 async function getEventCreateRulesForStreams(accessToken: string, propertyId: string, streams: Array<Record<string, unknown>>) {
   const eventCreateRulesData: Array<Record<string, unknown>> = [];
   
+  console.log(`Fetching event create rules for ${streams.length} data streams`);
+  
   for (const stream of streams) {
     try {
       const streamId = (stream.name as string)?.split('/').pop();
+      console.log(`Fetching event create rules for stream: ${streamId} (${stream.displayName})`);
+      
       const response = await fetch(
-        `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/dataStreams/${streamId}/eventCreateRules`,
+        `https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/dataStreams/${streamId}/eventCreateRules`,
         {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         }
@@ -570,19 +574,29 @@ async function getEventCreateRulesForStreams(accessToken: string, propertyId: st
       
       if (response.ok) {
         const rules = await response.json();
+        console.log(`Stream ${streamId} response:`, JSON.stringify(rules, null, 2));
+        
         if (rules.eventCreateRules && rules.eventCreateRules.length > 0) {
+          console.log(`Found ${rules.eventCreateRules.length} event create rules for stream ${streamId}`);
           eventCreateRulesData.push({
             streamId,
             streamName: stream.displayName,
             rules: rules.eventCreateRules
           });
+        } else {
+          console.log(`No event create rules found for stream ${streamId}`);
         }
+      } else {
+        console.error(`Event create rules API returned status: ${response.status} for stream ${streamId}`);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
       }
     } catch (error) {
       console.error(`Error fetching event create rules for stream ${stream.name}:`, error);
     }
   }
   
+  console.log(`Total event create rules found: ${eventCreateRulesData.reduce((total, stream) => total + (stream.rules as any[]).length, 0)}`);
   return eventCreateRulesData;
 }
 
@@ -590,11 +604,15 @@ async function getEventCreateRulesForStreams(accessToken: string, propertyId: st
 async function getEventEditRulesForStreams(accessToken: string, propertyId: string, streams: Array<Record<string, unknown>>) {
   const eventEditRulesData: Array<Record<string, unknown>> = [];
   
+  console.log(`Fetching event edit rules for ${streams.length} data streams`);
+  
   for (const stream of streams) {
     try {
       const streamId = (stream.name as string)?.split('/').pop();
+      console.log(`Fetching event edit rules for stream: ${streamId} (${stream.displayName})`);
+      
       const response = await fetch(
-        `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/dataStreams/${streamId}/eventEditRules`,
+        `https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/dataStreams/${streamId}/eventEditRules`,
         {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         }
@@ -602,19 +620,29 @@ async function getEventEditRulesForStreams(accessToken: string, propertyId: stri
       
       if (response.ok) {
         const rules = await response.json();
+        console.log(`Stream ${streamId} event edit rules response:`, JSON.stringify(rules, null, 2));
+        
         if (rules.eventEditRules && rules.eventEditRules.length > 0) {
+          console.log(`Found ${rules.eventEditRules.length} event edit rules for stream ${streamId}`);
           eventEditRulesData.push({
             streamId,
             streamName: stream.displayName,
             rules: rules.eventEditRules
           });
+        } else {
+          console.log(`No event edit rules found for stream ${streamId}`);
         }
+      } else {
+        console.error(`Event edit rules API returned status: ${response.status} for stream ${streamId}`);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
       }
     } catch (error) {
       console.error(`Error fetching event edit rules for stream ${stream.name}:`, error);
     }
   }
   
+  console.log(`Total event edit rules found: ${eventEditRulesData.reduce((total, stream) => total + (stream.rules as any[]).length, 0)}`);
   return eventEditRulesData;
 }
 
