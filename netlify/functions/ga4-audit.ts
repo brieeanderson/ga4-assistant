@@ -292,9 +292,6 @@ const handler: Handler = async (event, context) => {
     // Get property access information
     const propertyAccess = await getPropertyAccess(accessToken, propertyId);
 
-    // Get all events for the property
-    const allEvents = await getAllEvents(accessToken, propertyId);
-
     // Use Data API for Search Console detection
     const searchConsoleDataStatus = await checkSearchConsoleDataAvailability(
       accessToken,
@@ -406,7 +403,6 @@ const handler: Handler = async (event, context) => {
       eventCreateRules,
       eventEditRules,
       propertyAccess,
-      allEvents,
       searchConsoleDataStatus,
       hostnames,
       
@@ -646,26 +642,7 @@ async function getEventEditRulesForStreams(accessToken: string, propertyId: stri
   return eventEditRulesData;
 }
 
-// Helper function to get all events for a property
-async function getAllEvents(accessToken: string, propertyId: string) {
-  try {
-    const response = await fetch(
-      `https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/events`,
-      {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-      }
-    );
-    
-    if (response.ok) {
-      const data = await response.json();
-      return data.events || [];
-    }
-  } catch (error) {
-    console.error('Error fetching all events:', error);
-  }
-  
-  return [];
-}
+
 
 // Helper function to get property access information
 async function getPropertyAccess(accessToken: string, propertyId: string) {
