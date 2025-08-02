@@ -1044,6 +1044,28 @@ const generateRecommendations = (auditData: GA4Audit) => {
         )}
         
         <div className="space-y-3">
+          {/* Debug Information */}
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+            <div className="text-red-300 font-semibold mb-2">🔍 DEBUG INFORMATION</div>
+            <div className="text-sm text-gray-300 space-y-2">
+              <div><strong>Key Events Count:</strong> {auditData?.keyEvents?.length || 0}</div>
+              <div><strong>Event Create Rules Count:</strong> {auditData?.eventCreateRules?.length || 0}</div>
+              <div><strong>Total Rules Found:</strong> {auditData?.eventCreateRules?.reduce((total, stream) => total + stream.rules.length, 0) || 0}</div>
+            </div>
+            <div className="mt-4">
+              <div className="text-sm text-gray-300 mb-2"><strong>Full Event Create Rules Data:</strong></div>
+              <pre className="text-xs text-gray-400 bg-black/50 p-2 rounded overflow-auto max-h-40">
+                {JSON.stringify(auditData?.eventCreateRules, null, 2)}
+              </pre>
+            </div>
+            <div className="mt-4">
+              <div className="text-sm text-gray-300 mb-2"><strong>Key Events Data:</strong></div>
+              <pre className="text-xs text-gray-400 bg-black/50 p-2 rounded overflow-auto max-h-40">
+                {JSON.stringify(auditData?.keyEvents, null, 2)}
+              </pre>
+            </div>
+          </div>
+          
           {/* Show all key events with their sources */}
           {auditData?.keyEvents?.map((event, index) => {
             // Find if this event is created by a rule

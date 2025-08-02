@@ -454,6 +454,9 @@ const handler: Handler = async (event, context) => {
         'Video interactions are enabled in Enhanced Measurement, but video_percent is not registered as a custom dimension or metric, and video_duration or video_time is not registered. Register these to analyze video engagement.';
     }
 
+    console.log('FINAL AUDIT DATA BEING SENT TO FRONTEND - EVENT CREATE RULES:', JSON.stringify(audit.eventCreateRules, null, 2));
+    console.log('FINAL AUDIT DATA BEING SENT TO FRONTEND - KEY EVENTS:', JSON.stringify(audit.keyEvents, null, 2));
+    
     return {
       statusCode: 200,
       headers,
@@ -593,6 +596,7 @@ async function getEventCreateRulesForStreams(accessToken: string, propertyId: st
   }
   
   console.log(`Total event create rules found: ${eventCreateRulesData.reduce((total, stream) => total + (stream.rules as any[]).length, 0)}`);
+  console.log('FULL EVENT CREATE RULES DATA BEING RETURNED:', JSON.stringify(eventCreateRulesData, null, 2));
   return eventCreateRulesData;
 }
 
