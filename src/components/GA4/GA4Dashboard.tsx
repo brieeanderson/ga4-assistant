@@ -1020,6 +1020,68 @@ const generateRecommendations = (auditData: GA4Audit) => {
           ))}
         </div>
       </div>
+      
+      {/* Created Events with Rules */}
+      {auditData?.eventCreateRules && auditData.eventCreateRules.length > 0 && (
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+          <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+            <Settings className="w-7 h-7 mr-3 text-orange-400" />
+            Created Events ({auditData.eventCreateRules.reduce((total, stream) => total + stream.rules.length, 0)})
+          </h3>
+          <div className="space-y-4">
+            {auditData.eventCreateRules.map((stream, streamIndex) => (
+              <div key={streamIndex} className="space-y-3">
+                <h4 className="text-lg font-semibold text-gray-300 mb-3">
+                  {stream.streamName} ({stream.rules.length} rules)
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {stream.rules.map((rule, ruleIndex) => (
+                    <div key={ruleIndex} className="bg-slate-800/50 rounded-xl p-4 border border-slate-600">
+                      <div className="mb-3">
+                        <h5 className="text-lg font-semibold text-white mb-1">{rule.destinationEvent}</h5>
+                        <div className="text-xs text-gray-400">
+                          Rule ID: {rule.name?.split('/').pop() || 'Unknown'}
+                        </div>
+                      </div>
+                      
+                      {rule.eventConditions && rule.eventConditions.length > 0 && (
+                        <div className="mb-3">
+                          <h6 className="text-sm font-medium text-gray-300 mb-2">Conditions:</h6>
+                          <div className="space-y-2">
+                            {rule.eventConditions.map((condition, condIndex) => (
+                              <div key={condIndex} className="bg-slate-700/50 px-3 py-2 rounded-lg">
+                                <code className="text-sm text-gray-200">
+                                  {condition.field} {condition.comparisonType} "{condition.value}"
+                                </code>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {rule.parameterMutations && rule.parameterMutations.length > 0 && (
+                        <div>
+                          <h6 className="text-sm font-medium text-gray-300 mb-2">Parameter Mutations:</h6>
+                          <div className="space-y-2">
+                            {rule.parameterMutations.map((mod, modIndex) => (
+                              <div key={modIndex} className="bg-blue-900/30 px-3 py-2 rounded-lg border border-blue-500/30">
+                                <code className="text-sm text-blue-200">
+                                  {mod.parameter}: {mod.parameterValue}
+                                </code>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
       {/* Enhanced Measurement Settings */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
         <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
