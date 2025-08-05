@@ -177,6 +177,10 @@ export interface GA4Audit {
   };
   configScore: number;
   otherEvents?: Array<{ name: string; count: number }>;
+  _tokenDebug?: {
+    propertyAccessLength: number;
+    propertyAccessIsEmpty: boolean;
+  };
 }
 
 export interface AuditItem {

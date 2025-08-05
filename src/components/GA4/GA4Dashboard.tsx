@@ -274,6 +274,7 @@ const generateRecommendations = (auditData: GA4Audit) => {
   console.log('🔍 GA4Dashboard propertyAccess:', auditData?.propertyAccess);
   console.log('🔍 GA4Dashboard propertyAccess type:', typeof auditData?.propertyAccess);
   console.log('🔍 GA4Dashboard propertyAccess is array:', Array.isArray(auditData?.propertyAccess));
+  console.log('🔍 GA4Dashboard token debug info:', auditData?._tokenDebug);
   // Debug: Log the auditData every time the dashboard renders (development only)
   if (process.env.NODE_ENV === 'development') {
     console.log('GA4Dashboard auditData:', auditData);

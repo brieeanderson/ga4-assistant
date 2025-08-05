@@ -458,12 +458,21 @@ const handler: Handler = async (event, context) => {
     console.log('FINAL AUDIT DATA BEING SENT TO FRONTEND - KEY EVENTS:', JSON.stringify(audit.keyEvents, null, 2));
     console.log('FINAL AUDIT DATA BEING SENT TO FRONTEND - PROPERTY ACCESS:', JSON.stringify(audit.propertyAccess, null, 2));
     
+    // Add token scope info to the response for frontend debugging
+    const responseWithTokenInfo = {
+      ...audit,
+      _tokenDebug: {
+        propertyAccessLength: audit.propertyAccess?.length || 0,
+        propertyAccessIsEmpty: !audit.propertyAccess || audit.propertyAccess.length === 0
+      }
+    };
+    
 
     
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(audit),
+      body: JSON.stringify(responseWithTokenInfo),
     };
 
   } catch (error) {
