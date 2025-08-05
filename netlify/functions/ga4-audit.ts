@@ -698,10 +698,14 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
     // Add pageSize parameter to get more results
     const url = `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/accessBindings?pageSize=100`;
     console.log(`📡 Property API URL: ${url}`);
+    console.log(`🔑 Using access token: ${accessToken.substring(0, 20)}...`);
     
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${accessToken}` }
     });
+    
+    console.log(`📡 Property API Response Status: ${response.status}`);
+    console.log(`📡 Property API Response Headers:`, Object.fromEntries(response.headers.entries()));
     
     if (response.ok) {
       const data = await response.json();
@@ -779,14 +783,19 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
       // Always try to fetch account-level access as well (not just when property-level is empty)
       if (accountId) {
         console.log(`🔍 Fetching account-level access for account: ${accountId}`);
+        console.log(`🔍 Property access count before account fetch: ${propertyAccess.length}`);
         
         try {
           const accountUrl = `https://analyticsadmin.googleapis.com/v1alpha/accounts/${accountId}/accessBindings?pageSize=100`;
           console.log(`📡 Account API URL: ${accountUrl}`);
+          console.log(`🔑 Using access token for account: ${accessToken.substring(0, 20)}...`);
           
           const accountResponse = await fetch(accountUrl, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
           });
+          
+          console.log(`📡 Account API Response Status: ${accountResponse.status}`);
+          console.log(`📡 Account API Response Headers:`, Object.fromEntries(accountResponse.headers.entries()));
           
           if (accountResponse.ok) {
             const accountData = await accountResponse.json();
@@ -845,6 +854,7 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
             }
             
             console.log(`Final combined access data:`, JSON.stringify(propertyAccess, null, 2));
+            console.log(`🔍 Final summary: ${propertyAccess.length} total users (${propertyAccess.filter(u => u.accessType === 'direct').length} direct, ${propertyAccess.filter(u => u.accessType === 'inherited').length} inherited)`);
           } else {
             console.error(`❌ Account access API returned status: ${accountResponse.status}`);
             const errorText = await accountResponse.text();
@@ -855,6 +865,7 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
         }
       }
       
+      console.log(`🔍 Final summary: ${propertyAccess.length} total users (${propertyAccess.filter(u => u.accessType === 'direct').length} direct, ${propertyAccess.filter(u => u.accessType === 'inherited').length} inherited)`);
       return propertyAccess;
     } else {
       console.error(`❌ Property access API returned status: ${response.status}`);
