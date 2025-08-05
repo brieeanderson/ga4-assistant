@@ -695,7 +695,8 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
     }
     
     // Use the correct GA4 Admin API endpoint for property access (v1alpha)
-    const url = `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/accessBindings`;
+    // Add pageSize parameter to get more results
+    const url = `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/accessBindings?pageSize=100`;
     console.log(`📡 Property API URL: ${url}`);
     
     const response = await fetch(url, {
@@ -707,8 +708,30 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
       console.log(`✅ API Response Status: ${response.status}`);
       console.log(`📄 Raw API Response:`, JSON.stringify(data, null, 2));
       
-      const accessBindings = data.accessBindings || [];
+      let accessBindings = data.accessBindings || [];
       console.log(`Found ${accessBindings.length} access bindings for property ${propertyId}`);
+      
+      // Handle pagination if there are more results
+      let nextPageToken = data.nextPageToken;
+      while (nextPageToken) {
+        console.log(`📄 Fetching next page with token: ${nextPageToken}`);
+        const nextPageUrl = `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/accessBindings?pageSize=100&pageToken=${nextPageToken}`;
+        
+        const nextPageResponse = await fetch(nextPageUrl, {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        
+        if (nextPageResponse.ok) {
+          const nextPageData = await nextPageResponse.json();
+          const nextPageBindings = nextPageData.accessBindings || [];
+          accessBindings = [...accessBindings, ...nextPageBindings];
+          console.log(`📄 Added ${nextPageBindings.length} more bindings, total: ${accessBindings.length}`);
+          nextPageToken = nextPageData.nextPageToken;
+        } else {
+          console.error(`❌ Next page API returned status: ${nextPageResponse.status}`);
+          break;
+        }
+      }
       
       // Process access bindings to extract user information
       const propertyAccess: Array<{
@@ -744,7 +767,7 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
         console.log(`🔍 No property-level access found, trying account-level access for account: ${accountId}`);
         
         try {
-          const accountUrl = `https://analyticsadmin.googleapis.com/v1alpha/accounts/${accountId}/accessBindings`;
+          const accountUrl = `https://analyticsadmin.googleapis.com/v1alpha/accounts/${accountId}/accessBindings?pageSize=100`;
           console.log(`📡 Account API URL: ${accountUrl}`);
           
           const accountResponse = await fetch(accountUrl, {
@@ -753,8 +776,30 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
           
           if (accountResponse.ok) {
             const accountData = await accountResponse.json();
-            const accountAccessBindings = accountData.accessBindings || [];
+            let accountAccessBindings = accountData.accessBindings || [];
             console.log(`Found ${accountAccessBindings.length} account-level access bindings`);
+            
+            // Handle pagination for account-level access bindings
+            let accountNextPageToken = accountData.nextPageToken;
+            while (accountNextPageToken) {
+              console.log(`📄 Fetching next account page with token: ${accountNextPageToken}`);
+              const nextAccountPageUrl = `https://analyticsadmin.googleapis.com/v1alpha/accounts/${accountId}/accessBindings?pageSize=100&pageToken=${accountNextPageToken}`;
+              
+              const nextAccountPageResponse = await fetch(nextAccountPageUrl, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+              });
+              
+              if (nextAccountPageResponse.ok) {
+                const nextAccountPageData = await nextAccountPageResponse.json();
+                const nextAccountPageBindings = nextAccountPageData.accessBindings || [];
+                accountAccessBindings = [...accountAccessBindings, ...nextAccountPageBindings];
+                console.log(`📄 Added ${nextAccountPageBindings.length} more account bindings, total: ${accountAccessBindings.length}`);
+                accountNextPageToken = nextAccountPageData.nextPageToken;
+              } else {
+                console.error(`❌ Next account page API returned status: ${nextAccountPageResponse.status}`);
+                break;
+              }
+            }
             
                          // Process account-level access bindings
              for (const binding of accountAccessBindings) {
