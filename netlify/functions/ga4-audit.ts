@@ -707,12 +707,17 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
       const data = await response.json();
       console.log(`✅ API Response Status: ${response.status}`);
       console.log(`📄 Raw API Response:`, JSON.stringify(data, null, 2));
+      console.log(`🔍 Response has nextPageToken: ${data.nextPageToken ? 'YES' : 'NO'}`);
+      console.log(`🔍 Response has accessBindings: ${data.accessBindings ? 'YES' : 'NO'}`);
+      console.log(`🔍 Number of accessBindings in response: ${data.accessBindings?.length || 0}`);
       
       let accessBindings = data.accessBindings || [];
       console.log(`Found ${accessBindings.length} access bindings for property ${propertyId}`);
       
       // Handle pagination if there are more results
       let nextPageToken = data.nextPageToken;
+      console.log(`🔍 Initial page token: ${nextPageToken ? 'EXISTS' : 'NONE'}`);
+      
       while (nextPageToken) {
         console.log(`📄 Fetching next page with token: ${nextPageToken}`);
         const nextPageUrl = `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/accessBindings?pageSize=100&pageToken=${nextPageToken}`;
@@ -727,11 +732,14 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
           accessBindings = [...accessBindings, ...nextPageBindings];
           console.log(`📄 Added ${nextPageBindings.length} more bindings, total: ${accessBindings.length}`);
           nextPageToken = nextPageData.nextPageToken;
+          console.log(`🔍 Next page token: ${nextPageToken ? 'EXISTS' : 'NONE'}`);
         } else {
           console.error(`❌ Next page API returned status: ${nextPageResponse.status}`);
           break;
         }
       }
+      
+      console.log(`🎯 FINAL TOTAL: ${accessBindings.length} access bindings after pagination`);
       
       // Process access bindings to extract user information
       const propertyAccess: Array<{
