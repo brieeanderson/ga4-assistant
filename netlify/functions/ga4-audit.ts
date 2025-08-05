@@ -651,9 +651,9 @@ async function getEventEditRulesForStreams(accessToken: string, propertyId: stri
 // Helper function to get property access information
 async function getPropertyAccess(accessToken: string, propertyId: string) {
   try {
-    // Try the correct GA4 Admin API endpoint for property access
+    // Use the correct GA4 Admin API endpoint for property access (v1alpha)
     const response = await fetch(
-      `https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/accessBindings`,
+      `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/accessBindings`,
       {
         headers: { 'Authorization': `Bearer ${accessToken}` }
       }
