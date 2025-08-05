@@ -458,10 +458,21 @@ const handler: Handler = async (event, context) => {
     console.log('FINAL AUDIT DATA BEING SENT TO FRONTEND - KEY EVENTS:', JSON.stringify(audit.keyEvents, null, 2));
     console.log('FINAL AUDIT DATA BEING SENT TO FRONTEND - PROPERTY ACCESS:', JSON.stringify(audit.propertyAccess, null, 2));
     
+    // TEMPORARY DEBUG: Add property access data to the response for debugging
+    const debugResponse = {
+      ...audit,
+      _debug: {
+        propertyAccessRaw: audit.propertyAccess,
+        propertyAccessLength: audit.propertyAccess?.length || 0,
+        propertyAccessType: typeof audit.propertyAccess,
+        propertyAccessIsArray: Array.isArray(audit.propertyAccess)
+      }
+    };
+    
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(audit),
+      body: JSON.stringify(debugResponse),
     };
 
   } catch (error) {
@@ -702,10 +713,26 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
       const errorText = await response.text();
       console.error('Error response:', errorText);
       console.error(`🔍 Full error details for property ${propertyId}`);
+      
+      // TEMPORARY DEBUG: Return error info for debugging
+      return [{
+        email: `ERROR_${response.status}`,
+        roles: [`API Error: ${response.status} - ${errorText.substring(0, 100)}`],
+        accessType: 'direct' as const,
+        source: 'API Error'
+      }];
     }
   } catch (error) {
     console.error('❌ Error fetching property access:', error);
     console.error(`🔍 Error details for property ${propertyId}:`, error);
+    
+    // TEMPORARY DEBUG: Return error info for debugging
+    return [{
+      email: `EXCEPTION_${propertyId}`,
+      roles: [`Exception: ${error instanceof Error ? error.message : 'Unknown error'}`],
+      accessType: 'direct' as const,
+      source: 'Exception'
+    }];
   }
   
   console.log(`⚠️ Returning empty property access array for property ${propertyId}`);
