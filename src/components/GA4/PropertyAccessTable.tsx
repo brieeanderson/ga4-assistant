@@ -7,6 +7,15 @@ interface PropertyAccessTableProps {
 }
 
 export const PropertyAccessTable: React.FC<PropertyAccessTableProps> = ({ propertyAccess }) => {
+  // Debug logging
+  console.log('🔍 PropertyAccessTable received data:', propertyAccess);
+  console.log('🔍 PropertyAccessTable data type:', typeof propertyAccess);
+  console.log('🔍 PropertyAccessTable is array:', Array.isArray(propertyAccess));
+  console.log('🔍 PropertyAccessTable length:', propertyAccess?.length);
+  
+  if (propertyAccess && propertyAccess.length > 0) {
+    console.log('🔍 PropertyAccessTable first item:', propertyAccess[0]);
+  }
   const formatRole = (role: string) => {
     // Remove the 'predefinedRoles/' prefix and format nicely
     const roleName = role.replace('predefinedRoles/', '');

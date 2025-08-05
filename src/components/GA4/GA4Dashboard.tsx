@@ -269,6 +269,11 @@ const generateRecommendations = (auditData: GA4Audit) => {
 };
 
   const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChangeProperty }) => {
+  // Debug logging for property access
+  console.log('🔍 GA4Dashboard auditData:', auditData);
+  console.log('🔍 GA4Dashboard propertyAccess:', auditData?.propertyAccess);
+  console.log('🔍 GA4Dashboard propertyAccess type:', typeof auditData?.propertyAccess);
+  console.log('🔍 GA4Dashboard propertyAccess is array:', Array.isArray(auditData?.propertyAccess));
   // Debug: Log the auditData every time the dashboard renders (development only)
   if (process.env.NODE_ENV === 'development') {
     console.log('GA4Dashboard auditData:', auditData);
