@@ -458,21 +458,12 @@ const handler: Handler = async (event, context) => {
     console.log('FINAL AUDIT DATA BEING SENT TO FRONTEND - KEY EVENTS:', JSON.stringify(audit.keyEvents, null, 2));
     console.log('FINAL AUDIT DATA BEING SENT TO FRONTEND - PROPERTY ACCESS:', JSON.stringify(audit.propertyAccess, null, 2));
     
-    // TEMPORARY DEBUG: Add property access data to the response for debugging
-    const debugResponse = {
-      ...audit,
-      _debug: {
-        propertyAccessRaw: audit.propertyAccess,
-        propertyAccessLength: audit.propertyAccess?.length || 0,
-        propertyAccessType: typeof audit.propertyAccess,
-        propertyAccessIsArray: Array.isArray(audit.propertyAccess)
-      }
-    };
+
     
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(debugResponse),
+      body: JSON.stringify(audit),
     };
 
   } catch (error) {
@@ -665,6 +656,18 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
   try {
     console.log(`🔍 Fetching property access for property: ${propertyId}`);
     
+    // First, let's check what scopes we have access to
+    try {
+      const tokenInfoResponse = await fetch(`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${accessToken}`);
+      if (tokenInfoResponse.ok) {
+        const tokenInfo = await tokenInfoResponse.json();
+        console.log(`🔑 Token scopes:`, tokenInfo.scope);
+        console.log(`🔑 Token has analytics.manage.users.readonly:`, tokenInfo.scope?.includes('analytics.manage.users.readonly'));
+      }
+    } catch (scopeError) {
+      console.log(`🔑 Could not check token scopes:`, scopeError);
+    }
+    
     // Use the correct GA4 Admin API endpoint for property access (v1alpha)
     const url = `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/accessBindings`;
     console.log(`📡 API URL: ${url}`);
@@ -714,25 +717,13 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
       console.error('Error response:', errorText);
       console.error(`🔍 Full error details for property ${propertyId}`);
       
-      // TEMPORARY DEBUG: Return error info for debugging
-      return [{
-        email: `ERROR_${response.status}`,
-        roles: [`API Error: ${response.status} - ${errorText.substring(0, 100)}`],
-        accessType: 'direct' as const,
-        source: 'API Error'
-      }];
+
     }
   } catch (error) {
     console.error('❌ Error fetching property access:', error);
     console.error(`🔍 Error details for property ${propertyId}:`, error);
     
-    // TEMPORARY DEBUG: Return error info for debugging
-    return [{
-      email: `EXCEPTION_${propertyId}`,
-      roles: [`Exception: ${error instanceof Error ? error.message : 'Unknown error'}`],
-      accessType: 'direct' as const,
-      source: 'Exception'
-    }];
+
   }
   
   console.log(`⚠️ Returning empty property access array for property ${propertyId}`);
