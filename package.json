@@ -16,7 +16,6 @@
     "@netlify/functions": "^4.1.2",
     "cheerio": "^1.0.0",
     "lucide-react": "^0.513.0",
-    "netlify-cli": "^22.1.1",
     "next": "15.3.3",
     "puppeteer": "^24.10.0",
     "react": "^19.0.0",
@@ -33,6 +32,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
+    "netlify-cli": "^23.1.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

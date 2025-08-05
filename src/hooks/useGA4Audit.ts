@@ -114,9 +114,7 @@ export const useGA4Audit = () => {
         resultKeys: Object.keys(result || {}),
         propertyName: result?.property?.displayName,
         hasProperty: !!result?.property,
-        hasDataStreams: !!result?.dataStreams,
-        propertyAccessLength: result?.propertyAccess?.length || 0,
-        propertyAccessData: result?.propertyAccess || []
+        hasDataStreams: !!result?.dataStreams
       });
       setGA4Audit(result);
       
@@ -125,9 +123,7 @@ export const useGA4Audit = () => {
         dataStreams: result.dataStreams?.length,
         customDimensions: result.customDimensions?.length,
         keyEvents: result.keyEvents?.length,
-        configScore: result.configScore,
-        propertyAccessLength: result.propertyAccess?.length || 0,
-        propertyAccessData: result.propertyAccess || []
+        configScore: result.configScore
       });
       
       // Audit completed - let the component handle navigation
