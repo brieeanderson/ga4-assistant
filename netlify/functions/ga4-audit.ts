@@ -677,9 +677,25 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
       console.log(`🔑 Could not check token scopes:`, scopeError);
     }
     
+    // First, try to get the account ID for this property
+    let accountId = null;
+    try {
+      const propertyResponse = await fetch(`https://analyticsadmin.googleapis.com/v1alpha/${propertyId}`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      
+      if (propertyResponse.ok) {
+        const propertyData = await propertyResponse.json();
+        accountId = propertyData.account;
+        console.log(`🏢 Property belongs to account: ${accountId}`);
+      }
+    } catch (accountError) {
+      console.log(`🏢 Could not get account info:`, accountError);
+    }
+    
     // Use the correct GA4 Admin API endpoint for property access (v1alpha)
     const url = `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/accessBindings`;
-    console.log(`📡 API URL: ${url}`);
+    console.log(`📡 Property API URL: ${url}`);
     
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${accessToken}` }
@@ -719,6 +735,52 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
       
       console.log(`Processed ${propertyAccess.length} property access entries`);
       console.log(`Final property access data:`, JSON.stringify(propertyAccess, null, 2));
+      
+      // If no property-level access, try account-level access
+      if (propertyAccess.length === 0 && accountId) {
+        console.log(`🔍 No property-level access found, trying account-level access for account: ${accountId}`);
+        
+        try {
+          const accountUrl = `https://analyticsadmin.googleapis.com/v1alpha/accounts/${accountId}/accessBindings`;
+          console.log(`📡 Account API URL: ${accountUrl}`);
+          
+          const accountResponse = await fetch(accountUrl, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+          });
+          
+          if (accountResponse.ok) {
+            const accountData = await accountResponse.json();
+            const accountAccessBindings = accountData.accessBindings || [];
+            console.log(`Found ${accountAccessBindings.length} account-level access bindings`);
+            
+            // Process account-level access bindings
+            for (const binding of accountAccessBindings) {
+              console.log('Processing account binding:', JSON.stringify(binding, null, 2));
+              
+              if (binding.user && binding.user.email) {
+                const roles = binding.roles || [];
+                const roleNames = roles.map((role: any) => role.name || role);
+                
+                propertyAccess.push({
+                  email: binding.user.email,
+                  roles: roleNames,
+                  accessType: 'inherited',
+                  source: 'Account Level'
+                });
+              }
+            }
+            
+            console.log(`Final combined access data:`, JSON.stringify(propertyAccess, null, 2));
+          } else {
+            console.error(`❌ Account access API returned status: ${accountResponse.status}`);
+            const errorText = await accountResponse.text();
+            console.error('Account error response:', errorText);
+          }
+        } catch (accountAccessError) {
+          console.error('❌ Error fetching account access:', accountAccessError);
+        }
+      }
+      
       return propertyAccess;
     } else {
       console.error(`❌ Property access API returned status: ${response.status}`);
