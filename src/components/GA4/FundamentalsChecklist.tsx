@@ -301,9 +301,16 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           id: 'measurement-protocol-secrets',
           name: 'Measurement Protocol Secrets',
           status: audit.measurementProtocolSecrets && audit.measurementProtocolSecrets.some(s => s.secrets.length > 0) ? 'warning' : 'complete',
-          value: audit.measurementProtocolSecrets && audit.measurementProtocolSecrets.some(s => s.secrets.length > 0) ? 'Present' : 'None',
-          description: 'Checks if any Measurement Protocol secrets are created for your data streams.',
-          recommendation: audit.measurementProtocolSecrets && audit.measurementProtocolSecrets.some(s => s.secrets.length > 0) ? 'Review and secure any Measurement Protocol secrets.' : 'No Measurement Protocol secrets found.',
+          value: (() => {
+            if (!audit.measurementProtocolSecrets) return 'None';
+            const totalSecrets = audit.measurementProtocolSecrets.reduce((total, stream) => total + stream.secrets.length, 0);
+            if (totalSecrets === 0) return 'None';
+            return `${totalSecrets} secret(s) across ${audit.measurementProtocolSecrets.filter(s => s.secrets.length > 0).length} stream(s)`;
+          })(),
+          description: 'Measurement Protocol secrets allow server-side data collection. Review existing secrets for security.',
+          recommendation: audit.measurementProtocolSecrets && audit.measurementProtocolSecrets.some(s => s.secrets.length > 0) ? 
+            'Review and secure any Measurement Protocol secrets. Consider rotating secrets regularly.' : 
+            'No Measurement Protocol secrets found. Create secrets only if you need server-side tracking.',
           priority: 'important',
           adminPath: 'Admin > Data Streams > [Stream] > Measurement Protocol API secrets'
         },
@@ -521,6 +528,25 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
                             >
                               View event create rules
                             </button>
+                          )}
+                          {item.id === 'measurement-protocol-secrets' && audit.measurementProtocolSecrets && audit.measurementProtocolSecrets.some(s => s.secrets.length > 0) && (
+                            <div className="mt-2">
+                              <div className="font-semibold mb-1 text-gray-200">Measurement Protocol Secrets:</div>
+                              {audit.measurementProtocolSecrets.filter(s => s.secrets.length > 0).map((stream, streamIndex) => (
+                                <div key={streamIndex} className="ml-4 mb-2">
+                                  <div className="text-sm text-gray-300 font-medium mb-1">
+                                    Stream: {stream.streamName}
+                                  </div>
+                                  <ul className="ml-4 list-disc">
+                                    {stream.secrets.map((secret, secretIndex) => (
+                                      <li key={secretIndex} className="text-gray-200 text-sm">
+                                        {secret.displayName}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ))}
+                            </div>
                           )}
                         </div>
                       </div>
