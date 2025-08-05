@@ -5,6 +5,7 @@ export const GOOGLE_OAUTH_CONFIG = {
     : 'https://ga4wise.netlify.app/oauth/callback',
   scopes: [
     'https://www.googleapis.com/auth/analytics.readonly',
+    'https://www.googleapis.com/auth/analytics.manage.users.readonly',
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/tagmanager.readonly'
