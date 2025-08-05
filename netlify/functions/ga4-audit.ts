@@ -721,12 +721,14 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
       for (const binding of accessBindings) {
         console.log('Processing binding:', JSON.stringify(binding, null, 2));
         
-        if (binding.user && binding.user.email) {
+        // According to the API docs, the user field is directly in the binding
+        if (binding.user) {
           const roles = binding.roles || [];
-          const roleNames = roles.map((role: any) => role.name || role);
+          // Roles are strings, not objects with name property
+          const roleNames = roles.map((role: any) => typeof role === 'string' ? role : role.name || role);
           
           propertyAccess.push({
-            email: binding.user.email,
+            email: binding.user,
             roles: roleNames,
             accessType: 'direct', // Property-level access is always direct
             source: 'Property Level'
@@ -754,22 +756,24 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
             const accountAccessBindings = accountData.accessBindings || [];
             console.log(`Found ${accountAccessBindings.length} account-level access bindings`);
             
-            // Process account-level access bindings
-            for (const binding of accountAccessBindings) {
-              console.log('Processing account binding:', JSON.stringify(binding, null, 2));
-              
-              if (binding.user && binding.user.email) {
-                const roles = binding.roles || [];
-                const roleNames = roles.map((role: any) => role.name || role);
-                
-                propertyAccess.push({
-                  email: binding.user.email,
-                  roles: roleNames,
-                  accessType: 'inherited',
-                  source: 'Account Level'
-                });
-              }
-            }
+                         // Process account-level access bindings
+             for (const binding of accountAccessBindings) {
+               console.log('Processing account binding:', JSON.stringify(binding, null, 2));
+               
+               // According to the API docs, the user field is directly in the binding
+               if (binding.user) {
+                 const roles = binding.roles || [];
+                 // Roles are strings, not objects with name property
+                 const roleNames = roles.map((role: any) => typeof role === 'string' ? role : role.name || role);
+                 
+                 propertyAccess.push({
+                   email: binding.user,
+                   roles: roleNames,
+                   accessType: 'inherited',
+                   source: 'Account Level'
+                 });
+               }
+             }
             
             console.log(`Final combined access data:`, JSON.stringify(propertyAccess, null, 2));
           } else {
