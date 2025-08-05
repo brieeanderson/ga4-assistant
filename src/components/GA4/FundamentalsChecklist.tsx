@@ -388,7 +388,7 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           name: 'Property Access Review',
           status: audit.propertyAccess && audit.propertyAccess.length > 0 ? 'complete' : 'opportunity',
           value: audit.propertyAccess && audit.propertyAccess.length > 0 ? `${audit.propertyAccess.length} user(s)` : 'No direct access found',
-          description: 'Review users with direct access to this GA4 property and their permission levels.',
+          description: 'Review users with direct and inherited access to this GA4 property and their permission levels.',
           recommendation: audit.propertyAccess && audit.propertyAccess.length > 0 ? 
             'Property access is configured. Review permissions regularly for security.' : 
             'Consider reviewing account-level permissions for broader access control.',

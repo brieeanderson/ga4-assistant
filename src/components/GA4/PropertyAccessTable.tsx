@@ -73,7 +73,7 @@ export const PropertyAccessTable: React.FC<PropertyAccessTableProps> = ({ proper
           Users with direct access to this GA4 property and their permission levels.
         </p>
         <div className="text-sm text-gray-400">
-          <strong>Note:</strong> This shows only direct property-level access. Users may also have inherited access from account-level permissions.
+          <strong>Note:</strong> This shows both direct property-level access and inherited access from account-level permissions.
         </div>
       </div>
 
