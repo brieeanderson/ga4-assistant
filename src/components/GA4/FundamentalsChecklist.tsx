@@ -309,8 +309,8 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           })(),
           description: 'Measurement Protocol secrets allow server-side data collection. Review existing secrets for security.',
           recommendation: audit.measurementProtocolSecrets && audit.measurementProtocolSecrets.some(s => s.secrets.length > 0) ? 
-            'Review and secure any Measurement Protocol secrets. Consider rotating secrets regularly.' : 
-            'No Measurement Protocol secrets found. Create secrets only if you need server-side tracking.',
+            'Review and secure any Measurement Protocol secrets. Consider rotating secrets regularly. IMPORTANT: Monitor Measurement Protocol closely as it is commonly set up incorrectly. If you see an influx of "not set" data in session or first user attribution, thoroughly investigate your Measurement Protocol implementation and ensure it is properly tied to a session and/or client.' : 
+            'No Measurement Protocol secrets found. Create secrets only if you need server-side tracking. Note: If you implement Measurement Protocol, monitor it closely as it is commonly set up incorrectly and can cause "not set" attribution data.',
           priority: 'important',
           adminPath: 'Admin > Data Streams > [Stream] > Measurement Protocol API secrets'
         },
