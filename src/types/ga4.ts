@@ -180,6 +180,7 @@ export interface GA4Audit {
   _tokenDebug?: {
     propertyAccessLength: number;
     propertyAccessIsEmpty: boolean;
+    propertyAccessData: PropertyAccess[];
   };
 }
 

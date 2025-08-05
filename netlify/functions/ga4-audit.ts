@@ -463,7 +463,8 @@ const handler: Handler = async (event, context) => {
       ...audit,
       _tokenDebug: {
         propertyAccessLength: audit.propertyAccess?.length || 0,
-        propertyAccessIsEmpty: !audit.propertyAccess || audit.propertyAccess.length === 0
+        propertyAccessIsEmpty: !audit.propertyAccess || audit.propertyAccess.length === 0,
+        propertyAccessData: audit.propertyAccess || []
       }
     };
     
