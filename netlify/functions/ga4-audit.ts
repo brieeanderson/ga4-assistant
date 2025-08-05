@@ -456,6 +456,7 @@ const handler: Handler = async (event, context) => {
 
     console.log('FINAL AUDIT DATA BEING SENT TO FRONTEND - EVENT CREATE RULES:', JSON.stringify(audit.eventCreateRules, null, 2));
     console.log('FINAL AUDIT DATA BEING SENT TO FRONTEND - KEY EVENTS:', JSON.stringify(audit.keyEvents, null, 2));
+    console.log('FINAL AUDIT DATA BEING SENT TO FRONTEND - PROPERTY ACCESS:', JSON.stringify(audit.propertyAccess, null, 2));
     
     return {
       statusCode: 200,
@@ -651,18 +652,22 @@ async function getEventEditRulesForStreams(accessToken: string, propertyId: stri
 // Helper function to get property access information
 async function getPropertyAccess(accessToken: string, propertyId: string) {
   try {
+    console.log(`🔍 Fetching property access for property: ${propertyId}`);
+    
     // Use the correct GA4 Admin API endpoint for property access (v1alpha)
-    const response = await fetch(
-      `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/accessBindings`,
-      {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-      }
-    );
+    const url = `https://analyticsadmin.googleapis.com/v1alpha/properties/${propertyId}/accessBindings`;
+    console.log(`📡 API URL: ${url}`);
+    
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
     
     if (response.ok) {
       const data = await response.json();
-      const accessBindings = data.accessBindings || [];
+      console.log(`✅ API Response Status: ${response.status}`);
+      console.log(`📄 Raw API Response:`, JSON.stringify(data, null, 2));
       
+      const accessBindings = data.accessBindings || [];
       console.log(`Found ${accessBindings.length} access bindings for property ${propertyId}`);
       
       // Process access bindings to extract user information
@@ -690,16 +695,20 @@ async function getPropertyAccess(accessToken: string, propertyId: string) {
       }
       
       console.log(`Processed ${propertyAccess.length} property access entries`);
+      console.log(`Final property access data:`, JSON.stringify(propertyAccess, null, 2));
       return propertyAccess;
     } else {
-      console.error(`Property access API returned status: ${response.status}`);
+      console.error(`❌ Property access API returned status: ${response.status}`);
       const errorText = await response.text();
       console.error('Error response:', errorText);
+      console.error(`🔍 Full error details for property ${propertyId}`);
     }
   } catch (error) {
-    console.error('Error fetching property access:', error);
+    console.error('❌ Error fetching property access:', error);
+    console.error(`🔍 Error details for property ${propertyId}:`, error);
   }
   
+  console.log(`⚠️ Returning empty property access array for property ${propertyId}`);
   return [];
 }
 
