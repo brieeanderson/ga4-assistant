@@ -23,7 +23,6 @@ import {
 import { GA4Audit, CustomDimension, CustomMetric, KeyEvent } from '@/types/ga4';
 import { formatLabel } from '@/lib/formatLabel';
 import { EventEditRulesDisplay } from './EventEditRulesDisplay';
-import { PropertyAccessTable } from './PropertyAccessTable';
 
 // Add prop types
 interface GA4DashboardProps {
@@ -32,7 +31,14 @@ interface GA4DashboardProps {
   onChangeProperty: () => void;
 }
 
-const generateRecommendations = (auditData: GA4Audit) => {
+const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChangeProperty }) => {
+  const generateRecommendations = (auditData: GA4Audit): Array<{
+    title: string;
+    description: string;
+    severity: string;
+    docsUrl?: string;
+    deduction?: number;
+  }> => {
   const recs = [];
   // 1. Timezone
   if (!auditData?.property?.timeZone) {
@@ -250,6 +256,9 @@ const generateRecommendations = (auditData: GA4Audit) => {
     });
   }
 
+  return recs;
+  };
+
   // Score progress functionality disabled for future paid feature
   // const { saveScore, getScoreComparison } = useScoreHistory();
   // const [scoreComparison, setScoreComparison] = useState<ScoreComparison | null>(null);
@@ -403,6 +412,14 @@ const generateRecommendations = (auditData: GA4Audit) => {
       }
     };
   }, [auditData]);
+
+  // Add missing state variables
+  const [activeTab, setActiveTab] = useState('overview');
+  const [expandedPiiSections, setExpandedPiiSections] = useState({
+    critical: false,
+    high: false,
+    medium: false
+  });
 
   const { scores: categoryScores, deductions, points } = calculateCategoryScores();
   
