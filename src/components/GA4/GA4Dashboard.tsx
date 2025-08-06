@@ -249,45 +249,6 @@ const generateRecommendations = (auditData: GA4Audit) => {
       docsUrl: 'https://support.google.com/analytics/answer/11160918?hl=en'
     });
   }
-  
-  // 23. Property access review
-  if (auditData?.propertyAccess && auditData.propertyAccess.length > 0) {
-    const adminUsers = auditData.propertyAccess.filter(user => 
-      user.roles.some(role => role.includes('admin'))
-    );
-    
-    if (adminUsers.length > 2) {
-      recs.push({
-        title: 'Review property access permissions',
-        description: `${auditData.propertyAccess.length} users have access to this property, including ${adminUsers.length} with admin privileges. Consider reviewing access permissions for security.`,
-        severity: 'important',
-        docsUrl: 'https://support.google.com/analytics/answer/1033981?hl=en'
-      });
-    }
-  }
-  return recs;
-};
-
-  const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChangeProperty }) => {
-  // Debug logging for property access
-  console.log('🔍 GA4Dashboard auditData:', auditData);
-  console.log('🔍 GA4Dashboard propertyAccess:', auditData?.propertyAccess);
-  console.log('🔍 GA4Dashboard propertyAccess type:', typeof auditData?.propertyAccess);
-  console.log('🔍 GA4Dashboard propertyAccess is array:', Array.isArray(auditData?.propertyAccess));
-  console.log('🔍 GA4Dashboard token debug info:', auditData?._tokenDebug);
-  console.log('🔍 GA4Dashboard property access data:', auditData?._tokenDebug?.propertyAccessData);
-  // Debug: Log the auditData every time the dashboard renders (development only)
-  if (process.env.NODE_ENV === 'development') {
-    console.log('GA4Dashboard auditData:', auditData);
-  }
-
-  const [activeTab, setActiveTab] = useState('overview');
-  const [expandedPiiSections, setExpandedPiiSections] = useState<{critical: boolean, high: boolean, medium: boolean}>({
-    critical: false,
-    high: false,
-    medium: false
-  });
-
 
   // Score progress functionality disabled for future paid feature
   // const { saveScore, getScoreComparison } = useScoreHistory();
@@ -996,10 +957,6 @@ const generateRecommendations = (auditData: GA4Audit) => {
           </div>
         )}
       </div>
-      
-      {/* Property Access Table */}
-      <PropertyAccessTable propertyAccess={auditData?.propertyAccess || []} />
-
     </div>
   );
 
