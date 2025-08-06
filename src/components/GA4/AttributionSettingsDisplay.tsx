@@ -144,7 +144,7 @@ export const AttributionSettingsDisplay: React.FC<AttributionSettingsDisplayProp
             
             <div className="p-3 bg-black/30 rounded border border-gray-600/50">
               <p className="text-xs text-gray-500 mb-1">Admin Location:</p>
-              <p className="text-xs text-gray-300">Admin &gt; Attribution Settings &gt; Attribution models</p>
+              <p className="text-xs text-gray-300">Admin &gt; Events &gt; Attribution settings</p>
             </div>
           </div>
 
