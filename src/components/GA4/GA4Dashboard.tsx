@@ -1427,6 +1427,65 @@ const generateRecommendations = (auditData: GA4Audit) => {
           </div>
         )}
       </div>
+
+      {/* Measurement Protocol */}
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+        <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+          <Settings className="w-6 h-6 mr-2 text-orange-400" />
+          Measurement Protocol
+        </h3>
+        <div className="text-white text-lg font-semibold">
+          {auditData?.measurementProtocolSecrets && auditData.measurementProtocolSecrets.some(s => s.secrets.length > 0) ? 'Configured' : 'Not Configured'}
+        </div>
+        <div className="text-sm text-slate-400 mt-2">Server-side data collection for advanced tracking scenarios.</div>
+        {auditData?.measurementProtocolSecrets && auditData.measurementProtocolSecrets.some(s => s.secrets.length > 0) ? (
+          <div className="space-y-4 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                <div className="text-sm text-slate-400 mb-2">Total Secrets</div>
+                <div className="text-white font-semibold">
+                  {auditData.measurementProtocolSecrets.reduce((total, stream) => total + stream.secrets.length, 0)}
+                </div>
+              </div>
+              <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                <div className="text-sm text-slate-400 mb-2">Active Streams</div>
+                <div className="text-white font-semibold">
+                  {auditData.measurementProtocolSecrets.filter(s => s.secrets.length > 0).length}
+                </div>
+              </div>
+            </div>
+            <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+              <div className="text-yellow-400 font-semibold mb-2">⚠️ Security Notice</div>
+              <div className="text-sm text-yellow-300">
+                Measurement Protocol secrets are configured. Review and secure these secrets regularly. Monitor for any "not set" attribution data that may indicate improper implementation.
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-sm text-slate-400 font-semibold">Configured Secrets:</div>
+              {auditData.measurementProtocolSecrets.filter(s => s.secrets.length > 0).map((stream, streamIndex) => (
+                <div key={streamIndex} className="p-3 bg-slate-800/30 rounded-lg border border-slate-700">
+                  <div className="text-sm text-white font-medium mb-1">Stream: {stream.streamName}</div>
+                  <div className="space-y-1">
+                    {stream.secrets.map((secret, secretIndex) => (
+                      <div key={secretIndex} className="text-sm text-slate-300 flex items-center">
+                        <span className="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
+                        {secret.displayName}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <div className="text-blue-400 font-semibold">No Measurement Protocol secrets found.</div>
+            <div className="text-sm text-blue-300 mt-1">
+              Create secrets only if you need server-side tracking. Monitor closely if implemented as it's commonly set up incorrectly.
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 

@@ -389,19 +389,7 @@ export const FundamentalsChecklist: React.FC<FundamentalsChecklistProps> = ({ au
           recommendation: audit.attribution && audit.attribution.reportingAttributionModel ? 'Attribution model is set.' : 'Review and set the attribution model for your business.',
           priority: 'important',
           adminPath: 'Admin > Attribution Settings'
-        },
-        // {
-        //   id: 'property-access',
-        //   name: 'Property Access Review',
-        //   status: audit.propertyAccess && audit.propertyAccess.length > 0 ? 'complete' : 'opportunity',
-        //   value: audit.propertyAccess && audit.propertyAccess.length > 0 ? `${audit.propertyAccess.length} user(s)` : 'No direct access found',
-        //   description: 'Review users with direct and inherited access to this GA4 property and their permission levels.',
-        //   recommendation: audit.propertyAccess && audit.propertyAccess.length > 0 ? 
-        //     'Property access is configured. Review permissions regularly for security.' : 
-        //     'Consider reviewing account-level permissions for broader access control.',
-        //   priority: 'important',
-        //   adminPath: 'Admin > Property Access Management'
-        // }
+        }
       ]
     }
   ];
