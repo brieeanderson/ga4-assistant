@@ -166,6 +166,11 @@ const AuditResultsPage = () => {
           auditData={ga4Audit}
           property={selectedProperty}
           onChangeProperty={() => router.push('/audit/properties')}
+          onRefresh={() => {
+            if (accessToken && propertyId) {
+              runGA4Audit(accessToken, propertyId as string);
+            }
+          }}
         />
       </div>
     </div>

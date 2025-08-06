@@ -29,9 +29,10 @@ interface GA4DashboardProps {
   auditData: GA4Audit;
   property: any;
   onChangeProperty: () => void;
+  onRefresh?: () => void;
 }
 
-const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChangeProperty }) => {
+const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChangeProperty, onRefresh }) => {
   const generateRecommendations = (auditData: GA4Audit): Array<{
     title: string;
     description: string;
@@ -1776,7 +1777,11 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
                 <ArrowLeft className="w-4 h-4 inline mr-2" />
                 Change Property
               </button>
-              <button className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200">
+              <button 
+                onClick={onRefresh}
+                disabled={!onRefresh}
+                className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <RefreshCw className="w-4 h-4 inline mr-2" />
                 Refresh
               </button>
