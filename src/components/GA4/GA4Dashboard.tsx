@@ -242,7 +242,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       title: 'Review GA4-created events',
       description: `${totalEventCreateRules} event create rules detected. GA4-created events should be reviewed by a GA4 expert as they are often incorrectly configured.`,
       severity: 'important',
-      docsUrl: 'https://support.google.com/analytics/answer/11160918?hl=en'
+      docsUrl: 'https://support.google.com/analytics/answer/12844695?hl=en&sjid=16866026906417712952-NA#:~:text=Properties%20on%20YouTube.-,Create%20the%20event,-Without%20code'
     });
   }
   
@@ -253,7 +253,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       title: 'Review GA4-edit events',
       description: `${totalEventEditRules} event edit rules detected. Event edit rules can modify existing events and create complex rule chains that should be reviewed by a GA4 expert.`,
       severity: 'important',
-      docsUrl: 'https://support.google.com/analytics/answer/11160918?hl=en'
+      docsUrl: 'https://support.google.com/analytics/answer/12844695?hl=en&sjid=16866026906417712952-NA#:~:text=Properties%20on%20YouTube.-,Create%20the%20event,-Without%20code'
     });
   }
 
