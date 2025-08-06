@@ -46,7 +46,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       title: 'Set timezone',
       description: 'Timezone is not set. Keep timezones consistent across marketing platforms for accurate attribution.',
       severity: 'critical',
-      docsUrl: 'https://support.google.com/analytics/answer/9304153?hl=en'
+      docsUrl: 'https://support.google.com/analytics/answer/9304153?hl=en&sjid=16866026906417712952-NA#:~:text=select%20the%20reporting%20time%20zone'
     });
   }
   // 2. Currency
@@ -55,7 +55,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       title: 'Set currency',
       description: 'Currency is not set. GA4 defaults to USD and converts all transactions based on daily rates.',
       severity: 'important',
-      docsUrl: 'https://support.google.com/analytics/answer/9796179?hl=en'
+      docsUrl: 'https://support.google.com/analytics/answer/9796179?hl=en&sjid=16866026906417712952-NA#zippy=%2Cin-this-article'
     });
   }
   // 3. Industry category
@@ -75,7 +75,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       description: 'Set to 14 months (max available). Default is only 2 months!',
       severity: 'critical',
       deduction: -20,
-      docsUrl: 'https://support.google.com/analytics/answer/7667196?hl=en'
+      docsUrl: 'https://support.google.com/analytics/answer/7667196?hl=en#:~:text=Reset%20on%20new%20activity'
     });
   }
   // 4.5. Reset user data on new activity
@@ -84,7 +84,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       title: 'Enable user data reset on new activity',
       description: 'Automatically reset user data after 14 months of inactivity for better privacy compliance.',
       severity: 'important',
-      docsUrl: 'https://support.google.com/analytics/answer/7667196?hl=en'
+      docsUrl: 'https://support.google.com/analytics/answer/7667196?hl=en#:~:text=Reset%20on%20new%20activity'
     });
   }
   // 5. PII redaction - only show if PII is actually detected
@@ -115,7 +115,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       title: 'Configure Google Signals',
       description: 'Enables demographics but may cause data thresholding and require extra privacy policies.',
       severity: 'info',
-      docsUrl: 'https://support.google.com/analytics/answer/9445345?hl=en'
+      docsUrl: 'https://support.google.com/analytics/answer/9445345?hl=en#zippy=%2Cin-this-article%2Cremarketing-with-google-analytics%2Cadvertising-reporting-features:~:text=When%20you%20activate%20Google%20signals%2C%20you%20are%20subject%20to%20the%20policy%20requirements%20for%20Google%20Analytics%20Advertising%20Features.'
     });
   }
   // 9.5. Google Signals Warning (when enabled)
@@ -124,7 +124,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       title: 'Google Signals Privacy Compliance',
       description: 'Google Signals is enabled. Ensure your privacy policy covers demographic data collection and be aware of data thresholding for small audiences.',
       severity: 'warning',
-      docsUrl: 'https://support.google.com/analytics/answer/9445345?hl=en'
+      docsUrl: 'https://support.google.com/analytics/answer/9445345?hl=en#zippy=%2Cin-this-article%2Cremarketing-with-google-analytics%2Cadvertising-reporting-features:~:text=When%20you%20activate%20Google%20signals%2C%20you%20are%20subject%20to%20the%20policy%20requirements%20for%20Google%20Analytics%20Advertising%20Features.'
     });
   }
   // 10. Measurement Protocol Secrets Warning
@@ -133,7 +133,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       title: 'Measurement Protocol Security Review',
       description: 'Measurement Protocol secrets are configured. Review and secure these secrets regularly. Monitor for "not set" attribution data that may indicate improper implementation.',
       severity: 'warning',
-      docsUrl: 'https://developers.google.com/analytics/devguides/collection/protocol/ga4'
+      docsUrl: 'https://support.google.com/analytics/answer/12799087?hl=en&ref_topic=14272803&sjid=16866026906417712952-NA'
     });
   }
   // 11. Enhanced measurement
@@ -142,7 +142,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       title: 'Enable enhanced measurement',
       description: 'Select events to track automatically: Page views, scrolls, outbound clicks, site search, video, file downloads, form interactions, history changes.',
       severity: 'important',
-      docsUrl: 'https://support.google.com/analytics/answer/9216061?hl=en'
+      docsUrl: 'https://support.google.com/analytics/answer/9216061?hl=en#:~:text=link_url%2C%20outbound%20(boolean)-,Site%20search,-view_search_results'
     });
   }
   // 12. Site search
@@ -151,7 +151,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       title: 'Double check site search parameters',
       description: 'Default parameters: q, s, search, query, keyword.',
       severity: 'important',
-      docsUrl: 'https://support.google.com/analytics/answer/9216061?hl=en'
+      docsUrl: 'https://support.google.com/analytics/answer/9216061?hl=en#:~:text=link_url%2C%20outbound%20(boolean)-,Site%20search,-view_search_results'
     });
   }
   // 13. Key events
@@ -176,7 +176,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       title: 'Define custom dimensions',
       description: 'Register event parameters as custom dimensions to use in reports.',
       severity: 'important',
-      docsUrl: 'https://support.google.com/analytics/answer/14240153?hl=en'
+      docsUrl: 'https://support.google.com/analytics/answer/14240153?hl=en#:~:text=and%20advertise%20with%3A-,Custom%20dimensions,-User%2Dscoped%20custom'
     });
   }
   // 15. Custom metrics
@@ -185,7 +185,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       title: 'Create custom metrics',
       description: 'Define calculated metrics important to your business.',
       severity: 'info',
-      docsUrl: 'https://support.google.com/analytics/answer/14239619?sjid=1431056984149397764-NC#zippy=%2Canalyze-the-metric-in-a-report%2Canalyze-the-metric-in-an-exploration'
+      docsUrl: 'https://support.google.com/analytics/answer/14240153?hl=en#:~:text=purchase%27%20or%20%27add_to_cart.%27-,Custom%20metrics,-Custom%20metrics%20enable'
     });
   }
   // 16. Google Ads link
@@ -218,7 +218,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       description: 'Affects web conversions shared with Google Ads.',
       severity: 'important',
       deduction: -10,
-      docsUrl: 'https://support.google.com/analytics/answer/10597962?hl=en'
+      docsUrl: 'https://support.google.com/analytics/answer/10597962?hl=en#:~:text=Key%20events%20column.-,Channels%20that%20can%20receive%20credit,-Choosing%20the%20Google'
     });
   }
   // 20. Enhanced measurement parameters (form/video)
@@ -230,7 +230,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
         description: 'Register form_id and form_name as custom dimensions.',
         severity: 'important',
         deduction: -10,
-        docsUrl: 'https://support.google.com/analytics/answer/9216061?hl=en'
+        docsUrl: 'https://support.google.com/analytics/answer/9216061?hl=en#:~:text=Note%3A%20You%20can%20only%20use%20the%20parameters%20in%20your%20reports%20if%20you%20create%20custom%20dimensions%20for%20them.'
       });
     }
 
@@ -253,7 +253,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       title: 'Review GA4-edit events',
       description: `${totalEventEditRules} event edit rules detected. Event edit rules can modify existing events and create complex rule chains that should be reviewed by a GA4 expert.`,
       severity: 'important',
-      docsUrl: 'https://support.google.com/analytics/answer/12844695?hl=en&sjid=16866026906417712952-NA#:~:text=Properties%20on%20YouTube.-,Create%20the%20event,-Without%20code'
+      docsUrl: 'https://support.google.com/analytics/answer/12844695?hl=en&sjid=16866026906417712952-NA#:~:text=processes%20the%20event.-,Modify%20an%20event%20in%20Analytics,-This%20section%20describes'
     });
   }
 
