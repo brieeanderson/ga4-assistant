@@ -101,7 +101,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
   // 6. Cross-domain tracking - removed API-based detection since it's not available
   // Cross-domain tracking requires manual verification in GA4 interface
   // 7. Unwanted referrals - Check if they're properly configured
-  if (!auditData?.dataQuality?.trafficSources?.unwantedReferrals || !auditData.dataQuality.trafficSources.unwantedReferrals.detected) {
+  if (auditData?.dataQuality?.trafficSources?.unwantedReferrals?.detected) {
     recs.push({
       title: 'Configure Unwanted Referrals',
       description: 'Exclude payment processors (PayPal, Stripe) and other unwanted referral sources.',
