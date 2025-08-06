@@ -511,26 +511,54 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
 
         {/* Score Breakdown - Calculated from audit data */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-          <div className={`text-center p-6 rounded-xl border ${categoryScores.configuration >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.configuration >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+          <button 
+            onClick={() => setActiveTab('configuration')}
+            className={`text-center p-6 rounded-xl border transition-all duration-200 hover:scale-105 hover:shadow-lg cursor-pointer ${
+              categoryScores.configuration >= 80 ? 'bg-green-500/10 border-green-500/20 hover:bg-green-500/20' : 
+              categoryScores.configuration >= 60 ? 'bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/20' : 
+              'bg-red-500/10 border-red-500/20 hover:bg-red-500/20'
+            }`}
+          >
             <div className={`text-2xl font-bold mb-2 ${getScoreColor(categoryScores.configuration)}`}>{categoryScores.configuration}%</div>
             <div className="text-sm text-slate-400 mb-1">Configuration</div>
             <div className="text-xs text-slate-500">{points?.configuration?.earned || 0}/{points?.configuration?.total || 25} pts</div>
-          </div>
-          <div className={`text-center p-6 rounded-xl border ${categoryScores.eventsTracking >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.eventsTracking >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+          </button>
+          <button 
+            onClick={() => setActiveTab('events')}
+            className={`text-center p-6 rounded-xl border transition-all duration-200 hover:scale-105 hover:shadow-lg cursor-pointer ${
+              categoryScores.eventsTracking >= 80 ? 'bg-green-500/10 border-green-500/20 hover:bg-green-500/20' : 
+              categoryScores.eventsTracking >= 60 ? 'bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/20' : 
+              'bg-red-500/10 border-red-500/20 hover:bg-red-500/20'
+            }`}
+          >
             <div className={`text-2xl font-bold mb-2 ${getScoreColor(categoryScores.eventsTracking)}`}>{categoryScores.eventsTracking}%</div>
             <div className="text-sm text-slate-400 mb-1">Events & Tracking</div>
             <div className="text-xs text-slate-500">{points?.eventsTracking?.earned || 0}/{points?.eventsTracking?.total || 50} pts</div>
-          </div>
-          <div className={`text-center p-6 rounded-xl border ${categoryScores.attribution >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.attribution >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+          </button>
+          <button 
+            onClick={() => setActiveTab('attribution')}
+            className={`text-center p-6 rounded-xl border transition-all duration-200 hover:scale-105 hover:shadow-lg cursor-pointer ${
+              categoryScores.attribution >= 80 ? 'bg-green-500/10 border-green-500/20 hover:bg-green-500/20' : 
+              categoryScores.attribution >= 60 ? 'bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/20' : 
+              'bg-red-500/10 border-red-500/20 hover:bg-red-500/20'
+            }`}
+          >
             <div className={`text-2xl font-bold mb-2 ${getScoreColor(categoryScores.attribution)}`}>{categoryScores.attribution}%</div>
             <div className="text-sm text-slate-400 mb-1">Attribution</div>
             <div className="text-xs text-slate-500">{points?.attribution?.earned || 0}/{points?.attribution?.total || 10} pts</div>
-          </div>
-          <div className={`text-center p-6 rounded-xl border ${categoryScores.integrations >= 80 ? 'bg-green-500/10 border-green-500/20' : categoryScores.integrations >= 60 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+          </button>
+          <button 
+            onClick={() => setActiveTab('integrations')}
+            className={`text-center p-6 rounded-xl border transition-all duration-200 hover:scale-105 hover:shadow-lg cursor-pointer ${
+              categoryScores.integrations >= 80 ? 'bg-green-500/10 border-green-500/20 hover:bg-green-500/20' : 
+              categoryScores.integrations >= 60 ? 'bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/20' : 
+              'bg-red-500/10 border-red-500/20 hover:bg-red-500/20'
+            }`}
+          >
             <div className={`text-2xl font-bold mb-2 ${getScoreColor(categoryScores.integrations)}`}>{categoryScores.integrations}%</div>
             <div className="text-sm text-slate-400 mb-1">Integrations</div>
             <div className="text-xs text-slate-500">{points?.integrations?.earned || 0}/{points?.integrations?.total || 30} pts</div>
-          </div>
+          </button>
         </div>
 
         {/* Score Deductions */}
