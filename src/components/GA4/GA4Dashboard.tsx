@@ -208,16 +208,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       docsUrl: 'https://support.google.com/analytics/answer/10737381?hl=en'
     });
   }
-  // 18. BigQuery link
-  if (!auditData?.bigQueryLinks || auditData.bigQueryLinks.length === 0) {
-    recs.push({
-      title: 'Connect BigQuery',
-      description: 'Enables advanced analysis and custom reporting needs.',
-      severity: 'info',
-      deduction: -5,
-      docsUrl: 'https://support.google.com/analytics/answer/9358801?hl=en'
-    });
-  }
+
   // 19. Attribution channel (if available and not set correctly)
   if (auditData?.attribution && 
       auditData.attribution.channelsThatCanReceiveCredit && 
@@ -242,15 +233,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
         docsUrl: 'https://support.google.com/analytics/answer/9216061?hl=en'
       });
     }
-    if (settings.videoEngagementEnabled && !auditData.customDimensions?.some((d: CustomDimension) => d.parameterName === 'video_percent' || d.parameterName === 'video_duration')) {
-      recs.push({
-        title: 'Register video parameters',
-        description: 'Register video_percent and video_duration as custom dimensions.',
-        severity: 'info',
-        deduction: -5,
-        docsUrl: 'https://support.google.com/analytics/answer/9216061?hl=en'
-      });
-    }
+
   }
   // 21. GA4-created events - check if event create rules exist
   const totalEventCreateRules = auditData?.eventCreateRules?.reduce((total, stream) => total + stream.rules.length, 0) || 0;
