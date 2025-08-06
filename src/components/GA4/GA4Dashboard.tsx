@@ -118,6 +118,24 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       docsUrl: 'https://support.google.com/analytics/answer/9445345?hl=en'
     });
   }
+  // 9.5. Google Signals Warning (when enabled)
+  if (auditData?.googleSignals?.state === 'GOOGLE_SIGNALS_ENABLED') {
+    recs.push({
+      title: 'Google Signals Privacy Compliance',
+      description: 'Google Signals is enabled. Ensure your privacy policy covers demographic data collection and be aware of data thresholding for small audiences.',
+      severity: 'warning',
+      docsUrl: 'https://support.google.com/analytics/answer/9445345?hl=en'
+    });
+  }
+  // 10. Measurement Protocol Secrets Warning
+  if (auditData?.measurementProtocolSecrets && auditData.measurementProtocolSecrets.some(s => s.secrets.length > 0)) {
+    recs.push({
+      title: 'Measurement Protocol Security Review',
+      description: 'Measurement Protocol secrets are configured. Review and secure these secrets regularly. Monitor for "not set" attribution data that may indicate improper implementation.',
+      severity: 'warning',
+      docsUrl: 'https://developers.google.com/analytics/devguides/collection/protocol/ga4'
+    });
+  }
   // 11. Enhanced measurement
   if (!auditData?.enhancedMeasurement || auditData.enhancedMeasurement.length === 0) {
     recs.push({
@@ -255,6 +273,49 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       docsUrl: 'https://support.google.com/analytics/answer/11160918?hl=en'
     });
   }
+
+  // 23. Score deduction recommendations - add recommendations based on score deductions
+  const { deductions } = calculateCategoryScores();
+  
+  // Configuration deductions
+  deductions.configuration.forEach(deduction => {
+    recs.push({
+      title: deduction.reason,
+      description: `This configuration issue is affecting your score by -${deduction.points} points.`,
+      severity: deduction.points >= 10 ? 'critical' : 'important',
+      deduction: -deduction.points
+    });
+  });
+
+  // Events & Tracking deductions
+  deductions.eventsTracking.forEach(deduction => {
+    recs.push({
+      title: deduction.reason,
+      description: `This tracking issue is affecting your score by -${deduction.points} points.`,
+      severity: deduction.points >= 10 ? 'critical' : 'important',
+      deduction: -deduction.points
+    });
+  });
+
+  // Attribution deductions
+  deductions.attribution.forEach(deduction => {
+    recs.push({
+      title: deduction.reason,
+      description: `This attribution issue is affecting your score by -${deduction.points} points.`,
+      severity: deduction.points >= 10 ? 'critical' : 'important',
+      deduction: -deduction.points
+    });
+  });
+
+  // Integrations deductions
+  deductions.integrations.forEach(deduction => {
+    recs.push({
+      title: deduction.reason,
+      description: `This integration issue is affecting your score by -${deduction.points} points.`,
+      severity: deduction.points >= 10 ? 'critical' : 'important',
+      deduction: -deduction.points
+    });
+  });
 
   return recs;
   };
