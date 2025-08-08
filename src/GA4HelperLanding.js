@@ -59,286 +59,205 @@ const GA4HelperLanding = () => {
     setIsSubmitting(false);
   };
 
-  const painPoints = [
-    {
-      icon: AlertTriangle,
-      title: "Data Retention Set to 2 Months",
-      description: "Losing valuable historical data because default settings weren't changed"
-    },
-    {
-      icon: Target,
-      title: "Missing Key Events Setup",
-      description: "Can't track conversions properly without proper event configuration"
-    },
-    {
-      icon: Shield,
-      title: "PII Data Exposure",
-      description: "Accidentally collecting personal information in URLs and parameters"
-    },
-    {
-      icon: BarChart3,
-      title: "Inaccurate Attribution",
-      description: "Wrong attribution model causing poor ad spend decisions"
-    }
-  ];
-
-  const solutions = [
-    {
-      icon: Zap,
-      title: "Instant GA4 Audit",
-      description: "Get a comprehensive analysis of your setup in seconds"
-    },
-    {
-      icon: CheckCircle,
-      title: "Priority Fix List",
-      description: "Know exactly what to fix first for maximum impact"
-    },
-    {
-      icon: TrendingUp,
-      title: "2025 Best Practices",
-      description: "Stay ahead with the latest GA4 optimization techniques"
-    },
-    {
-      icon: Users,
-      title: "No-Code Setup",
-      description: "Perfect for marketers and business owners, no dev required"
-    }
-  ];
-
   const features = [
-    "Complete GA4 fundamentals checklist (30+ critical settings)",
-    "Prioritized list of fixes",
-    "Clear instructions on how to make necessary fixes"
+    {
+      icon: "📊",
+      title: "Configuration Score",
+      description: "Get an instant score based on 50+ critical GA4 settings, weighted by importance to your data quality."
+    },
+    {
+      icon: "🎯",
+      title: "Priority Recommendations",
+      description: "Receive actionable recommendations ranked by impact, with direct links to fix issues in GA4."
+    },
+    {
+      icon: "🔍",
+      title: "Deep Configuration Audit",
+      description: "Comprehensive analysis of property settings, data streams, events, and attribution configuration."
+    },
+    {
+      icon: "⚡",
+      title: "API-Powered Accuracy",
+      description: "Uses Google Analytics Admin API for real-time, precise configuration assessment."
+    },
+    {
+      icon: "📈",
+      title: "Attribution Analysis",
+      description: "Review your attribution model and conversion windows to ensure accurate conversion tracking."
+    },
+    {
+      icon: "🔗",
+      title: "Integration Check",
+      description: "Verify Google Ads linking, BigQuery exports, and other critical integrations."
+    }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-black-soft via-black to-brand-black-soft">
-      {/* Animated background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-brand-blue/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-brand-blue-light/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-blue/5 rounded-full blur-3xl animate-pulse delay-500"></div>
-      </div>
+    <div className="min-h-screen bg-brand-black-soft">
+      {/* Header */}
+      <header className="bg-gradient-to-b from-black to-brand-black-soft border-b border-brand-blue/15 px-6 py-4 sticky top-0 z-50 backdrop-blur-md bg-black/95">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <Logo size="medium" />
+          <nav className="hidden md:flex items-center space-x-8">
+            <a href="#features" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Features</a>
+            <a href="#dashboard" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Dashboard</a>
+            <a href="#" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Documentation</a>
+            <button className="bg-brand-blue text-white px-6 py-2 rounded-lg font-semibold text-sm transition-all duration-300 hover:bg-brand-blue-dark hover:translate-y-[-2px] hover:shadow-lg hover:shadow-brand-blue/25">
+              Sign In with Google
+            </button>
+          </nav>
+        </div>
+      </header>
 
-      <div className="relative z-10">
-        {/* Header */}
-        <header className="px-6 py-6">
-          <div className="max-w-7xl mx-auto flex justify-between items-center">
-            <Logo size="medium" />
+      {/* Hero Section */}
+      <section className="relative overflow-hidden py-24 text-center bg-radial-gradient">
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-blue/8 to-brand-blue-light/8"></div>
+        <div className="absolute inset-0 bg-pattern"></div>
+        <div className="relative z-10 max-w-4xl mx-auto px-6">
+          <div className="inline-flex items-center gap-2 bg-brand-blue/10 border border-brand-blue/30 px-4 py-2 rounded-full text-sm font-medium text-brand-blue-light mb-8">
+            <span>⚡</span>
+            <span>Professional GA4 Audit Tool</span>
           </div>
-        </header>
+          
+          <h1 className="logo-font text-5xl md:text-7xl text-white mb-6 leading-tight">
+            <span className="brand-blue glow">GA4 HELPER</span>
+            <br />
+            <span className="text-white text-4xl md:text-6xl">Configuration Audit Tool</span>
+          </h1>
+          
+          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+            Comprehensive Google Analytics 4 audit that ensures optimal setup, 
+            reliable data collection, and actionable insights. Identify critical 
+            configuration gaps before they impact your analytics.
+          </p>
 
-        {/* Hero Section */}
-        <section className="px-6 py-20 text-center">
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-8">
-              <span className="inline-block px-4 py-2 bg-brand-blue/20 text-brand-blue rounded-full text-sm font-semibold border border-brand-blue/30 backdrop-blur-sm">
-                🚀 Coming Soon
-              </span>
-            </div>
-            
-            <h1 className="text-5xl md:text-7xl social-gothic text-white mb-6 leading-tight">
-              Stop Losing Money on
-              <span className="block gradient-text">
-                Broken GA4 Setup
-              </span>
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Most GA4 setups are <strong className="text-brand-blue">fundamentally broken</strong>. 
-              Get an instant audit of your Google Analytics 4 configuration and fix critical issues 
-              that are costing you <strong className="text-red-400">real money</strong>.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-              <div className="flex items-center space-x-2 text-gray-400">
-                <Clock className="w-5 h-5" />
-                <span>5-minute setup</span>
-              </div>
-              <div className="flex items-center space-x-2 text-gray-400">
-                <Shield className="w-5 h-5" />
-                <span>Read-only access</span>
-              </div>
-              <div className="flex items-center space-x-2 text-gray-400">
-                <Star className="w-5 h-5" />
-                <span>No coding required</span>
-              </div>
-            </div>
-
-            {/* Email Signup */}
-            <div className="max-w-md mx-auto">
-              {isSubmitted ? (
-                <div className="bg-green-500/20 border border-green-500/30 rounded-2xl p-6 backdrop-blur-sm">
-                  <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-3" />
-                  <p className="text-white font-semibold">You're on the list!</p>
-                  <p className="text-gray-300 text-sm mt-2">We'll notify you when GA4 Helper launches.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
-                      placeholder="Enter your email for early access"
-                      className="w-full pl-12 pr-4 py-4 bg-black/60 border border-gray-600 rounded-2xl text-white placeholder-gray-400 focus:ring-2 focus:ring-brand-blue focus:border-transparent backdrop-blur-sm transition-all duration-200"
-                      required
-                      pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
-                      title="Please enter a valid email address"
-                    />
-                  </div>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={isSubmitting || !email}
-                    className="w-full bg-gradient-to-r from-brand-blue to-brand-blue-light text-white py-4 rounded-2xl font-bold text-lg hover:from-brand-blue-dark hover:to-brand-blue transition-all duration-200 shadow-lg shadow-brand-blue/25 transform hover:scale-105 disabled:opacity-50 disabled:transform-none flex items-center justify-center space-x-2"
-                  >
-                    <span>{isSubmitting ? 'Joining...' : 'Get Early Access'}</span>
-                    {!isSubmitting && <ArrowRight className="w-5 h-5" />}
-                  </button>
-                </div>
-              )}
-            </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button className="btn-primary">
+              <span>🚀</span>
+              <span>Start Free Audit</span>
+            </button>
+            <button className="btn-secondary">View Sample Report</button>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Pain Points Section */}
-        <section className="px-6 py-20 bg-black/30 backdrop-blur-sm">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl social-gothic text-white mb-6">
-                Is Your GA4 Setup <span className="text-red-400">Costing You Money?</span>
-              </h2>
-              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-                These critical misconfigurations are more common than you think, and they're 
-                silently destroying your data quality and marketing performance.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-8">
-              {painPoints.map((point, index) => {
-                const Icon = point.icon;
-                return (
-                  <div key={index} className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 backdrop-blur-sm">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <Icon className="w-6 h-6 text-red-400" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-white mb-2">{point.title}</h3>
-                        <p className="text-gray-300">{point.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* Solutions Section */}
-        <section className="px-6 py-20">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl social-gothic text-white mb-6">
-                The <span className="text-brand-blue">Complete Solution</span> You've Been Waiting For
-              </h2>
-              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-                GA4 Helper automatically audits your entire setup and gives you a prioritized 
-                action plan to fix everything that's wrong.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-8 mb-16">
-              {solutions.map((solution, index) => {
-                const Icon = solution.icon;
-                return (
-                  <div key={index} className="bg-black/60 border border-brand-blue/30 rounded-2xl p-6 backdrop-blur-sm hover:border-brand-blue/50 transition-all duration-200">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-brand-blue to-brand-blue-light rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-brand-blue/25">
-                        <Icon className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-white mb-2">{solution.title}</h3>
-                        <p className="text-gray-300">{solution.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Feature List */}
-            <div className="bg-black/60 border border-gray-600 rounded-2xl p-8 backdrop-blur-sm">
-              <h3 className="text-2xl social-gothic text-white mb-6 text-center">What You'll Get:</h3>
-              <div className="grid md:grid-cols-2 gap-4">
-                {features.map((feature, index) => (
-                  <div key={index} className="flex items-center space-x-3">
-                    <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
-                    <span className="text-gray-300">{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="px-6 py-20 bg-gradient-to-r from-brand-blue/20 to-brand-blue-light/20 backdrop-blur-sm">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl social-gothic text-white mb-6">
-              Don't Let Another Day of Bad Data Cost You Money
+      {/* Features Grid */}
+      <section className="py-24 bg-gradient-to-b from-brand-black-soft via-brand-gray-dark to-brand-black-soft" id="features">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="logo-font text-4xl md:text-5xl text-white mb-6">
+              <span className="brand-blue">POWERFUL</span> FEATURES
             </h2>
-            <p className="text-xl text-gray-300 mb-8">
-              Join thousands of marketers who will get instant access to the most comprehensive 
-              GA4 audit tool when we launch.
+            <p className="text-gray-300 text-lg">Everything you need to ensure your GA4 setup is optimized</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <div key={index} className="brand-card group">
+                <div className="w-12 h-12 bg-gradient-to-br from-brand-blue to-brand-blue-light rounded-xl flex items-center justify-center text-2xl mb-6">
+                  {feature.icon}
+                </div>
+                <h3 className="logo-font text-xl text-white mb-4">{feature.title}</h3>
+                <p className="text-gray-300 leading-relaxed">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Dashboard Preview */}
+      <section className="py-24 bg-brand-black-soft" id="dashboard">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="bg-gradient-to-br from-brand-gray-dark to-black border border-brand-blue/15 rounded-2xl p-10">
+            <h2 className="logo-font text-3xl md:text-4xl text-white mb-4">
+              <span className="brand-blue">GA4</span> Dashboard Preview
+            </h2>
+            <p className="text-gray-300 mb-8">
+              See your GA4 configuration health at a glance
             </p>
             
-            {!isSubmitted && (
-              <div className="max-w-md mx-auto">
-                <div className="space-y-4">
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
-                      placeholder="Your email address"
-                      className="w-full pl-12 pr-4 py-4 bg-black/60 border border-gray-600 rounded-2xl text-white placeholder-gray-400 focus:ring-2 focus:ring-brand-blue focus:border-transparent backdrop-blur-sm transition-all duration-200"
-                      required
-                      pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
-                      title="Please enter a valid email address"
-                    />
-                  </div>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={isSubmitting || !email}
-                    className="w-full bg-gradient-to-r from-brand-blue to-brand-blue-light text-white py-4 rounded-2xl font-bold text-lg hover:from-brand-blue-dark hover:to-brand-blue transition-all duration-200 shadow-lg shadow-brand-blue/25 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
-                  >
-                    {isSubmitting ? 'Joining...' : 'Get Notified When We Launch'}
-                  </button>
-                </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="bg-gradient-to-br from-brand-blue/10 to-brand-blue/5 border border-brand-blue/20 rounded-xl p-6 text-center group hover:scale-105 transition-all duration-300">
+                <div className="logo-font text-3xl font-bold text-brand-blue mb-2">92%</div>
+                <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Config Score</div>
               </div>
-            )}
-          </div>
-        </section>
-
-        {/* Footer */}
-        <footer className="px-6 py-12 border-t border-gray-800">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <Logo size="small" />
-              <div className="flex items-center space-x-6 text-gray-400 text-sm">
-                <span>© 2025 GA4 Helper</span>
-                <span>•</span>
-                <span>Built for marketers, by marketers</span>
+              <div className="bg-gradient-to-br from-brand-blue/10 to-brand-blue/5 border border-brand-blue/20 rounded-xl p-6 text-center group hover:scale-105 transition-all duration-300">
+                <div className="logo-font text-3xl font-bold text-brand-blue mb-2">8</div>
+                <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Issues Found</div>
+              </div>
+              <div className="bg-gradient-to-br from-brand-blue/10 to-brand-blue/5 border border-brand-blue/20 rounded-xl p-6 text-center group hover:scale-105 transition-all duration-300">
+                <div className="logo-font text-3xl font-bold text-brand-blue mb-2">2</div>
+                <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Critical Items</div>
+              </div>
+              <div className="bg-gradient-to-br from-brand-blue/10 to-brand-blue/5 border border-brand-blue/20 rounded-xl p-6 text-center group hover:scale-105 transition-all duration-300">
+                <div className="logo-font text-3xl font-bold text-brand-blue mb-2">15</div>
+                <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Optimizations</div>
               </div>
             </div>
           </div>
-        </footer>
-      </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-24 bg-gradient-to-r from-brand-blue/20 to-brand-blue-light/20">
+        <div className="max-w-4xl mx-auto text-center px-6">
+          <h2 className="logo-font text-4xl text-white mb-6">
+            Ready to Optimize Your GA4 Setup?
+          </h2>
+          <p className="text-xl text-gray-300 mb-8">
+            Join thousands of marketers who trust GA4 Helper for their analytics configuration.
+          </p>
+          
+          {!isSubmitted ? (
+            <div className="max-w-md mx-auto">
+              <div className="space-y-4">
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
+                    placeholder="Enter your email for early access"
+                    className="w-full pl-12 pr-4 py-4 bg-black/60 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-brand-blue focus:border-transparent backdrop-blur-sm transition-all duration-200"
+                    required
+                    pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+                    title="Please enter a valid email address"
+                  />
+                </div>
+                <button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || !email}
+                  className="w-full btn-primary"
+                >
+                  <span>{isSubmitting ? 'Joining...' : 'Get Early Access'}</span>
+                  {!isSubmitting && <ArrowRight className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-green-500/20 border border-green-500/30 rounded-2xl p-6 backdrop-blur-sm">
+              <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-3" />
+              <p className="text-white font-semibold">You're on the list!</p>
+              <p className="text-gray-300 text-sm mt-2">We'll notify you when GA4 Helper launches.</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 border-t border-gray-800 bg-black">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <Logo size="small" />
+            <div className="flex items-center space-x-6 text-gray-400 text-sm mt-4 md:mt-0">
+              <span>GA4 Helper by <a href="#" className="text-brand-blue hover:text-brand-blue-light transition-colors font-medium">BEAST Analytics</a></span>
+              <span>•</span>
+              <span>© 2024 All Rights Reserved</span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

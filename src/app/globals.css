@@ -4,20 +4,20 @@
 
 :root {
   /* Brand Colors - Updated for new branding */
-  --brand-blue: #0066cc;
-  --brand-blue-light: #3385d6;
-  --brand-blue-dark: #004499;
+  --brand-blue: #0856FF;
+  --brand-blue-light: #4A84FF;
+  --brand-blue-dark: #0040CC;
+  --brand-blue-glow: rgba(8, 86, 255, 0.5);
   --brand-black: #000000;
   --brand-black-soft: #0a0a0a;
   --brand-gray-dark: #0f0f0f;
-  --brand-gray-medium: #2a2a2a;
-  --brand-gray-light: #404040;
-  --brand-gray-lighter: #606060;
+  --brand-gray-medium: #1a1a1a;
+  --brand-gray-light: #2a2a2a;
+  --brand-gray-lighter: #404040;
   
   /* Legacy colors for compatibility */
   --background: var(--brand-black-soft);
   --foreground: #fff;
-  --font-social-gothic: 'Social Gothic Soft', 'Arial Black', 'Helvetica Bold', sans-serif;
   --font-inter: 'Inter', sans-serif;
   --accent-red: #ff4444;
   --accent-yellow: #ffaa00;
@@ -40,28 +40,29 @@
 }
 
 /* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--brand-black-soft);
-  color: var(--foreground);
-  font-family: var(--font-inter), 'Inter', Arial, Helvetica, sans-serif;
+  color: white;
   overflow-x: hidden;
 }
 
-h1, h2, h3, .font-social-gothic, .social-gothic {
-  font-family: var(--font-social-gothic), 'Arial Black', 'Helvetica Bold', sans-serif;
-  letter-spacing: 0.02em;
+/* Typography - Using Inter with heavy weight for logo-like text */
+.logo-font {
+  font-family: 'Inter', sans-serif;
   font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+h1, h2, h3, .logo-font {
+  font-family: 'Inter', sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.02em;
 }
 
 /* Brand utility classes */
-.social-gothic {
-  font-family: 'Social Gothic Soft', 'Arial Black', 'Helvetica Bold', sans-serif;
-  letter-spacing: 0.02em;
-  font-weight: 900;
-}
-
 .brand-blue {
   color: var(--brand-blue);
 }
@@ -94,55 +95,95 @@ h1, h2, h3, .font-social-gothic, .social-gothic {
   background: linear-gradient(135deg, var(--brand-blue-dark) 0%, var(--brand-blue) 100%);
 }
 
+/* Background patterns and gradients */
+.bg-radial-gradient {
+  background: radial-gradient(circle at 50% 50%, rgba(8, 86, 255, 0.08) 0%, transparent 60%);
+}
+
+.bg-pattern {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 20px,
+    rgba(8, 86, 255, 0.02) 20px,
+    rgba(8, 86, 255, 0.02) 40px
+  );
+  animation: slide 30s linear infinite;
+}
+
 /* Button styles */
 .btn-primary {
   background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-blue-light) 100%);
   color: white;
-  padding: 1rem 2rem;
-  border-radius: 12px;
+  padding: 1rem 2.5rem;
+  border-radius: 10px;
   text-decoration: none;
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 1rem;
   transition: all 0.3s ease;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   border: none;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+  transform: rotate(45deg);
+  transition: all 0.5s;
+}
+
+.btn-primary:hover::after {
+  animation: shine 0.5s ease-in-out;
+}
+
+@keyframes shine {
+  0% { transform: rotate(45deg) translateY(-100%); }
+  100% { transform: rotate(45deg) translateY(100%); }
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, var(--brand-blue-dark) 0%, var(--brand-blue) 100%);
   transform: translateY(-3px);
-  box-shadow: 0 20px 40px rgba(0, 102, 204, 0.4);
+  box-shadow: 0 20px 40px var(--brand-blue-glow);
 }
 
 .btn-secondary {
   background: transparent;
   color: white;
-  padding: 1rem 2rem;
-  border-radius: 12px;
+  padding: 1rem 2.5rem;
+  border-radius: 10px;
   text-decoration: none;
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 1rem;
   transition: all 0.3s ease;
-  border: 2px solid var(--brand-gray-light);
+  border: 2px solid var(--brand-gray-lighter);
   cursor: pointer;
 }
 
 .btn-secondary:hover {
   border-color: var(--brand-blue);
   color: var(--brand-blue);
-  background: rgba(0, 102, 204, 0.1);
+  background: rgba(8, 86, 255, 0.05);
+  box-shadow: 0 0 20px rgba(8, 86, 255, 0.2);
 }
 
 /* Card styles */
 .brand-card {
-  background: linear-gradient(135deg, rgba(42, 42, 42, 0.5) 0%, rgba(15, 15, 15, 0.5) 100%);
-  border: 1px solid rgba(0, 102, 204, 0.2);
+  background: linear-gradient(135deg, var(--brand-gray-medium) 0%, var(--brand-gray-dark) 100%);
+  border: 1px solid rgba(8, 86, 255, 0.1);
   border-radius: 16px;
   padding: 2rem;
   transition: all 0.3s ease;
+  cursor: pointer;
   position: relative;
   overflow: hidden;
 }
@@ -153,10 +194,10 @@ h1, h2, h3, .font-social-gothic, .social-gothic {
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 3px;
   background: linear-gradient(90deg, transparent, var(--brand-blue), transparent);
   transform: translateX(-100%);
-  transition: transform 0.5s ease;
+  transition: transform 0.6s ease;
 }
 
 .brand-card:hover::before {
@@ -166,8 +207,8 @@ h1, h2, h3, .font-social-gothic, .social-gothic {
 .brand-card:hover {
   transform: translateY(-5px);
   border-color: var(--brand-blue);
-  background: linear-gradient(135deg, rgba(0, 102, 204, 0.1) 0%, rgba(15, 15, 15, 0.5) 100%);
-  box-shadow: 0 20px 40px rgba(0, 102, 204, 0.2);
+  background: linear-gradient(135deg, rgba(8, 86, 255, 0.05) 0%, var(--brand-gray-dark) 100%);
+  box-shadow: 0 20px 40px rgba(8, 86, 255, 0.15);
 }
 
 /* Accent colors - keeping red/green/yellow/blue for indicators */
@@ -196,23 +237,18 @@ h1, h2, h3, .font-social-gothic, .social-gothic {
   background-clip: text;
 }
 
-/* Distressed texture effect */
-.distressed {
-  position: relative;
+/* Glow animation */
+@keyframes glow {
+  from { text-shadow: 0 0 10px var(--brand-blue-glow); }
+  to { text-shadow: 0 0 20px var(--brand-blue-glow), 0 0 30px var(--brand-blue-glow); }
 }
 
-.distressed::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 1px, transparent 1px),
-    radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 1px, transparent 1px),
-    radial-gradient(circle at 40% 60%, rgba(255,255,255,0.05) 1px, transparent 1px);
-  background-size: 3px 3px, 2px 2px, 4px 4px;
-  pointer-events: none;
-  opacity: 0.3;
+.glow {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+/* Slide animation */
+@keyframes slide {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(50px, 50px); }
 }

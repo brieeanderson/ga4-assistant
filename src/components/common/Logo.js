@@ -15,32 +15,36 @@ const Logo = ({ size = 'medium', className = '' }) => {
 
   return (
     <div className={`flex items-center cursor-pointer transition-transform duration-300 hover:translate-x-1 ${className}`}>
-      <svg 
-        className={`${sizeClasses[size]} mr-3`} 
-        viewBox="0 0 100 70"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* New refined cat ears / mountain graphic */}
-        <path 
-          d="M15 55 L20 15 L30 25 L45 45 L50 35 L55 45 L70 25 L80 15 L85 55" 
-          stroke="currentColor" 
-          strokeWidth="3" 
-          fill="none" 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-        />
-        {/* Horizontal lines */}
-        <path 
-          d="M10 55 L35 55 M65 55 L90 55" 
-          stroke="currentColor" 
-          strokeWidth="3" 
-          strokeLinecap="round" 
-        />
-      </svg>
+      <div className={`${sizeClasses[size]} mr-3`}>
+        <svg viewBox="0 0 100 70" fill="none">
+          {/* Outer M shape */}
+          <path 
+            d="M10 60 L25 10 L35 25 L50 45 L65 25 L75 10 L90 60" 
+            stroke="white" 
+            strokeWidth="3" 
+            fill="none" 
+            strokeLinecap="square"
+          />
+          {/* Inner details */}
+          <path 
+            d="M25 10 L35 25 L50 45 L65 25 L75 10" 
+            stroke="white" 
+            strokeWidth="2" 
+            fill="none" 
+            strokeLinecap="square"
+          />
+          {/* Base bars */}
+          <path 
+            d="M5 60 L30 60 M70 60 L95 60" 
+            stroke="white" 
+            strokeWidth="3" 
+            strokeLinecap="square"
+          />
+        </svg>
+      </div>
       <div className="flex items-baseline">
-        <span className={`social-gothic brand-blue ${textSizes[size]}`}>GA4</span>
-        <span className={`social-gothic text-black ml-2 ${textSizes[size]}`}>HELPER</span>
+        <span className={`logo-font brand-blue ${textSizes[size]}`}>GA4</span>
+        <span className={`logo-font text-white ml-2 ${textSizes[size]}`}>HELPER</span>
       </div>
     </div>
   );

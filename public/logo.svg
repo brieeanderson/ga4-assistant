@@ -1,20 +1,27 @@
 <svg width="100" height="40" viewBox="0 0 100 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- New refined cat ears / mountain graphic -->
+  <!-- Outer M shape -->
   <path 
-    d="M15 30 L20 8 L30 15 L45 25 L50 20 L55 25 L70 15 L80 8 L85 30" 
-    stroke="#000000" 
+    d="M10 30 L25 5 L35 15 L50 25 L65 15 L75 5 L90 30" 
+    stroke="white" 
     stroke-width="2" 
     fill="none" 
-    stroke-linecap="round" 
-    stroke-linejoin="round" 
+    stroke-linecap="square"
   />
-  <!-- Horizontal lines -->
+  <!-- Inner details -->
   <path 
-    d="M10 30 L35 30 M65 30 L90 30" 
-    stroke="#000000" 
+    d="M25 5 L35 15 L50 25 L65 15 L75 5" 
+    stroke="white" 
+    stroke-width="1.5" 
+    fill="none" 
+    stroke-linecap="square"
+  />
+  <!-- Base bars -->
+  <path 
+    d="M5 30 L30 30 M70 30 L95 30" 
+    stroke="white" 
     stroke-width="2" 
-    stroke-linecap="round" 
+    stroke-linecap="square"
   />
   <!-- GA4 text in blue -->
-  <text x="50" y="38" text-anchor="middle" font-family="Arial Black, Helvetica Bold, sans-serif" font-size="8" font-weight="900" fill="#0066cc">GA4 HELPER</text>
+  <text x="50" y="38" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" font-weight="900" fill="#0856FF">GA4 HELPER</text>
 </svg>
