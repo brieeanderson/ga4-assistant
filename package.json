@@ -22,6 +22,9 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@stackbit/cli": "^0.3.133",
+    "@stackbit/cms-git": "^1.0.35",
+    "@stackbit/types": "^2.1.14",
     "@svgr/webpack": "^8.1.0",
     "@types/cheerio": "^0.22.35",
     "@types/node": "^20",

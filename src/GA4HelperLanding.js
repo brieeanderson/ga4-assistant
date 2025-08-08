@@ -92,7 +92,7 @@ const GA4HelperLanding = () => {
           <nav className="hidden md:flex items-center space-x-8">
             <a href="#features" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Features</a>
             <a href="#dashboard" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Dashboard</a>
-            <a href="#" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Documentation</a>
+            <a href="/blog" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Blog</a>
             <button className="bg-brand-blue text-white px-6 py-2 rounded-lg font-semibold text-sm transition-all duration-300 hover:bg-brand-blue-dark hover:translate-y-[-2px] hover:shadow-lg hover:shadow-brand-blue/25">
               Sign In with Google
             </button>
