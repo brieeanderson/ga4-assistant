@@ -2,17 +2,8 @@
 
 import React, { useState } from 'react';
 import { 
-  BarChart3, 
   CheckCircle, 
   Mail, 
-  AlertTriangle, 
-  Zap, 
-  Target,
-  Shield,
-  TrendingUp,
-  Clock,
-  Users,
-  Star,
   ArrowRight
 } from 'lucide-react';
 import Logo from './components/common/Logo';
