@@ -1,14 +1,22 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'GA4 Helper - Coming Soon',
-  description: 'Stop losing money on broken GA4 setup',
+  title: 'GA4 Helper - Professional GA4 Configuration Audit Tool',
+  description: 'Comprehensive Google Analytics 4 audit tool that ensures optimal setup, reliable data collection, and actionable insights.',
 }
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/logo.svg" />
+        {/* Preload critical resources */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+        
         {/* Google Tag Manager */}
         <script
           dangerouslySetInnerHTML={{
@@ -21,7 +29,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         />
         {/* End Google Tag Manager */}
       </head>
-      <body>
+      <body className="antialiased bg-brand-black-soft text-white">
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe 

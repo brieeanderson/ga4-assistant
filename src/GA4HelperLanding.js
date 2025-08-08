@@ -15,6 +15,7 @@ import {
   Star,
   ArrowRight
 } from 'lucide-react';
+import Logo from './components/common/Logo';
 
 const GA4HelperLanding = () => {
   const [email, setEmail] = useState('');
@@ -111,24 +112,19 @@ const GA4HelperLanding = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-brand-black-soft via-black to-brand-black-soft">
       {/* Animated background */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-red-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-orange-400/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-brand-blue/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-brand-blue-light/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-blue/5 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
       <div className="relative z-10">
         {/* Header */}
         <header className="px-6 py-6">
           <div className="max-w-7xl mx-auto flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/25">
-                <BarChart3 className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-white">GA4 Helper</span>
-            </div>
+            <Logo size="medium" />
           </div>
         </header>
 
@@ -136,20 +132,20 @@ const GA4HelperLanding = () => {
         <section className="px-6 py-20 text-center">
           <div className="max-w-4xl mx-auto">
             <div className="mb-8">
-              <span className="inline-block px-4 py-2 bg-orange-500/20 text-orange-400 rounded-full text-sm font-semibold border border-orange-500/30 backdrop-blur-sm">
+              <span className="inline-block px-4 py-2 bg-brand-blue/20 text-brand-blue rounded-full text-sm font-semibold border border-brand-blue/30 backdrop-blur-sm">
                 🚀 Coming Soon
               </span>
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight">
+            <h1 className="text-5xl md:text-7xl social-gothic text-white mb-6 leading-tight">
               Stop Losing Money on
-              <span className="block bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
+              <span className="block gradient-text">
                 Broken GA4 Setup
               </span>
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Most GA4 setups are <strong className="text-orange-400">fundamentally broken</strong>. 
+              Most GA4 setups are <strong className="text-brand-blue">fundamentally broken</strong>. 
               Get an instant audit of your Google Analytics 4 configuration and fix critical issues 
               that are costing you <strong className="text-red-400">real money</strong>.
             </p>
@@ -187,7 +183,7 @@ const GA4HelperLanding = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
                       placeholder="Enter your email for early access"
-                      className="w-full pl-12 pr-4 py-4 bg-black/60 border border-gray-600 rounded-2xl text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
+                      className="w-full pl-12 pr-4 py-4 bg-black/60 border border-gray-600 rounded-2xl text-white placeholder-gray-400 focus:ring-2 focus:ring-brand-blue focus:border-transparent backdrop-blur-sm transition-all duration-200"
                       required
                       pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
                       title="Please enter a valid email address"
@@ -196,7 +192,7 @@ const GA4HelperLanding = () => {
                   <button
                     onClick={handleSubmit}
                     disabled={isSubmitting || !email}
-                    className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white py-4 rounded-2xl font-bold text-lg hover:from-orange-700 hover:to-red-700 transition-all duration-200 shadow-lg shadow-orange-600/25 transform hover:scale-105 disabled:opacity-50 disabled:transform-none flex items-center justify-center space-x-2"
+                    className="w-full bg-gradient-to-r from-brand-blue to-brand-blue-light text-white py-4 rounded-2xl font-bold text-lg hover:from-brand-blue-dark hover:to-brand-blue transition-all duration-200 shadow-lg shadow-brand-blue/25 transform hover:scale-105 disabled:opacity-50 disabled:transform-none flex items-center justify-center space-x-2"
                   >
                     <span>{isSubmitting ? 'Joining...' : 'Get Early Access'}</span>
                     {!isSubmitting && <ArrowRight className="w-5 h-5" />}
@@ -211,7 +207,7 @@ const GA4HelperLanding = () => {
         <section className="px-6 py-20 bg-black/30 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-white mb-6">
+              <h2 className="text-4xl social-gothic text-white mb-6">
                 Is Your GA4 Setup <span className="text-red-400">Costing You Money?</span>
               </h2>
               <p className="text-xl text-gray-300 max-w-3xl mx-auto">
@@ -245,8 +241,8 @@ const GA4HelperLanding = () => {
         <section className="px-6 py-20">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-white mb-6">
-                The <span className="text-orange-400">Complete Solution</span> You've Been Waiting For
+              <h2 className="text-4xl social-gothic text-white mb-6">
+                The <span className="text-brand-blue">Complete Solution</span> You've Been Waiting For
               </h2>
               <p className="text-xl text-gray-300 max-w-3xl mx-auto">
                 GA4 Helper automatically audits your entire setup and gives you a prioritized 
@@ -258,9 +254,9 @@ const GA4HelperLanding = () => {
               {solutions.map((solution, index) => {
                 const Icon = solution.icon;
                 return (
-                  <div key={index} className="bg-black/60 border border-orange-500/30 rounded-2xl p-6 backdrop-blur-sm hover:border-orange-500/50 transition-all duration-200">
+                  <div key={index} className="bg-black/60 border border-brand-blue/30 rounded-2xl p-6 backdrop-blur-sm hover:border-brand-blue/50 transition-all duration-200">
                     <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-orange-500/25">
+                      <div className="w-12 h-12 bg-gradient-to-r from-brand-blue to-brand-blue-light rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-brand-blue/25">
                         <Icon className="w-6 h-6 text-white" />
                       </div>
                       <div>
@@ -275,7 +271,7 @@ const GA4HelperLanding = () => {
 
             {/* Feature List */}
             <div className="bg-black/60 border border-gray-600 rounded-2xl p-8 backdrop-blur-sm">
-              <h3 className="text-2xl font-bold text-white mb-6 text-center">What You'll Get:</h3>
+              <h3 className="text-2xl social-gothic text-white mb-6 text-center">What You'll Get:</h3>
               <div className="grid md:grid-cols-2 gap-4">
                 {features.map((feature, index) => (
                   <div key={index} className="flex items-center space-x-3">
@@ -289,9 +285,9 @@ const GA4HelperLanding = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="px-6 py-20 bg-gradient-to-r from-orange-600/20 to-red-600/20 backdrop-blur-sm">
+        <section className="px-6 py-20 bg-gradient-to-r from-brand-blue/20 to-brand-blue-light/20 backdrop-blur-sm">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-bold text-white mb-6">
+            <h2 className="text-4xl social-gothic text-white mb-6">
               Don't Let Another Day of Bad Data Cost You Money
             </h2>
             <p className="text-xl text-gray-300 mb-8">
@@ -310,7 +306,7 @@ const GA4HelperLanding = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
                       placeholder="Your email address"
-                      className="w-full pl-12 pr-4 py-4 bg-black/60 border border-gray-600 rounded-2xl text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
+                      className="w-full pl-12 pr-4 py-4 bg-black/60 border border-gray-600 rounded-2xl text-white placeholder-gray-400 focus:ring-2 focus:ring-brand-blue focus:border-transparent backdrop-blur-sm transition-all duration-200"
                       required
                       pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
                       title="Please enter a valid email address"
@@ -319,7 +315,7 @@ const GA4HelperLanding = () => {
                   <button
                     onClick={handleSubmit}
                     disabled={isSubmitting || !email}
-                    className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white py-4 rounded-2xl font-bold text-lg hover:from-orange-700 hover:to-red-700 transition-all duration-200 shadow-lg shadow-orange-600/25 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
+                    className="w-full bg-gradient-to-r from-brand-blue to-brand-blue-light text-white py-4 rounded-2xl font-bold text-lg hover:from-brand-blue-dark hover:to-brand-blue transition-all duration-200 shadow-lg shadow-brand-blue/25 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
                   >
                     {isSubmitting ? 'Joining...' : 'Get Notified When We Launch'}
                   </button>
@@ -333,12 +329,7 @@ const GA4HelperLanding = () => {
         <footer className="px-6 py-12 border-t border-gray-800">
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="flex items-center space-x-3 mb-4 md:mb-0">
-                <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-white">GA4 Helper</span>
-              </div>
+              <Logo size="small" />
               <div className="flex items-center space-x-6 text-gray-400 text-sm">
                 <span>© 2025 GA4 Helper</span>
                 <span>•</span>
