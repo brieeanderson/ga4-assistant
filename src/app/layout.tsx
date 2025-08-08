@@ -1,18 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Bebas_Neue } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
-  display: 'swap',
-  preload: true,
-});
-
-const bebasNeue = Bebas_Neue({
-  subsets: ['latin'],
-  weight: '400',
-  variable: '--font-bebas-neue',
   display: 'swap',
   preload: true,
 });
@@ -25,20 +17,20 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "GA4 Setup Audit - Verify Your GA4 Fundamentals",
-  description: "Professional GA4 auditing tool that ensures you get the most reliable data.",
+  title: "GA4 Helper - Professional GA4 Configuration Audit Tool",
+  description: "Comprehensive Google Analytics 4 audit tool that ensures optimal setup, reliable data collection, and actionable insights.",
   authors: [{ name: "Brie E Anderson" }],
   robots: "index, follow",
   openGraph: {
-    title: "GA4 Setup Audit - Verify Your GA4 Fundamentals",
-    description: "Professional GA4 auditing tool that ensures you get the most reliable data.",
+    title: "GA4 Helper - Professional GA4 Configuration Audit Tool",
+    description: "Comprehensive Google Analytics 4 audit tool that ensures optimal setup, reliable data collection, and actionable insights.",
     type: "website",
-    siteName: "GA4Wise"
+    siteName: "GA4 Helper"
   },
   twitter: {
     card: "summary_large_image",
-    title: "GA4 Setup Audit - Verify Your GA4 Fundamentals",
-    description: "Professional GA4 auditing tool that ensures you get the most reliable data."
+    title: "GA4 Helper - Professional GA4 Configuration Audit Tool",
+    description: "Comprehensive Google Analytics 4 audit tool that ensures optimal setup, reliable data collection, and actionable insights."
   }
 };
 
@@ -50,8 +42,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/favicon.ico" />
+        <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/logo.svg" />
         {/* Preload critical resources */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -70,7 +62,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         />
         {/* End Google Tag Manager */}
       </head>
-      <body className={`${inter.variable} ${bebasNeue.variable} antialiased bg-gray-950 text-white`}>
+      <body className={`${inter.variable} antialiased bg-brand-black-soft text-white`}>
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe 

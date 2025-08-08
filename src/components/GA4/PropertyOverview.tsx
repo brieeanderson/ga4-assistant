@@ -8,47 +8,47 @@ interface PropertyOverviewProps {
 
 export const PropertyOverview: React.FC<PropertyOverviewProps> = ({ audit }) => {
   return (
-    <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/30 shadow-2xl">
-      <h4 className="text-xl font-bold text-white mb-6 flex items-center">
-        <BarChart3 className="w-6 h-6 mr-3 text-orange-400" />
+    <div className="bg-brand-gray-dark/80 backdrop-blur-xl rounded-2xl p-8 border border-brand-blue/30 shadow-2xl">
+      <h4 className="text-xl social-gothic text-white mb-6 flex items-center">
+        <BarChart3 className="w-6 h-6 mr-3 text-brand-blue" />
         Property Overview: {audit.property.displayName}
       </h4>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
-          <Calendar className="w-6 h-6 text-blue-400 mx-auto mb-2" />
+        <div className="bg-brand-black/50 rounded-xl p-4 border border-brand-gray-light/50 text-center">
+          <Calendar className="w-6 h-6 text-brand-blue mx-auto mb-2" />
           <div className="text-sm sm:text-base font-bold text-white break-words leading-snug min-h-[2.5rem] flex items-center justify-center">{audit.property.timeZone || 'Not Set'}</div>
           <div className="text-xs text-gray-400 mt-1">Timezone</div>
         </div>
         
-        <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
-          <DollarSign className="w-6 h-6 text-green-400 mx-auto mb-2" />
+        <div className="bg-brand-black/50 rounded-xl p-4 border border-brand-gray-light/50 text-center">
+          <DollarSign className="w-6 h-6 text-brand-blue-light mx-auto mb-2" />
           <div className="text-sm sm:text-base font-bold text-white break-words leading-snug min-h-[2.5rem] flex items-center justify-center">{audit.property.currencyCode || 'USD'}</div>
           <div className="text-xs text-gray-400 mt-1">Currency</div>
         </div>
         
-        <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
-          <Shield className="w-6 h-6 text-purple-400 mx-auto mb-2" />
+        <div className="bg-brand-black/50 rounded-xl p-4 border border-brand-gray-light/50 text-center">
+          <Shield className="w-6 h-6 text-brand-blue mx-auto mb-2" />
           <div className="text-xs sm:text-sm font-bold text-white break-words leading-snug min-h-[2.5rem] flex items-center justify-center">{(audit.property.industryCategory || 'Not Set').replace(/_/g, ' ')}</div>
           <div className="text-xs text-gray-400 mt-1">Industry</div>
         </div>
         
-        <div className="bg-black/50 rounded-xl p-4 border border-gray-600/50 text-center">
-          <Database className="w-6 h-6 text-orange-400 mx-auto mb-2" />
+        <div className="bg-brand-black/50 rounded-xl p-4 border border-brand-gray-light/50 text-center">
+          <Database className="w-6 h-6 text-brand-blue mx-auto mb-2" />
           <div className="text-sm sm:text-base font-bold text-white break-words leading-snug min-h-[2.5rem] flex items-center justify-center">{audit.dataStreams.length}</div>
           <div className="text-xs text-gray-400 mt-1">Data Streams</div>
         </div>
 
         {/* Key Events Card with Warning Logic */}
-        <div className={`bg-black/50 rounded-xl p-4 border text-center ${
+        <div className={`bg-brand-black/50 rounded-xl p-4 border text-center ${
           audit.keyEvents.length === 0 ? 'border-red-500/50' : 
-          audit.keyEvents.length > 2 ? 'border-yellow-500/50' : 
-          'border-gray-600/50'
+          audit.keyEvents.length > 2 ? 'border-brand-blue/50' : 
+          'border-brand-gray-light/50'
         }`}>
           <TrendingUp className={`w-6 h-6 mx-auto mb-2 ${
             audit.keyEvents.length === 0 ? 'text-red-400' : 
-            audit.keyEvents.length > 2 ? 'text-yellow-400' : 
-            'text-green-400'
+            audit.keyEvents.length > 2 ? 'text-brand-blue' : 
+            'text-brand-blue-light'
           }`} />
           <div className={`text-sm sm:text-base font-bold break-words leading-snug min-h-[2.5rem] flex items-center justify-center ${
             audit.keyEvents.length === 0 ? 'text-red-300' : 
@@ -73,13 +73,13 @@ export const PropertyOverview: React.FC<PropertyOverviewProps> = ({ audit }) => 
       {/* Data Streams Detail */}
       {audit.dataStreams.length > 0 && (
         <div className="mt-6">
-          <h5 className="text-lg font-semibold text-white mb-4 flex items-center">
-            <Database className="w-5 h-5 mr-2 text-orange-400" />
+          <h5 className="text-lg social-gothic text-white mb-4 flex items-center">
+            <Database className="w-5 h-5 mr-2 text-brand-blue" />
             Data Streams
           </h5>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {audit.dataStreams.map((stream, _index) => (
-              <div key={stream.name} className="bg-black/50 rounded-xl p-4 border border-gray-600/50">
+              <div key={stream.name} className="bg-brand-black/50 rounded-xl p-4 border border-brand-gray-light/50">
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h6 className="font-semibold text-white text-sm">{stream.displayName}</h6>

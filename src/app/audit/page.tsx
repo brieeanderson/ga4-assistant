@@ -3,6 +3,7 @@ import React from 'react';
 import { Shield, CheckCircle, AlertTriangle, BarChart3, Users, Zap, ArrowRight, Globe, Database, Lock, Clock } from 'lucide-react';
 import { useOAuth } from '@/hooks/useOAuth';
 import { useRouter } from 'next/navigation';
+import Logo from '@/components/common/Logo';
 
 const AuditLandingPage = () => {
   const { login, isAuthenticated, isLoading } = useOAuth();
@@ -65,22 +66,32 @@ const AuditLandingPage = () => {
   ];
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="bg-brand-black-soft">
+      {/* Header */}
+      <header className="bg-gradient-to-b from-black to-brand-black-soft border-b border-brand-blue/20 px-4 py-4 sticky top-0 z-50 backdrop-blur-md bg-black/90">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <Logo size="medium" />
+          <nav className="hidden md:flex items-center space-x-8">
+            <a href="#features" className="text-gray-400 hover:text-brand-blue transition-colors">Features</a>
+            <a href="#audit" className="text-gray-400 hover:text-brand-blue transition-colors">Audit</a>
+            <a href="#" className="text-gray-400 hover:text-brand-blue transition-colors">Documentation</a>
+          </nav>
+        </div>
+      </header>
+
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-blue/10 to-brand-blue-light/10"></div>
         <div className="relative max-w-7xl mx-auto px-4 py-20 sm:py-32">
           <div className="text-center">
-            <div className="inline-flex items-center space-x-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-2 mb-8">
-              <Shield className="h-4 w-4 text-blue-400" />
-              <span className="text-blue-400 text-sm font-medium">Professional GA4 Audit Tool</span>
+            <div className="inline-flex items-center space-x-2 bg-brand-blue/10 border border-brand-blue/30 rounded-full px-4 py-2 mb-8">
+              <Shield className="h-4 w-4 text-brand-blue" />
+              <span className="text-brand-blue text-sm font-medium">Professional GA4 Audit Tool</span>
             </div>
             
-            <h1 className="text-4xl sm:text-6xl font-bold text-white mb-6">
+            <h1 className="text-4xl sm:text-6xl social-gothic text-white mb-6">
               Verify Your GA4
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                Fundamentals
-              </span>
+              <span className="block gradient-text">Fundamentals</span>
             </h1>
             
             <p className="text-xl text-gray-300 mb-10 max-w-3xl mx-auto leading-relaxed">
@@ -92,7 +103,7 @@ const AuditLandingPage = () => {
               <button
                 onClick={login}
                 disabled={isLoading}
-                className="inline-flex items-center space-x-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>
@@ -135,7 +146,7 @@ const AuditLandingPage = () => {
       {/* Why This Matters Section */}
       <div className="max-w-7xl mx-auto px-4 py-20">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
+          <h2 className="text-3xl sm:text-4xl social-gothic text-white mb-6">
             Why GA4 Configuration Matters
           </h2>
           <p className="text-gray-300 text-lg max-w-3xl mx-auto">
@@ -146,9 +157,9 @@ const AuditLandingPage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {keyBenefits.map((benefit, index) => (
-            <div key={index} className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 backdrop-blur-sm">
-              <div className="bg-blue-500/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <benefit.icon className="h-6 w-6 text-blue-400" />
+            <div key={index} className="brand-card">
+              <div className="w-12 h-12 bg-brand-gradient rounded-lg flex items-center justify-center mb-4">
+                <benefit.icon className="h-6 w-6 text-white" />
               </div>
               <h3 className="text-white font-semibold text-lg mb-3">{benefit.title}</h3>
               <p className="text-gray-400 text-sm leading-relaxed">{benefit.description}</p>
@@ -158,10 +169,10 @@ const AuditLandingPage = () => {
       </div>
 
       {/* What We Audit Section */}
-      <div className="bg-gray-800/30 py-20">
+      <div className="bg-brand-gray-dark py-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
+            <h2 className="text-3xl sm:text-4xl social-gothic text-white mb-6">
               Comprehensive GA4 Health Check
             </h2>
             <p className="text-gray-300 text-lg max-w-3xl mx-auto">
@@ -171,10 +182,10 @@ const AuditLandingPage = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {auditCategories.map((category, index) => (
-              <div key={index} className="bg-gray-800/50 border border-gray-700 rounded-xl p-8 backdrop-blur-sm">
+              <div key={index} className="brand-card">
                 <div className="flex items-start space-x-4">
-                  <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <category.icon className="h-6 w-6 text-blue-400" />
+                  <div className="w-12 h-12 bg-brand-gradient rounded-lg flex items-center justify-center flex-shrink-0">
+                    <category.icon className="h-6 w-6 text-white" />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-white font-semibold text-xl mb-3">{category.title}</h3>
@@ -182,7 +193,7 @@ const AuditLandingPage = () => {
                     <div className="space-y-2">
                       {category.items.map((item, itemIndex) => (
                         <div key={itemIndex} className="flex items-center space-x-2">
-                          <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                          <div className="w-1.5 h-1.5 bg-brand-blue rounded-full"></div>
                           <span className="text-gray-400 text-sm">{item}</span>
                         </div>
                       ))}
@@ -197,8 +208,8 @@ const AuditLandingPage = () => {
 
       {/* CTA Section */}
       <div className="max-w-7xl mx-auto px-4 py-20">
-        <div className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-500/20 rounded-2xl p-12 text-center backdrop-blur-sm">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
+        <div className="bg-brand-blue/10 border border-brand-blue/20 rounded-2xl p-12 text-center">
+          <h2 className="text-3xl sm:text-4xl social-gothic text-white mb-6">
             Ready to Audit Your GA4 Setup?
           </h2>
           <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
@@ -207,7 +218,7 @@ const AuditLandingPage = () => {
           <button
             onClick={login}
             disabled={isLoading}
-            className="inline-flex items-center space-x-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
@@ -226,7 +237,7 @@ const AuditLandingPage = () => {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-gray-800 py-8">
+      <footer className="border-t border-brand-blue/20 bg-black py-8">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-gray-400 text-sm">
             This tool uses read-only access to your Google Analytics data. No data is stored or shared.

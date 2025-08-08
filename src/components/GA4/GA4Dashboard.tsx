@@ -474,8 +474,8 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
   );
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-400';
-    if (score >= 60) return 'text-orange-400';
+    if (score >= 80) return 'text-brand-blue';
+    if (score >= 60) return 'text-brand-blue-light';
     return 'text-red-400';
   };
 
@@ -495,10 +495,10 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
   const renderOverviewTab = () => (
     <div className="space-y-16">
                       {/* Configuration Score Hero */}
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-10 border border-slate-700">
+        <div className="bg-gradient-to-br from-brand-gray-dark to-brand-black rounded-2xl p-10 border border-brand-blue/20">
           <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-slate-800 to-slate-900 rounded-full border-4 border-slate-700 mb-6">
-            <div className="text-5xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+          <div className="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-brand-gray-dark to-brand-black rounded-full border-4 border-brand-blue/30 mb-6">
+            <div className="text-5xl font-bold gradient-text">
               {overallScore}%
             </div>
           </div>
@@ -514,8 +514,8 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           <button 
             onClick={() => setActiveTab('configuration')}
             className={`text-center p-6 rounded-xl border transition-all duration-200 hover:scale-105 hover:shadow-lg cursor-pointer ${
-              categoryScores.configuration >= 80 ? 'bg-green-500/10 border-green-500/20 hover:bg-green-500/20' : 
-              categoryScores.configuration >= 60 ? 'bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/20' : 
+              categoryScores.configuration >= 80 ? 'bg-brand-blue/10 border-brand-blue/30 hover:bg-brand-blue/20' : 
+              categoryScores.configuration >= 60 ? 'bg-brand-blue-light/10 border-brand-blue-light/30 hover:bg-brand-blue-light/20' : 
               'bg-red-500/10 border-red-500/20 hover:bg-red-500/20'
             }`}
           >
@@ -526,8 +526,8 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           <button 
             onClick={() => setActiveTab('events')}
             className={`text-center p-6 rounded-xl border transition-all duration-200 hover:scale-105 hover:shadow-lg cursor-pointer ${
-              categoryScores.eventsTracking >= 80 ? 'bg-green-500/10 border-green-500/20 hover:bg-green-500/20' : 
-              categoryScores.eventsTracking >= 60 ? 'bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/20' : 
+              categoryScores.eventsTracking >= 80 ? 'bg-brand-blue/10 border-brand-blue/30 hover:bg-brand-blue/20' : 
+              categoryScores.eventsTracking >= 60 ? 'bg-brand-blue-light/10 border-brand-blue-light/30 hover:bg-brand-blue-light/20' : 
               'bg-red-500/10 border-red-500/20 hover:bg-red-500/20'
             }`}
           >
@@ -538,8 +538,8 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           <button 
             onClick={() => setActiveTab('attribution')}
             className={`text-center p-6 rounded-xl border transition-all duration-200 hover:scale-105 hover:shadow-lg cursor-pointer ${
-              categoryScores.attribution >= 80 ? 'bg-green-500/10 border-green-500/20 hover:bg-green-500/20' : 
-              categoryScores.attribution >= 60 ? 'bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/20' : 
+              categoryScores.attribution >= 80 ? 'bg-brand-blue/10 border-brand-blue/30 hover:bg-brand-blue/20' : 
+              categoryScores.attribution >= 60 ? 'bg-brand-blue-light/10 border-brand-blue-light/30 hover:bg-brand-blue-light/20' : 
               'bg-red-500/10 border-red-500/20 hover:bg-red-500/20'
             }`}
           >
@@ -550,8 +550,8 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           <button 
             onClick={() => setActiveTab('integrations')}
             className={`text-center p-6 rounded-xl border transition-all duration-200 hover:scale-105 hover:shadow-lg cursor-pointer ${
-              categoryScores.integrations >= 80 ? 'bg-green-500/10 border-green-500/20 hover:bg-green-500/20' : 
-              categoryScores.integrations >= 60 ? 'bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/20' : 
+              categoryScores.integrations >= 80 ? 'bg-brand-blue/10 border-brand-blue/30 hover:bg-brand-blue/20' : 
+              categoryScores.integrations >= 60 ? 'bg-brand-blue-light/10 border-brand-blue-light/30 hover:bg-brand-blue-light/20' : 
               'bg-red-500/10 border-red-500/20 hover:bg-red-500/20'
             }`}
           >
@@ -563,7 +563,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
 
         {/* Score Deductions */}
         {(deductions.configuration.length > 0 || deductions.eventsTracking.length > 0 || deductions.attribution.length > 0 || deductions.integrations.length > 0) && (
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-10 border border-slate-700">
+          <div className="bg-gradient-to-br from-brand-gray-dark to-brand-black rounded-2xl p-10 border border-brand-blue/20">
             <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
               <AlertTriangle className="w-7 h-7 mr-3 text-red-400" />
               Score Deductions
@@ -702,7 +702,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
 
         {/* Top Recommendations */}
         {topRecommendations.length > 0 && (
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-10 border border-slate-700">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-10 border border-brand-blue/20">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-white flex items-center">
                 <Shield className="w-7 h-7 mr-3 text-orange-400" />
@@ -1715,7 +1715,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
           };
       return (
         <div className="space-y-16">
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-slate-700">
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 border border-brand-blue/20">
           <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
             <Shield className="w-7 h-7 mr-3 text-orange-400" />
             All Recommendations
@@ -1752,14 +1752,14 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-brand-black-soft">
       {/* Header */}
-      <div className="border-b border-gray-800 bg-black">
+      <div className="border-b border-brand-blue/20 bg-black">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-white">
-                <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">GA4Helper</span>
+              <h1 className="text-3xl social-gothic text-white">
+                <span className="gradient-text">GA4 HELPER</span>
                 <span className="text-white ml-2">Dashboard</span>
               </h1>
               <p className="text-gray-400 mt-2">
@@ -1800,7 +1800,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               </div>
               <button 
                 onClick={onChangeProperty}
-                className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200"
+                className="btn-primary"
               >
                 <ArrowLeft className="w-4 h-4 inline mr-2" />
                 Change Property
@@ -1808,7 +1808,7 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
               <button 
                 onClick={onRefresh}
                 disabled={!onRefresh}
-                className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <RefreshCw className="w-4 h-4 inline mr-2" />
                 Refresh
@@ -1819,11 +1819,11 @@ const GA4Dashboard: React.FC<GA4DashboardProps> = ({ auditData, property, onChan
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex space-x-2 border-b border-slate-800 mb-8">
+      <div className="flex space-x-2 border-b border-brand-blue/20 mb-8">
         {tabs.map(tab => (
           <button
             key={tab.id}
-            className={`flex items-center px-4 py-2 font-semibold text-sm rounded-t-lg transition-colors duration-200 ${activeTab === tab.id ? 'text-orange-400 border-b-2 border-orange-400 bg-slate-900' : 'text-slate-300 hover:text-orange-300'}`}
+            className={`flex items-center px-4 py-2 font-semibold text-sm rounded-t-lg transition-colors duration-200 ${activeTab === tab.id ? 'text-brand-blue border-b-2 border-brand-blue bg-brand-gray-dark' : 'text-gray-300 hover:text-brand-blue'}`}
             onClick={() => setActiveTab(tab.id)}
           >
             <tab.icon className="w-4 h-4 mr-2" />
