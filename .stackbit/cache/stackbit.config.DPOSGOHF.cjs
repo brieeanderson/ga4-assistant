@@ -111,13 +111,6 @@ var stackbit_config_default = (0, import_types.defineStackbitConfig)({
         }
       ]
     })
-  ],
-  // Add site configuration to help Visual Editor connect properly
-  siteUrl: "http://localhost:3000",
-  siteName: "GA4 Helper",
-  // Add preview configuration
-  preview: {
-    url: "http://localhost:3000"
-  }
+  ]
 });
-//# sourceMappingURL=stackbit.config.CJKOOGRT.cjs.map
+//# sourceMappingURL=stackbit.config.DPOSGOHF.cjs.map
