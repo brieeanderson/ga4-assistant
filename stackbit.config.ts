@@ -91,10 +91,6 @@ export default defineStackbitConfig({
     })
   ],
   
-  // Add site configuration to help Visual Editor connect properly
-  siteUrl: 'http://localhost:3000',
-  siteName: 'GA4 Helper',
-  
   // Add preview configuration
   preview: {
     url: 'http://localhost:3000'
