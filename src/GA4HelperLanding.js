@@ -64,13 +64,12 @@ const GA4HelperLanding = () => {
           </div>
           
           <h1 className="logo-font text-4xl md:text-6xl text-white mb-6 leading-tight">
-            No more guessing what's broken, <br />
-            <span className="brand-blue">discover the hidden settings</span> <br />
+            <span className="brand-blue">discover hidden GA4 settings</span> <br />
             sabotaging your data
           </h1>
           
           <p className="text-xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
-            Get a comprehensive audit of your Google Analytics 4 configuration in under 5 minutes. 
+            Get a comprehensive audit of your Google Analytics 4 settings in under 5 minutes. 
             Identify the critical setup errors that are silently destroying your data quality—before 
             they cost you thousands in bad business decisions.
           </p>
@@ -94,7 +93,7 @@ const GA4HelperLanding = () => {
               Happening Right Now
             </h2>
             <p className="text-xl text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed">
-              95% of GA4 setups have critical flaws that business owners never discover until it's too late.
+              85% of GA4 setups have critical flaws that business owners never discover until it's too late.
             </p>
           </div>
           
