@@ -94,45 +94,54 @@ const GA4HelperLanding = () => {
               Happening Right Now
             </h2>
             <p className="text-xl text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed">
-              85% of GA4 setups have critical flaws that business owners never discover until it's too late.
+              These critical configuration problems are silently breaking your data:
             </p>
           </div>
           
-          <div className="grid md:grid-cols-1 gap-6 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-1 gap-4 max-w-4xl mx-auto mb-12">
             <div className="flex items-start gap-4 p-6 bg-red-500/5 border border-red-500/20 rounded-xl">
-              <span className="text-red-400 text-2xl flex-shrink-0">❌</span>
+              <span className="text-red-400 text-2xl flex-shrink-0">🤦‍♀️</span>
               <div>
-                <h3 className="text-white font-semibold text-lg mb-2">PII leakage that could trigger GDPR fines up to $10M</h3>
+                <h3 className="text-white font-semibold text-lg">Data retention set to 2 months (your historical data is disappearing and you don't know it)</h3>
               </div>
             </div>
             
             <div className="flex items-start gap-4 p-6 bg-red-500/5 border border-red-500/20 rounded-xl">
-              <span className="text-red-400 text-2xl flex-shrink-0">❌</span>
+              <span className="text-red-400 text-2xl flex-shrink-0">🤦‍♀️</span>
               <div>
-                <h3 className="text-white font-semibold text-lg mb-2">Missing cross-domain tracking causing your funnel to look broken</h3>
+                <h3 className="text-white font-semibold text-lg">Cross-domain tracking completely broken (your funnel looks like swiss cheese)</h3>
               </div>
             </div>
             
             <div className="flex items-start gap-4 p-6 bg-red-500/5 border border-red-500/20 rounded-xl">
-              <span className="text-red-400 text-2xl flex-shrink-0">❌</span>
+              <span className="text-red-400 text-2xl flex-shrink-0">🤦‍♀️</span>
               <div>
-                <h3 className="text-white font-semibold text-lg mb-2">Incorrect attribution windows showing inconclusive conversion data</h3>
+                <h3 className="text-white font-semibold text-lg">PII leaking into URLs (hello, compliance problems)</h3>
               </div>
             </div>
             
             <div className="flex items-start gap-4 p-6 bg-red-500/5 border border-red-500/20 rounded-xl">
-              <span className="text-red-400 text-2xl flex-shrink-0">❌</span>
+              <span className="text-red-400 text-2xl flex-shrink-0">🤦‍♀️</span>
               <div>
-                <h3 className="text-white font-semibold text-lg mb-2">Unwanted referral traffic from payment processors inflating your traffic</h3>
+                <h3 className="text-white font-semibold text-lg">Payment processor spam inflating your referral traffic</h3>
               </div>
             </div>
             
             <div className="flex items-start gap-4 p-6 bg-red-500/5 border border-red-500/20 rounded-xl">
-              <span className="text-red-400 text-2xl flex-shrink-0">❌</span>
+              <span className="text-red-400 text-2xl flex-shrink-0">🤦‍♀️</span>
               <div>
-                <h3 className="text-white font-semibold text-lg mb-2">Loss of 85% of event data due to data retention settings</h3>
+                <h3 className="text-white font-semibold text-lg">Attribution windows set wrong (your conversion data is meaningless)</h3>
               </div>
             </div>
+          </div>
+
+          {/* Quote */}
+          <div className="max-w-4xl mx-auto">
+            <blockquote className="bg-gray-900/50 border-l-4 border-red-400 p-8 rounded-r-xl">
+              <p className="text-xl text-gray-300 italic leading-relaxed">
+                "I've seen businesses make big decisions based on GA4 data that was fundamentally broken. The worst part? They had no clue because GA4 doesn't exactly make it obvious when things are wrong."
+              </p>
+            </blockquote>
           </div>
         </div>
       </section>
@@ -231,72 +240,24 @@ const GA4HelperLanding = () => {
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="logo-font text-3xl md:text-5xl text-gray-900 mb-8">
-              Built by the <span className="text-brand-blue">GA4 Expert</span> <br />
-              Companies Actually Hire
+              Why This <span className="text-brand-blue">Tool Exists</span>
             </h2>
           </div>
           
-          <div className="bg-white rounded-2xl p-8 md:p-12 border border-gray-200 shadow-xl">
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Brie E Anderson has spent the last 4 years specializing exclusively in Google Analytics 4:</h3>
-            </div>
+          <div className="bg-white rounded-2xl p-8 md:p-12 border border-gray-200 shadow-xl max-w-4xl mx-auto">
             
-            <div className="grid md:grid-cols-2 gap-6 mb-8">
-              <div className="flex items-start gap-4">
-                <span className="text-brand-blue text-2xl flex-shrink-0">🎓</span>
-                <div>
-                  <h4 className="text-gray-900 font-semibold mb-1">University Instructor</h4>
-                  <p className="text-gray-700">Teaching GA4 implementation at the academic level</p>
-                </div>
-              </div>
+            <div className="space-y-6 text-lg text-gray-700 leading-relaxed">
+              <p>
+                I'm Brie, and I built this after getting tired of manually checking the same GA4 settings over and over in client audits.
+              </p>
               
-              <div className="flex items-start gap-4">
-                <span className="text-brand-blue text-2xl flex-shrink-0">🏢</span>
-                <div>
-                  <h4 className="text-gray-900 font-semibold mb-1">Fortune 500 Trainer</h4>
-                  <p className="text-gray-700">In-house GA4 training for major corporations</p>
-                </div>
-              </div>
+              <p>
+                After working in GA4 for more than 4 years and doing dozens of audits, certain patterns become obvious. Most GA4 setups have the same handful of critical configuration problems—and most people never discover them because they're buried in settings you rarely visit.
+              </p>
               
-              <div className="flex items-start gap-4">
-                <span className="text-brand-blue text-2xl flex-shrink-0">🔧</span>
-                <div>
-                  <h4 className="text-gray-900 font-semibold mb-1">Implementation Specialist</h4>
-                  <p className="text-gray-700">Has personally audited and fixed dozens of GA4 setups</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4">
-                <span className="text-brand-blue text-2xl flex-shrink-0">📊</span>
-                <div>
-                  <h4 className="text-gray-900 font-semibold mb-1">Data Quality Expert</h4>
-                  <p className="text-gray-700">Knows what to look for when data doesn't seem "right"</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="border-l-4 border-brand-blue pl-6 py-4 bg-brand-blue/5 rounded-r-lg mb-6">
-              <blockquote className="text-lg text-gray-700 italic mb-4">
-                "I've seen businesses make million-dollar decisions based on GA4 data that was fundamentally broken from day one. The scary part? They had no idea."
-              </blockquote>
-              <blockquote className="text-lg text-gray-700 italic mb-4">
-                "After 4 years of fixing other people's GA4 disasters, I built this tool to catch the problems before they happen."
-              </blockquote>
-              <cite className="text-brand-blue font-semibold">- Brie E Anderson</cite>
-            </div>
-            
-            <div className="text-center">
-              <a 
-                href="https://www.linkedin.com/in/brieeanderson/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-brand-blue hover:text-brand-blue-light font-medium transition-colors"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                </svg>
-                Connect on LinkedIn
-              </a>
+              <p>
+                This tool automates some of the settings checks I do manually in every GA4 audit. It's not meant to replace comprehensive auditing, but it catches the common configuration issues that silently break your data.
+              </p>
             </div>
           </div>
         </div>
@@ -333,7 +294,76 @@ const GA4HelperLanding = () => {
         </div>
       </section>
 
+      {/* When You Need More Section */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="bg-white rounded-2xl p-8 md:p-12 border border-gray-200 shadow-xl max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="logo-font text-2xl md:text-3xl text-gray-900 mb-4">
+                Beyond Configuration: When You Need a <span className="text-brand-blue">Full GA4 Audit</span>
+              </h2>
+            </div>
+            
+            <div className="space-y-6 text-lg text-gray-700 leading-relaxed mb-8">
+              <p>
+                This configuration audit catches the common setup issues, but sometimes you need to go deeper.
+              </p>
+              
+              <p className="font-semibold text-gray-900">
+                A comprehensive GA4 audit also includes:
+              </p>
+              
+              <ul className="space-y-3 pl-6">
+                <li className="flex items-start gap-3">
+                  <span className="text-brand-blue mt-1">•</span>
+                  <span>Website implementation and tracking code review</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-brand-blue mt-1">•</span>
+                  <span>Data quality and accuracy analysis</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-brand-blue mt-1">•</span>
+                  <span>Measurement strategy and KPI assessment</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-brand-blue mt-1">•</span>
+                  <span>Custom reporting and dashboard optimization</span>
+                </li>
+              </ul>
+              
+              <p>
+                For businesses that need the full picture, explore comprehensive GA4 audits at <a href="https://beastanalyticsco.com" target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-brand-blue-light font-semibold">BEAST Analytics</a>.
+              </p>
+            </div>
 
+            {/* Alternative About This Audit box */}
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 mt-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">About This Audit</h3>
+              <p className="text-gray-700 mb-4">
+                This tool specifically audits GA4 configuration settings accessible through Google's Admin API. It does not:
+              </p>
+              <ul className="space-y-2 text-gray-700">
+                <li className="flex items-start gap-3">
+                  <span className="text-gray-400 mt-1">×</span>
+                  <span>Audit your website implementation or tracking code</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-gray-400 mt-1">×</span>
+                  <span>Check data quality or accuracy issues</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-gray-400 mt-1">×</span>
+                  <span>Review your measurement strategy or KPI setup</span>
+                </li>
+              </ul>
+              <p className="text-gray-700 mt-4">
+                For comprehensive GA4 audits that include implementation, data quality, and strategic review, <a href="https://beastanalyticsco.com" target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-brand-blue-light font-semibold">explore our full audit services</a>.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Lead Magnet CTA Section */}
       <section className="py-24 bg-gradient-to-r from-brand-blue/20 to-brand-blue-light/20" id="audit-cta">
@@ -397,6 +427,58 @@ const GA4HelperLanding = () => {
               scrolling="no"
               title="GA4 Helper Beta Signup"
             />
+          </div>
+        </div>
+      </section>
+
+      {/* What's Coming Section */}
+      <section className="py-24 bg-gradient-to-b from-brand-gray-dark to-brand-black-soft">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="logo-font text-3xl md:text-5xl text-white mb-8">
+              More Tools for <span className="text-brand-blue">GA4 Reality</span>
+            </h2>
+            <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+              GA4 Helper is growing into a resource for people dealing with GA4 day-to-day:
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-1 gap-6 max-w-4xl mx-auto mb-12">
+            <div className="flex items-start gap-4 p-6 bg-white/5 border border-white/10 rounded-xl">
+              <span className="text-brand-blue text-2xl flex-shrink-0">🛠️</span>
+              <div>
+                <h3 className="text-white font-semibold text-lg mb-2">Step-by-step fix guides for complex configuration issues</h3>
+                <p className="text-gray-400">Detailed walkthroughs that show you exactly how to fix the problems this audit identifies</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-4 p-6 bg-white/5 border border-white/10 rounded-xl">
+              <span className="text-brand-blue text-2xl flex-shrink-0">📚</span>
+              <div>
+                <h3 className="text-white font-semibold text-lg mb-2">Practical GA4 resources that focus on real problems</h3>
+                <p className="text-gray-400">No fluff guides that actually help you solve the GA4 issues you encounter every day</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-4 p-6 bg-white/5 border border-white/10 rounded-xl">
+              <span className="text-brand-blue text-2xl flex-shrink-0">📊</span>
+              <div>
+                <h3 className="text-white font-semibold text-lg mb-2">Progress tracking to see how your configuration improves over time</h3>
+                <p className="text-gray-400">Track your GA4 health score as you implement fixes and optimize your setup</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <a 
+              href="https://ga4helper.substack.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg"
+            >
+              <span>📧</span>
+              <span>Get updates on new tools and resources →</span>
+            </a>
           </div>
         </div>
       </section>
