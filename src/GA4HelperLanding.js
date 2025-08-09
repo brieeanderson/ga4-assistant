@@ -45,10 +45,11 @@ const GA4HelperLanding = () => {
       <header className="bg-gradient-to-b from-black to-brand-black-soft border-b border-brand-blue/15 px-6 py-4 sticky top-0 z-50 backdrop-blur-md bg-black/95">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Logo size="medium" variant="white" />
-                          <nav className="hidden md:flex items-center space-x-8">
-                  <a href="#features" className="text-brand-blue font-medium text-sm">Features</a>
-                  <a href="#screenshot" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Sample Report</a>
+                          <nav className="hidden md:flex items-center space-x-6">
                   <Link href="/blog" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Blog</Link>
+                  <a href="#beta-signup" className="btn-primary text-sm px-4 py-2">
+                    <span>Free Audit</span>
+                  </a>
                 </nav>
         </div>
       </header>
@@ -183,23 +184,10 @@ const GA4HelperLanding = () => {
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Screenshots Slideshow */}
-      <section className="py-24 bg-gradient-to-b from-white to-gray-50" id="screenshot">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="logo-font text-3xl md:text-5xl text-gray-900 mb-6">
-              See <span className="text-brand-blue">GA4 Helper</span> in Action
-            </h2>
-            <p className="text-gray-700 text-xl max-w-3xl mx-auto leading-relaxed">
-              Get a detailed view of how our comprehensive audit identifies and fixes critical GA4 configuration issues
-            </p>
-          </div>
           
-          <div className="relative max-w-5xl mx-auto">
-            <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-xl">
+          {/* Dashboard Screenshot integrated into solution */}
+          <div className="relative max-w-4xl mx-auto">
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl">
               <div 
                 className="aspect-video bg-gray-50 rounded-lg overflow-hidden group cursor-pointer relative"
                 onClick={() => setIsModalOpen(true)}
@@ -219,17 +207,13 @@ const GA4HelperLanding = () => {
                 </div>
               </div>
               
-              <div className="mt-6 text-center">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Comprehensive GA4 Audit Dashboard
-                </h3>
+              <div className="mt-4 text-center">
                 <p className="text-gray-600 leading-relaxed">
-                  Get instant visibility into your GA4 configuration health with detailed scores, 
-                  priority issues, and actionable recommendations.
+                  See exactly how the audit dashboard presents your GA4 configuration health with detailed scores and actionable recommendations.
                 </p>
                 <button 
                   onClick={() => setIsModalOpen(true)}
-                  className="mt-4 inline-flex items-center gap-2 text-brand-blue hover:text-brand-blue-light font-medium transition-colors"
+                  className="mt-3 inline-flex items-center gap-2 text-brand-blue hover:text-brand-blue-light font-medium transition-colors text-sm"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
@@ -242,63 +226,78 @@ const GA4HelperLanding = () => {
         </div>
       </section>
 
+
       {/* Authority/About Section */}
-      <section className="py-24 bg-gradient-to-b from-brand-black-soft to-brand-gray-dark">
+      <section className="py-24 bg-gradient-to-b from-white to-gray-50">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="logo-font text-3xl md:text-5xl text-white mb-8">
-              Built by the <span className="brand-blue">GA4 Expert</span> <br />
+            <h2 className="logo-font text-3xl md:text-5xl text-gray-900 mb-8">
+              Built by the <span className="text-brand-blue">GA4 Expert</span> <br />
               Companies Actually Hire
             </h2>
           </div>
           
-          <div className="bg-brand-gray-medium rounded-2xl p-8 md:p-12 border border-brand-blue/20">
+          <div className="bg-white rounded-2xl p-8 md:p-12 border border-gray-200 shadow-xl">
             <div className="text-center mb-8">
-              <h3 className="text-2xl font-semibold text-white mb-4">Brie E Anderson has spent the last 4 years specializing exclusively in Google Analytics 4:</h3>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Brie E Anderson has spent the last 4 years specializing exclusively in Google Analytics 4:</h3>
             </div>
             
             <div className="grid md:grid-cols-2 gap-6 mb-8">
               <div className="flex items-start gap-4">
                 <span className="text-brand-blue text-2xl flex-shrink-0">🎓</span>
                 <div>
-                  <h4 className="text-white font-semibold mb-1">University Instructor</h4>
-                  <p className="text-gray-300">Teaching GA4 implementation at the academic level</p>
+                  <h4 className="text-gray-900 font-semibold mb-1">University Instructor</h4>
+                  <p className="text-gray-700">Teaching GA4 implementation at the academic level</p>
                 </div>
               </div>
               
               <div className="flex items-start gap-4">
                 <span className="text-brand-blue text-2xl flex-shrink-0">🏢</span>
                 <div>
-                  <h4 className="text-white font-semibold mb-1">Fortune 500 Trainer</h4>
-                  <p className="text-gray-300">In-house GA4 training for major corporations</p>
+                  <h4 className="text-gray-900 font-semibold mb-1">Fortune 500 Trainer</h4>
+                  <p className="text-gray-700">In-house GA4 training for major corporations</p>
                 </div>
               </div>
               
               <div className="flex items-start gap-4">
                 <span className="text-brand-blue text-2xl flex-shrink-0">🔧</span>
                 <div>
-                  <h4 className="text-white font-semibold mb-1">Implementation Specialist</h4>
-                  <p className="text-gray-300">Has personally audited and fixed dozens of GA4 setups</p>
+                  <h4 className="text-gray-900 font-semibold mb-1">Implementation Specialist</h4>
+                  <p className="text-gray-700">Has personally audited and fixed dozens of GA4 setups</p>
                 </div>
               </div>
               
               <div className="flex items-start gap-4">
                 <span className="text-brand-blue text-2xl flex-shrink-0">📊</span>
                 <div>
-                  <h4 className="text-white font-semibold mb-1">Data Quality Expert</h4>
-                  <p className="text-gray-300">Knows what to look for when data doesn't seem "right"</p>
+                  <h4 className="text-gray-900 font-semibold mb-1">Data Quality Expert</h4>
+                  <p className="text-gray-700">Knows what to look for when data doesn't seem "right"</p>
                 </div>
               </div>
             </div>
             
-            <div className="border-l-4 border-brand-blue pl-6 py-4 bg-brand-blue/5 rounded-r-lg">
-              <blockquote className="text-lg text-gray-300 italic mb-4">
+            <div className="border-l-4 border-brand-blue pl-6 py-4 bg-brand-blue/5 rounded-r-lg mb-6">
+              <blockquote className="text-lg text-gray-700 italic mb-4">
                 "I've seen businesses make million-dollar decisions based on GA4 data that was fundamentally broken from day one. The scary part? They had no idea."
               </blockquote>
-              <blockquote className="text-lg text-gray-300 italic mb-4">
+              <blockquote className="text-lg text-gray-700 italic mb-4">
                 "After 4 years of fixing other people's GA4 disasters, I built this tool to catch the problems before they happen."
               </blockquote>
               <cite className="text-brand-blue font-semibold">- Brie E Anderson</cite>
+            </div>
+            
+            <div className="text-center">
+              <a 
+                href="https://www.linkedin.com/in/brieeanderson/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-brand-blue hover:text-brand-blue-light font-medium transition-colors"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
+                Connect on LinkedIn
+              </a>
             </div>
           </div>
         </div>
