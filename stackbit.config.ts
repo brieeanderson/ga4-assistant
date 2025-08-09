@@ -89,10 +89,5 @@ export default defineStackbitConfig({
         }
       ]
     })
-  ],
-  
-  // Add preview configuration
-  preview: {
-    url: 'http://localhost:3000'
-  }
+  ]
 });
