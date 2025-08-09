@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import Logo from './components/common/Logo';
 import ImageModal from './components/ImageModal';
 
@@ -49,7 +50,7 @@ const GA4HelperLanding = () => {
                           <nav className="hidden md:flex items-center space-x-8">
                   <a href="#features" className="text-brand-blue font-medium text-sm">Features</a>
                   <a href="#screenshot" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Sample Report</a>
-                  <a href="/blog" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Blog</a>
+                  <Link href="/blog" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Blog</Link>
                 </nav>
         </div>
       </header>
