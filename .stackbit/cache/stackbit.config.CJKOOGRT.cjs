@@ -29,6 +29,8 @@ var stackbit_config_default = (0, import_types.defineStackbitConfig)({
   stackbitVersion: "~0.8.0",
   ssgName: "nextjs",
   nodeVersion: "18",
+  // Point to your Next.js development server
+  devCommand: "npm run dev",
   contentSources: [
     new import_cms_git.GitContentSource({
       rootPath: "/Users/briannaanderson/ga4-assistant",
@@ -51,47 +53,15 @@ var stackbit_config_default = (0, import_types.defineStackbitConfig)({
               label: "Description"
             },
             {
-              type: "string",
-              name: "layout",
-              label: "Layout",
-              options: [
-                { label: "Default", value: "default" },
-                { label: "Blog Post", value: "blog" }
-              ]
-            },
-            {
               type: "markdown",
               name: "content",
               label: "Content"
-            },
-            {
-              type: "list",
-              name: "tags",
-              label: "Tags",
-              items: {
-                type: "string"
-              }
-            },
-            {
-              type: "datetime",
-              name: "date",
-              label: "Date"
-            },
-            {
-              type: "string",
-              name: "author",
-              label: "Author"
-            },
-            {
-              type: "image",
-              name: "featuredImage",
-              label: "Featured Image"
             }
           ]
         },
         {
           name: "blogPost",
-          type: "blogPost",
+          type: "page",
           label: "Blog Post",
           fields: [
             {
@@ -132,11 +102,6 @@ var stackbit_config_default = (0, import_types.defineStackbitConfig)({
               required: true
             },
             {
-              type: "image",
-              name: "featuredImage",
-              label: "Featured Image"
-            },
-            {
               type: "string",
               name: "slug",
               label: "Slug",
@@ -147,28 +112,12 @@ var stackbit_config_default = (0, import_types.defineStackbitConfig)({
       ]
     })
   ],
-  modelExtensions: [
-    {
-      name: "page",
-      fields: [
-        {
-          type: "string",
-          name: "title",
-          label: "Title",
-          required: true
-        },
-        {
-          type: "string",
-          name: "description",
-          label: "Description"
-        },
-        {
-          type: "markdown",
-          name: "content",
-          label: "Content"
-        }
-      ]
-    }
-  ]
+  // Add site configuration to help Visual Editor connect properly
+  siteUrl: "http://localhost:3000",
+  siteName: "GA4 Helper",
+  // Add preview configuration
+  preview: {
+    url: "http://localhost:3000"
+  }
 });
-//# sourceMappingURL=stackbit.config.JRG2FGCH.cjs.map
+//# sourceMappingURL=stackbit.config.CJKOOGRT.cjs.map

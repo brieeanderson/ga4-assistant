@@ -1,54 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  CheckCircle, 
-  Mail, 
-  ArrowRight
-} from 'lucide-react';
 import Logo from './components/common/Logo';
+import ImageModal from './components/ImageModal';
 
 const GA4HelperLanding = () => {
-  const [email, setEmail] = useState('');
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async () => {
-    if (!email || isSubmitting) return;
-    
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      alert('Please enter a valid email address');
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    try {
-      const formData = new FormData();
-      formData.append('form-name', 'ga4-helper-newsletter');
-      formData.append('email', email);
-
-      const response = await fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(formData).toString()
-      });
-
-      if (response.ok) {
-        setIsSubmitted(true);
-        setEmail('');
-      } else {
-        throw new Error('Form submission failed');
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('There was an error submitting your email. Please try again.');
-    }
-    
-    setIsSubmitting(false);
-  };
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const features = [
     {
@@ -88,15 +45,12 @@ const GA4HelperLanding = () => {
       {/* Header */}
       <header className="bg-gradient-to-b from-black to-brand-black-soft border-b border-brand-blue/15 px-6 py-4 sticky top-0 z-50 backdrop-blur-md bg-black/95">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Logo size="medium" />
-          <nav className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Features</a>
-            <a href="#dashboard" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Dashboard</a>
-            <a href="/blog" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Blog</a>
-            <button className="bg-brand-blue text-white px-6 py-2 rounded-lg font-semibold text-sm transition-all duration-300 hover:bg-brand-blue-dark hover:translate-y-[-2px] hover:shadow-lg hover:shadow-brand-blue/25">
-              Sign In with Google
-            </button>
-          </nav>
+          <Logo size="medium" variant="white" />
+                          <nav className="hidden md:flex items-center space-x-8">
+                  <a href="#features" className="text-brand-blue font-medium text-sm">Features</a>
+                  <a href="#screenshot" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Sample Report</a>
+                  <a href="/blog" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">Blog</a>
+                </nav>
         </div>
       </header>
 
@@ -111,7 +65,7 @@ const GA4HelperLanding = () => {
           </div>
           
           <h1 className="logo-font text-5xl md:text-7xl text-white mb-6 leading-tight">
-            <span className="brand-blue glow">GA4 HELPER</span>
+            <span className="brand-blue">GA4 HELPER</span>
             <br />
             <span className="text-white text-4xl md:text-6xl">Configuration Audit Tool</span>
           </h1>
@@ -123,11 +77,11 @@ const GA4HelperLanding = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button className="btn-primary">
+            <a href="#beta-signup" className="btn-primary">
               <span>🚀</span>
-              <span>Start Free Audit</span>
-            </button>
-            <button className="btn-secondary">View Sample Report</button>
+              <span>Get Beta Access</span>
+            </a>
+            <a href="#screenshot" className="btn-secondary">View Sample Report</a>
           </div>
         </div>
       </section>
@@ -135,120 +89,129 @@ const GA4HelperLanding = () => {
       {/* Features Grid */}
       <section className="py-24 bg-gradient-to-b from-brand-black-soft via-brand-gray-dark to-brand-black-soft" id="features">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
+          <div className="text-center mb-20">
             <h2 className="logo-font text-4xl md:text-5xl text-white mb-6">
               <span className="brand-blue">POWERFUL</span> FEATURES
             </h2>
-            <p className="text-gray-300 text-lg">Everything you need to ensure your GA4 setup is optimized</p>
+            <p className="text-gray-300 text-xl max-w-3xl mx-auto leading-relaxed">Everything you need to ensure your GA4 setup is optimized for reliable data collection and actionable insights.</p>
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="brand-card group">
-                <div className="w-12 h-12 bg-gradient-to-br from-brand-blue to-brand-blue-light rounded-xl flex items-center justify-center text-2xl mb-6">
+              <div key={index} className="bg-white border border-gray-200 rounded-2xl p-8 hover:border-brand-blue hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                <div className="w-14 h-14 bg-gradient-to-br from-brand-blue to-brand-blue-light rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:scale-105 transition-transform duration-300">
                   {feature.icon}
                 </div>
-                <h3 className="logo-font text-xl text-white mb-4">{feature.title}</h3>
-                <p className="text-gray-300 leading-relaxed">{feature.description}</p>
+                <h3 className="logo-font text-xl text-gray-900 mb-4 group-hover:text-brand-blue transition-colors">{feature.title}</h3>
+                <p className="text-gray-700 leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Dashboard Preview */}
-      <section className="py-24 bg-brand-black-soft" id="dashboard">
+      {/* Screenshots Slideshow */}
+      <section className="py-24 bg-gradient-to-b from-white to-gray-50" id="screenshot">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="bg-gradient-to-br from-brand-gray-dark to-black border border-brand-blue/15 rounded-2xl p-10">
-            <h2 className="logo-font text-3xl md:text-4xl text-white mb-4">
-              <span className="brand-blue">GA4</span> Dashboard Preview
+          <div className="text-center mb-16">
+            <h2 className="logo-font text-4xl md:text-5xl text-gray-900 mb-6">
+              See <span className="text-brand-blue">GA4 Helper</span> in Action
             </h2>
-            <p className="text-gray-300 mb-8">
-              See your GA4 configuration health at a glance
+            <p className="text-gray-700 text-xl max-w-3xl mx-auto leading-relaxed">
+              Get a detailed view of how our comprehensive audit identifies and fixes critical GA4 configuration issues
             </p>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="bg-gradient-to-br from-brand-blue/10 to-brand-blue/5 border border-brand-blue/20 rounded-xl p-6 text-center group hover:scale-105 transition-all duration-300">
-                <div className="logo-font text-3xl font-bold text-brand-blue mb-2">92%</div>
-                <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Config Score</div>
+          </div>
+          
+          <div className="relative max-w-5xl mx-auto">
+            <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-xl">
+              <div 
+                className="aspect-video bg-gray-50 rounded-lg overflow-hidden group cursor-pointer relative"
+                onClick={() => setIsModalOpen(true)}
+              >
+                <img 
+                  src="/dashboard-example.png" 
+                  alt="GA4 Helper Dashboard Example"
+                  className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                />
+                {/* Zoom overlay */}
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white bg-opacity-20 backdrop-blur-sm rounded-full p-4">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
-              <div className="bg-gradient-to-br from-brand-blue/10 to-brand-blue/5 border border-brand-blue/20 rounded-xl p-6 text-center group hover:scale-105 transition-all duration-300">
-                <div className="logo-font text-3xl font-bold text-brand-blue mb-2">8</div>
-                <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Issues Found</div>
-              </div>
-              <div className="bg-gradient-to-br from-brand-blue/10 to-brand-blue/5 border border-brand-blue/20 rounded-xl p-6 text-center group hover:scale-105 transition-all duration-300">
-                <div className="logo-font text-3xl font-bold text-brand-blue mb-2">2</div>
-                <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Critical Items</div>
-              </div>
-              <div className="bg-gradient-to-br from-brand-blue/10 to-brand-blue/5 border border-brand-blue/20 rounded-xl p-6 text-center group hover:scale-105 transition-all duration-300">
-                <div className="logo-font text-3xl font-bold text-brand-blue mb-2">15</div>
-                <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Optimizations</div>
+              
+              <div className="mt-6 text-center">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Comprehensive GA4 Audit Dashboard
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Get instant visibility into your GA4 configuration health with detailed scores, 
+                  priority issues, and actionable recommendations.
+                </p>
+                <button 
+                  onClick={() => setIsModalOpen(true)}
+                  className="mt-4 inline-flex items-center gap-2 text-brand-blue hover:text-brand-blue-light font-medium transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                  </svg>
+                  Click to enlarge and explore
+                </button>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-r from-brand-blue/20 to-brand-blue-light/20">
+      {/* Beta Signup Section */}
+      <section className="py-24 bg-gradient-to-r from-brand-blue/20 to-brand-blue-light/20" id="beta-signup">
         <div className="max-w-4xl mx-auto text-center px-6">
           <h2 className="logo-font text-4xl text-white mb-6">
             Ready to Optimize Your GA4 Setup?
           </h2>
           <p className="text-xl text-gray-300 mb-8">
-            Join thousands of marketers who trust GA4 Helper for their analytics configuration.
+            Subscribe to be first in line for your FREE configuration audit!
           </p>
           
-          {!isSubmitted ? (
-            <div className="max-w-md mx-auto">
-              <div className="space-y-4">
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
-                    placeholder="Enter your email for early access"
-                    className="w-full pl-12 pr-4 py-4 bg-black/60 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-brand-blue focus:border-transparent backdrop-blur-sm transition-all duration-200"
-                    required
-                    pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
-                    title="Please enter a valid email address"
-                  />
-                </div>
-                <button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting || !email}
-                  className="w-full btn-primary"
-                >
-                  <span>{isSubmitting ? 'Joining...' : 'Get Early Access'}</span>
-                  {!isSubmitting && <ArrowRight className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-green-500/20 border border-green-500/30 rounded-2xl p-6 backdrop-blur-sm">
-              <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-3" />
-              <p className="text-white font-semibold">You're on the list!</p>
-              <p className="text-gray-300 text-sm mt-2">We'll notify you when GA4 Helper launches.</p>
-            </div>
-          )}
+          <div className="max-w-lg mx-auto bg-white rounded-2xl p-2 shadow-2xl">
+            <iframe 
+              src="https://ga4helper.substack.com/embed" 
+              width="100%" 
+              height="320" 
+              style={{border: '1px solid #EEE', background: 'white', borderRadius: '12px'}} 
+              frameBorder="0" 
+              scrolling="no"
+              title="GA4 Helper Beta Signup"
+            />
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-gray-800 bg-black">
+      <footer className="py-6 border-t border-gray-800 bg-black">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <Logo size="small" />
+            <Logo size="small" variant="white" />
             <div className="flex items-center space-x-6 text-gray-400 text-sm mt-4 md:mt-0">
-              <span>GA4 Helper by <a href="#" className="text-brand-blue hover:text-brand-blue-light transition-colors font-medium">BEAST Analytics</a></span>
+              <span>GA4 Helper by <a href="https://beastanalyticsco.com" target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-brand-blue-light transition-colors font-medium">BEAST Analytics</a></span>
               <span>•</span>
-              <span>© 2024 All Rights Reserved</span>
+              <span>© 2025 All Rights Reserved</span>
             </div>
           </div>
         </div>
       </footer>
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        imageSrc="/dashboard-example.png"
+        imageAlt="GA4 Helper Dashboard Example"
+        imageTitle="Comprehensive GA4 Audit Dashboard"
+      />
     </div>
   );
 };

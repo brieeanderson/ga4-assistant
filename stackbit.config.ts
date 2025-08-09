@@ -6,6 +6,9 @@ export default defineStackbitConfig({
   ssgName: 'nextjs',
   nodeVersion: '18',
   
+  // Point to your Next.js development server
+  devCommand: 'npm run dev',
+  
   contentSources: [
     new GitContentSource({
       rootPath: __dirname,
@@ -86,5 +89,14 @@ export default defineStackbitConfig({
         }
       ]
     })
-  ]
+  ],
+  
+  // Add site configuration to help Visual Editor connect properly
+  siteUrl: 'http://localhost:3000',
+  siteName: 'GA4 Helper',
+  
+  // Add preview configuration
+  preview: {
+    url: 'http://localhost:3000'
+  }
 });

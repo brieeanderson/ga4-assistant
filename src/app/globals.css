@@ -25,22 +25,12 @@
   --accent-blue: var(--brand-blue);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-inter);
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     --background: var(--brand-black-soft);
     --foreground: #fff;
   }
 }
-
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;

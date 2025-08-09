@@ -2,52 +2,46 @@ import React from 'react';
 import Link from 'next/link';
 import { Calendar, User, Tag, ArrowLeft } from 'lucide-react';
 import Logo from '../../../components/common/Logo';
+import BlogContent from '../../../components/BlogContent';
 
-// This would typically come from your CMS or API
-const blogPosts = [
-  {
-    title: "Welcome to GA4 Helper Blog",
-    description: "Your first blog post about GA4 configuration and optimization",
-    date: "2024-01-15",
-    author: "GA4 Helper Team",
-    tags: ["GA4", "Analytics", "Configuration"],
-    slug: "welcome-to-ga4-helper-blog",
-    content: `
-# Welcome to GA4 Helper Blog
+import { getBlogPostBySlug, getBlogPosts } from '../../../lib/contentful';
 
-Welcome to the official GA4 Helper blog! Here you'll find expert insights, tips, and best practices for Google Analytics 4 configuration and optimization.
+// Generate static params for all blog posts
+export async function generateStaticParams() {
+  const posts = await getBlogPosts();
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
+}
 
-## What You'll Find Here
-
-Our blog covers everything you need to know about GA4:
-
-- **Configuration Best Practices**: Learn how to set up GA4 properly from day one
-- **Common Issues**: Discover and fix the most common GA4 configuration problems
-- **Advanced Features**: Explore advanced GA4 features and how to implement them
-- **Case Studies**: Real-world examples of GA4 optimization success stories
-
-## Why GA4 Configuration Matters
-
-Proper GA4 configuration is crucial for:
-
-1. **Accurate Data Collection**: Ensure you're capturing the right data
-2. **Better Insights**: Get meaningful analytics that drive business decisions
-3. **Cost Optimization**: Avoid wasting ad spend due to poor tracking
-4. **Compliance**: Stay compliant with privacy regulations
-
-## Stay Tuned
-
-We'll be publishing regular content to help you master GA4 configuration. Subscribe to our newsletter to stay updated with the latest posts and GA4 news.
-
----
-
-*Ready to optimize your GA4 setup? [Start your free audit today](/audit).*
-    `
+// Generate metadata for the page
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const post = await getBlogPostBySlug(slug);
+  
+  if (!post) {
+    return {
+      title: 'Post Not Found - GA4 Helper Blog',
+    };
   }
-];
 
-export default function BlogPostPage({ params }) {
-  const post = blogPosts.find(p => p.slug === params.slug);
+  return {
+    title: post.seoTitle || post.title,
+    description: post.seoDescription || post.excerpt,
+    openGraph: {
+      title: post.seoTitle || post.title,
+      description: post.seoDescription || post.excerpt,
+      type: 'article',
+      publishedTime: post.publishDate,
+      authors: [post.author],
+      tags: post.tags,
+    },
+  };
+}
+
+export default async function BlogPostPage({ params }) {
+  const { slug } = await params;
+  const post = await getBlogPostBySlug(slug);
 
   if (!post) {
     return (
@@ -63,30 +57,33 @@ export default function BlogPostPage({ params }) {
   }
 
   return (
-    <div className="min-h-screen bg-brand-black-soft">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="bg-gradient-to-b from-black to-brand-black-soft border-b border-brand-blue/15 px-6 py-4 sticky top-0 z-50 backdrop-blur-md bg-black/95">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Link href="/">
-            <Logo size="medium" />
+            <Logo size="medium" variant="white" />
           </Link>
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">
-              Home
+            <Link href="/#features" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">
+              Features
+            </Link>
+            <Link href="/#screenshot" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">
+              Sample Report
             </Link>
             <Link href="/blog" className="text-brand-blue font-medium text-sm">
               Blog
             </Link>
-            <Link href="/audit" className="text-gray-400 hover:text-brand-blue transition-colors text-sm font-medium">
-              Audit
-            </Link>
+            <button className="bg-brand-blue text-white px-6 py-2 rounded-lg font-semibold text-sm transition-all duration-300 hover:bg-brand-blue-dark hover:translate-y-[-2px] hover:shadow-lg hover:shadow-brand-blue/25">
+              Sign In with Google
+            </button>
           </nav>
         </div>
       </header>
 
       {/* Blog Post */}
       <article className="py-20">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-12">
           {/* Back to Blog */}
           <Link 
             href="/blog" 
@@ -97,72 +94,67 @@ export default function BlogPostPage({ params }) {
           </Link>
 
           {/* Post Header */}
-          <header className="mb-12">
-            <div className="flex items-center gap-4 text-sm text-gray-400 mb-6">
+          <header className="mb-12 max-w-4xl">
+            <div className="flex items-center gap-4 text-sm text-gray-600 mb-6">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
-                <span>{post.date}</span>
+                <span>{new Date(post.publishDate).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}</span>
               </div>
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4" />
                 <span>{post.author}</span>
               </div>
+              {post.category && (
+                <div className="flex items-center gap-2">
+                  <span className="bg-brand-blue/20 text-brand-blue px-2 py-1 rounded text-xs">
+                    {post.category}
+                  </span>
+                </div>
+              )}
             </div>
             
-            <h1 className="logo-font text-4xl md:text-5xl text-white mb-6">
+            <h1 className="logo-font text-4xl md:text-5xl text-gray-900 mb-6">
               {post.title}
             </h1>
             
-            <p className="text-xl text-gray-300 mb-6">
-              {post.description}
+            <p className="text-xl text-gray-700 mb-6 leading-relaxed">
+              {post.excerpt}
             </p>
             
-            <div className="flex items-center gap-2">
-              <Tag className="w-4 h-4 text-gray-400" />
-              <div className="flex gap-2">
-                {post.tags.map((tag, tagIndex) => (
-                  <span key={tagIndex} className="bg-brand-blue/10 text-brand-blue px-3 py-1 rounded-full text-sm">
-                    {tag}
-                  </span>
-                ))}
+            {post.tags && post.tags.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Tag className="w-4 h-4 text-gray-600" />
+                <div className="flex gap-2">
+                  {post.tags.map((tag, tagIndex) => (
+                    <span key={tagIndex} className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </header>
 
-          {/* Post Content */}
-          <div className="prose prose-invert prose-lg max-w-none">
-            <div className="text-gray-300 leading-relaxed space-y-6">
-              {post.content.split('\n').map((paragraph, index) => {
-                if (paragraph.startsWith('# ')) {
-                  return <h2 key={index} className="logo-font text-2xl text-white mt-8 mb-4">{paragraph.replace('# ', '')}</h2>;
-                } else if (paragraph.startsWith('## ')) {
-                  return <h3 key={index} className="logo-font text-xl text-white mt-6 mb-3">{paragraph.replace('## ', '')}</h3>;
-                } else if (paragraph.startsWith('- ')) {
-                  return <li key={index} className="text-gray-300 ml-4">{paragraph.replace('- ', '')}</li>;
-                } else if (paragraph.startsWith('1. ')) {
-                  return <li key={index} className="text-gray-300 ml-4">{paragraph.replace(/^\d+\.\s/, '')}</li>;
-                } else if (paragraph.trim() === '') {
-                  return <br key={index} />;
-                } else if (paragraph.startsWith('---')) {
-                  return <hr key={index} className="border-gray-700 my-8" />;
-                } else {
-                  return <p key={index} className="text-gray-300">{paragraph}</p>;
-                }
-              })}
-            </div>
+          {/* Main Content */}
+          <div className="max-w-4xl">
+            <BlogContent content={post.content} />
           </div>
         </div>
       </article>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-gray-800 bg-black">
-        <div className="max-w-6xl mx-auto px-6">
+      <footer className="py-6 border-t border-gray-200 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <Logo size="small" />
-            <div className="flex items-center space-x-6 text-gray-400 text-sm mt-4 md:mt-0">
-              <span>GA4 Helper by <a href="#" className="text-brand-blue hover:text-brand-blue-light transition-colors font-medium">BEAST Analytics</a></span>
+            <div className="flex items-center space-x-6 text-gray-600 text-sm mt-4 md:mt-0">
+              <span>GA4 Helper by <a href="https://beastanalyticsco.com" target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-brand-blue-light transition-colors font-medium">BEAST Analytics</a></span>
               <span>•</span>
-              <span>© 2024 All Rights Reserved</span>
+              <span>© 2025 All Rights Reserved</span>
             </div>
           </div>
         </div>

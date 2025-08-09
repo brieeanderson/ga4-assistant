@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 70" fill="none">
+  <!-- Geometric M logo based on the uploaded image -->
+  <!-- Left triangular section -->
+  <path d="M5 65 L5 60 L20 60 L35 15 L25 15 L10 55 L5 55 Z" fill="white"/>
+  <path d="M15 60 L30 15 L40 15 L50 40 L35 40 L30 25 L20 60 Z" fill="white"/>
+  
+  <!-- Center connecting section -->
+  <path d="M35 15 L45 35 L55 35 L65 15 Z" fill="white"/>
+  
+  <!-- Right triangular section -->
+  <path d="M50 40 L65 40 L70 25 L75 25 L80 60 L70 60 Z" fill="white"/>
+  <path d="M65 15 L75 15 L90 55 L95 55 L95 60 L80 60 L65 15 Z" fill="white"/>
+  
+  <!-- Base supports -->
+  <rect x="5" y="60" width="20" height="5" fill="white"/>
+  <rect x="75" y="60" width="20" height="5" fill="white"/>
+</svg>

@@ -11,8 +11,11 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@contentful/rich-text-react-renderer": "^16.1.0",
+    "@contentful/rich-text-types": "^17.1.0",
     "@netlify/functions": "^4.1.2",
     "cheerio": "^1.0.0",
+    "contentful": "^11.7.15",
     "lucide-react": "^0.513.0",
     "netlify-cli": "^22.1.1",
     "next": "15.3.3",
